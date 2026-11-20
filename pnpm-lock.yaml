@@ -101,6 +101,15 @@ importers:
         specifier: workspace:*
         version: link:../sim-core
 
+  packages/lab-game:
+    dependencies:
+      '@inside-tech/lesson-engine':
+        specifier: workspace:*
+        version: link:../lesson-engine
+      '@inside-tech/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+
   packages/lab-web:
     dependencies:
       '@inside-tech/lesson-engine':
