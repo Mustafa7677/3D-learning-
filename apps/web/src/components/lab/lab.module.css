@@ -220,6 +220,62 @@
   margin: 0;
 }
 
+/* ---- concept checks ---- */
+.quiz {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 12px 12px;
+  margin: 0 0 10px;
+  display: grid;
+  gap: 8px;
+}
+.quiz[data-done="true"] {
+  border-color: var(--ok);
+}
+.quiz legend {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0 4px;
+}
+.quizOptions {
+  display: grid;
+  gap: 6px;
+}
+.quizOption {
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.quizOption:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.quizOption:disabled {
+  cursor: default;
+}
+.quizOption[data-state="right"] {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+}
+.quizOption[data-state="wrong"] {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+.quizFeedback {
+  margin: 0;
+  font-size: 14px;
+  min-height: 1em;
+}
+.quizFeedback[data-correct="true"] {
+  color: var(--ok);
+}
+.quizFeedback[data-correct="false"] {
+  color: var(--danger);
+}
+
 /* ---- controls ---- */
 .controls {
   padding: 16px 18px 28px;

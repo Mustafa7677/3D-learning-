@@ -193,6 +193,7 @@ describe("language lessons are completable", () => {
         expect(script, `script for ${step.id}`).toBeDefined();
         script!(d, () => rt.getState());
         expect(engine.view().objectives.every((o) => o.done), `${lesson.id}/${step.id}`).toBe(true);
+        for (const q of step.quiz ?? []) expect(engine.answer(q.id, q.answer).correct).toBe(true);
         if (!engine.isLastStep()) {
           engine.advance();
           enter();

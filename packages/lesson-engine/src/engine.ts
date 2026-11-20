@@ -15,6 +15,15 @@ export interface ObjectiveView {
   done: boolean;
 }
 
+export interface QuizView {
+  id: string;
+  question: string;
+  options: string[];
+  answered: boolean;
+  /** Shown once answered correctly. */
+  explain?: string;
+}
+
 export interface StepView {
   index: number;
   total: number;
@@ -24,14 +33,23 @@ export interface StepView {
   hints: string[];
   focus?: string;
   objectives: ObjectiveView[];
+  quiz: QuizView[];
   complete: boolean;
   isLast: boolean;
   lessonComplete: boolean;
 }
 
+export interface AnswerResult {
+  correct: boolean;
+  /** Explanation of the correct answer, or a nudge for a wrong one. */
+  feedback: string;
+}
+
 /**
  * Tracks where a learner is inside a lesson and grades objectives against
- * simulation state. Knows nothing about rendering or the specific lab.
+ * simulation state, plus concept-check questions. Knows nothing about
+ * rendering or the specific lab. A step is complete when every objective
+ * holds and every question has been answered correctly.
  */
 export class LessonEngine<S, A = unknown> {
   readonly bus = new EventBus<LessonEvents>();
@@ -82,23 +100,31 @@ export class LessonEngine<S, A = unknown> {
     }
     if (changed) {
       this.progress.completed[step.id] = [...done];
-      const wasComplete = this.progress.completedAt !== undefined;
-      if (this.isStepComplete()) {
-        this.bus.emit("stepCompleted", { stepId: step.id, index: this.progress.stepIndex });
-        if (this.isLastStep() && !wasComplete) {
-          this.progress.completedAt = this.now();
-          this.bus.emit("lessonCompleted", { lessonId: this.lesson.id });
-        }
-      }
-      this.touch();
+      this.afterChange();
     }
+  }
+
+  /** Answer a concept-check question of the current step. */
+  answer(questionId: string, option: number): AnswerResult {
+    const step = this.step;
+    const q = step.quiz?.find((x) => x.id === questionId);
+    if (!q) return { correct: false, feedback: "Мұндай сұрақ жоқ." };
+    if (option !== q.answer) return { correct: false, feedback: q.wrongHint ?? "Дұрыс емес. Мәтінге қайта қарап, тағы ойлан." };
+    const answers = new Set(this.progress.answers?.[step.id] ?? []);
+    if (!answers.has(q.id)) {
+      answers.add(q.id);
+      this.progress.answers = { ...(this.progress.answers ?? {}), [step.id]: [...answers] };
+      this.afterChange();
+    }
+    return { correct: true, feedback: q.explain };
   }
 
   isStepComplete(index = this.progress.stepIndex): boolean {
     const step = this.lesson.steps[index];
     if (!step) return false;
     const done = new Set(this.progress.completed[step.id] ?? []);
-    return step.objectives.every((o) => done.has(o.id) && ((o.sticky ?? true) || index !== this.progress.stepIndex || this.live.has(o.id)));
+    const objectivesOk = step.objectives.every((o) => done.has(o.id) && ((o.sticky ?? true) || index !== this.progress.stepIndex || this.live.has(o.id)));
+    return objectivesOk && this.quizDone(index);
   }
 
   isLastStep(): boolean {
@@ -130,6 +156,7 @@ export class LessonEngine<S, A = unknown> {
   view(): StepView {
     const step = this.step;
     const done = new Set(this.progress.completed[step.id] ?? []);
+    const answered = new Set(this.progress.answers?.[step.id] ?? []);
     return {
       index: this.progress.stepIndex,
       total: this.lesson.steps.length,
@@ -143,27 +170,47 @@ export class LessonEngine<S, A = unknown> {
         text: o.text,
         done: done.has(o.id) && ((o.sticky ?? true) || this.live.has(o.id)),
       })),
+      quiz: (step.quiz ?? []).map((q) => ({ id: q.id, question: q.question, options: q.options, answered: answered.has(q.id), explain: answered.has(q.id) ? q.explain : undefined })),
       complete: this.isStepComplete(),
       isLast: this.isLastStep(),
       lessonComplete: this.isLessonComplete(),
     };
   }
 
-  /** Fraction of all objectives in the lesson completed (0..1). */
+  /** Fraction of all objectives and questions in the lesson completed (0..1). */
   completion(): number {
     let total = 0;
     let done = 0;
     for (const s of this.lesson.steps) {
-      total += s.objectives.length;
-      done += (this.progress.completed[s.id] ?? []).length;
+      total += s.objectives.length + (s.quiz?.length ?? 0);
+      done += (this.progress.completed[s.id] ?? []).length + (this.progress.answers?.[s.id] ?? []).length;
     }
     return total === 0 ? 1 : done / total;
+  }
+
+  private quizDone(index: number): boolean {
+    const step = this.lesson.steps[index]!;
+    const answered = new Set(this.progress.answers?.[step.id] ?? []);
+    return (step.quiz ?? []).every((q) => answered.has(q.id));
   }
 
   private isStepCompleteStored(index: number): boolean {
     const step = this.lesson.steps[index]!;
     const done = new Set(this.progress.completed[step.id] ?? []);
-    return step.objectives.every((o) => done.has(o.id));
+    return step.objectives.every((o) => done.has(o.id)) && this.quizDone(index);
+  }
+
+  private afterChange(): void {
+    const step = this.step;
+    const wasComplete = this.progress.completedAt !== undefined;
+    if (this.isStepComplete()) {
+      this.bus.emit("stepCompleted", { stepId: step.id, index: this.progress.stepIndex });
+      if (this.isLastStep() && !wasComplete) {
+        this.progress.completedAt = this.now();
+        this.bus.emit("lessonCompleted", { lessonId: this.lesson.id });
+      }
+    }
+    this.touch();
   }
 
   private touch(): void {

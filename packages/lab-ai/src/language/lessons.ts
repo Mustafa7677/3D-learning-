@@ -1,4 +1,5 @@
-import type { LessonDefinition } from "@inside-tech/lesson-engine";
+import { withContent, type LessonDefinition } from "@inside-tech/lesson-engine";
+import { languageContent } from "../content/language";
 import type { LangLabAction, LangLabState } from "./plugin";
 
 type L = LessonDefinition<LangLabState, LangLabAction>;
@@ -107,4 +108,4 @@ export const lessonLlm: L = {
   ],
 };
 
-export const languageLessons: L[] = [lessonTransformers, lessonLlm];
+export const languageLessons: L[] = [lessonTransformers, lessonLlm].map((l) => withContent(l, languageContent[l.id] ?? {}));

@@ -287,6 +287,7 @@ describe("lessons are completable", () => {
         expect(engine.view().objectives, `${lesson.id}/${step.id}`).toEqual(
           engine.view().objectives.map((o) => ({ ...o, done: true })),
         );
+        for (const q of step.quiz ?? []) expect(engine.answer(q.id, q.answer).correct).toBe(true);
         if (!engine.isLastStep()) {
           engine.advance();
           enter();

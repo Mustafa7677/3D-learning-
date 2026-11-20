@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RemoteRuntime, type AssessmentResult } from "@inside-tech/sim-core";
-import { LessonEngine, type LessonDefinition, type StepView } from "@inside-tech/lesson-engine";
+import { LessonEngine, type AnswerResult, type LessonDefinition, type StepView } from "@inside-tech/lesson-engine";
 import { createLabPort, type LabKind } from "./labPort";
 import { progressStore } from "./progress";
 
@@ -18,6 +18,7 @@ export interface LabSession<S, A> {
   next(): void;
   goTo(index: number): void;
   restartStep(): void;
+  answer(questionId: string, option: number): AnswerResult;
 }
 
 /**
@@ -111,7 +112,17 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
     [enter],
   );
 
+  const answer = useCallback((questionId: string, option: number): AnswerResult => {
+    const eng = engine.current;
+    if (!eng) return { correct: false, feedback: "Сабақ әлі жүктелуде." };
+    const r = eng.answer(questionId, option);
+    setStep(eng.view());
+    setCompletion(eng.completion());
+    return r;
+  }, []);
+
   return {
+    answer,
     ready: !!snap && !!step,
     state: snap?.state,
     assessment: snap?.assessment,

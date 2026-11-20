@@ -47,6 +47,12 @@ const progressSchema = {
       propertyNames: { pattern: ID_PATTERN },
       additionalProperties: { type: "array", maxItems: 50, items: { type: "string", pattern: ID_PATTERN } },
     },
+    answers: {
+      type: "object",
+      maxProperties: 50,
+      propertyNames: { pattern: ID_PATTERN },
+      additionalProperties: { type: "array", maxItems: 20, items: { type: "string", pattern: ID_PATTERN } },
+    },
     completedAt: { type: "number" },
     startedAt: { type: "number" },
     updatedAt: { type: "number" },

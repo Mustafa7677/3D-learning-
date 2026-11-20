@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { StepView } from "@inside-tech/lesson-engine";
+import type { AnswerResult, QuizView, StepView } from "@inside-tech/lesson-engine";
+import { Prose } from "./Prose";
 import styles from "./lab.module.css";
 
 interface Props {
@@ -12,12 +13,48 @@ interface Props {
   onNext(): void;
   onGoTo(i: number): void;
   onRestart(): void;
+  onAnswer(questionId: string, option: number): AnswerResult;
   nextLessonHref?: string;
   labHref?: string;
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, nextLessonHref, labHref = "/" }: Props) {
+/** One concept-check question: pick an option, get feedback, retry until right. */
+function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] }) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const [result, setResult] = useState<AnswerResult | null>(null);
+  const done = q.answered;
+  return (
+    <fieldset className={styles.quiz} data-done={done}>
+      <legend>{q.question}</legend>
+      <div className={styles.quizOptions}>
+        {q.options.map((o, i) => (
+          <button
+            key={i}
+            type="button"
+            className={styles.quizOption}
+            aria-pressed={picked === i}
+            data-state={picked === i && result ? (result.correct ? "right" : "wrong") : undefined}
+            disabled={done}
+            onClick={() => {
+              setPicked(i);
+              setResult(onAnswer(q.id, i));
+            }}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+      <p className={styles.quizFeedback} aria-live="polite" data-correct={done || result?.correct ? "true" : result ? "false" : undefined}>
+        {done ? `✓ ${q.explain ?? ""}` : result ? (result.correct ? `✓ ${result.feedback}` : `✗ ${result.feedback}`) : ""}
+      </p>
+    </fieldset>
+  );
+}
+
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, nextLessonHref, labHref = "/" }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
+  const total = step.objectives.length + step.quiz.length;
+  const done = step.objectives.filter((o) => o.done).length + step.quiz.filter((q) => q.answered).length;
 
   return (
     <section className={styles.lesson} aria-labelledby="lesson-step-title">
@@ -44,11 +81,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
       <h1 id="lesson-step-title" className={styles.stepTitle}>
         {step.title}
       </h1>
-      <div className={styles.body}>
-        {step.body.split("\n\n").map((para) => (
-          <p key={para}>{para}</p>
-        ))}
-      </div>
+      <Prose text={step.body} />
 
       <h2 className={styles.objHeading}>Тапсырма</h2>
       <ul className={styles.objectives}>
@@ -74,6 +107,15 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
         </div>
       )}
 
+      {step.quiz.length > 0 && (
+        <>
+          <h2 className={styles.objHeading}>Түсінігіңді тексер</h2>
+          {step.quiz.map((q) => (
+            <Question key={`${step.id}-${q.id}`} q={q} onAnswer={onAnswer} />
+          ))}
+        </>
+      )}
+
       <div className={styles.lessonActions} aria-live="polite">
         {step.lessonComplete && step.isLast ? (
           <>
@@ -90,7 +132,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
           </>
         ) : (
           <button type="button" className="btn btn-primary" disabled={!step.complete || step.isLast} onClick={onNext}>
-            {step.complete ? "Келесі кезең" : `${step.objectives.filter((o) => o.done).length} / ${step.objectives.length} орындалды`}
+            {step.complete ? "Келесі кезең" : `${done} / ${total} орындалды`}
           </button>
         )}
         <button type="button" className="btn" onClick={onRestart}>

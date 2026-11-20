@@ -17,12 +17,29 @@ export interface Objective<S> {
   sticky?: boolean;
 }
 
+/** A concept check: the learner must pick the right option to finish the step. */
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  /** Index of the correct option. */
+  answer: number;
+  /** Why the answer is right — shown after a correct answer. */
+  explain: string;
+  /** Nudge shown after a wrong answer (without giving the answer away). */
+  wrongHint?: string;
+}
+
 export interface LessonStep<S, A = unknown> {
   id: string;
   title: string;
-  /** Explanation shown to the learner (plain text, paragraphs separated by blank lines). */
+  /**
+   * Lecture text in a small Markdown subset: paragraphs, "## " headings,
+   * "- " and "1. " lists, ``` code blocks, "> " callouts, **bold** and `code`.
+   */
   body: string;
   objectives: Objective<S>[];
+  quiz?: QuizQuestion[];
   hints?: string[];
   /** Scene anchor id the camera should focus on for this step. */
   focus?: string;
@@ -46,7 +63,34 @@ export interface LessonProgress {
   stepIndex: number;
   /** Objective ids completed per step id. */
   completed: Record<string, string[]>;
+  /** Question ids answered correctly per step id. */
+  answers?: Record<string, string[]>;
   completedAt?: number;
   startedAt: number;
   updatedAt: number;
+}
+
+/** Lecture text and questions for one step, kept apart from lesson logic. */
+export interface StepContent {
+  body?: string;
+  quiz?: QuizQuestion[];
+  hints?: string[];
+}
+
+/**
+ * Merge authored content (keyed by step id) into a lesson definition.
+ * Throws when content names a step that does not exist, so typos fail tests.
+ */
+export function withContent<S, A>(lesson: LessonDefinition<S, A>, content: Record<string, StepContent>): LessonDefinition<S, A> {
+  for (const id of Object.keys(content)) {
+    if (!lesson.steps.some((s) => s.id === id)) throw new Error(`${lesson.id}: content for unknown step "${id}"`);
+  }
+  return {
+    ...lesson,
+    steps: lesson.steps.map((s) => {
+      const c = content[s.id];
+      if (!c) return s;
+      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints };
+    }),
+  };
 }
