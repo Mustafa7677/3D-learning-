@@ -70,12 +70,23 @@ export interface LearnerStats {
   epochsLargeBatch: number;
   diverged: boolean;
   bestTestAcc: number;
+  /** Largest train−test accuracy gap seen while training (overfitting). */
+  maxGap: number;
+  /** Epochs trained with L2 regularisation switched on. */
+  epochsWithL2: number;
+  /** Test loss rose ≥ 0.1 above its best while train loss kept falling. */
+  sawTestLossRise: boolean;
+  /** Largest test−train loss gap seen while training. */
+  maxLossGap: number;
+  exports: number;
 }
 
 export interface AiLabState {
   rngSeed: number;
   nextPointId: number;
   datasetKind: DatasetKind | "custom";
+  /** Seed of the current generated dataset when it was fixed by a lesson; null otherwise. */
+  dataSeed: number | null;
   noise: number;
   points: DataPoint[];
   trainRatio: number;
@@ -95,7 +106,7 @@ export interface AiLabState {
 }
 
 export type AiLabAction =
-  | { type: "dataset/generate"; kind: DatasetKind; count?: number; noise?: number }
+  | { type: "dataset/generate"; kind: DatasetKind; count?: number; noise?: number; /** Fixed data seed: same points and split every time (lessons). */ seed?: number; /** Reuse the current dataset seed (count/noise sliders). */ keepSeed?: boolean }
   | { type: "dataset/clear" }
   | { type: "point/add"; x: number; y: number; label: 0 | 1 }
   | { type: "point/remove"; id: number }
@@ -112,7 +123,9 @@ export type AiLabAction =
   | { type: "train/start" }
   | { type: "train/pause" }
   | { type: "train/epoch"; count?: number }
-  | { type: "train/reset" };
+  | { type: "train/reset" }
+  /** Learner exported the trained model (UI copies/downloads `exportModel(state)`). */
+  | { type: "model/export" };
 
 export const MAX_POINTS = 600;
 export const MAX_HIDDEN_LAYERS = 4;
@@ -137,6 +150,11 @@ const emptyStats = (): LearnerStats => ({
   epochsLargeBatch: 0,
   diverged: false,
   bestTestAcc: 0,
+  maxGap: 0,
+  epochsWithL2: 0,
+  sawTestLossRise: false,
+  maxLossGap: 0,
+  exports: 0,
 });
 
 /** Deterministically assign splits: a seeded shuffle, first `ratio` fraction is train. */
@@ -175,6 +193,15 @@ function recordEpoch(s: AiLabState, net: Network, epoch: number): EpochRecord {
   return { epoch, trainLoss: tr.loss, testLoss: te.loss, trainAcc: tr.accuracy, testAcc: te.accuracy };
 }
 
+/** Test loss climbed ≥ 0.1 above its minimum while train loss is at or below its value then. */
+function detectTestLossRise(history: EpochRecord[]): boolean {
+  let best = 0;
+  for (let i = 1; i < history.length; i++) if (history[i]!.testLoss < history[best]!.testLoss) best = i;
+  const last = history[history.length - 1]!;
+  const min = history[best]!;
+  return best < history.length - 5 && last.testLoss - min.testLoss >= 0.1 && last.trainLoss <= min.trainLoss;
+}
+
 /** Chance-level BCE is ln 2 ≈ 0.69; five epochs in a row at 2× that means training blew up. */
 function isStuckAboveChance(history: EpochRecord[]): boolean {
   if (history.length < 5) return false;
@@ -201,6 +228,10 @@ function runEpochs(s: AiLabState, n: number): AiLabState {
     if (s.hyper.batchSize === 1) stats.epochsBatch1++;
     if (s.hyper.batchSize >= 32) stats.epochsLargeBatch++;
     stats.bestTestAcc = Math.max(stats.bestTestAcc, rec.testAcc);
+    if (rec.trainAcc >= 0.9) stats.maxGap = Math.max(stats.maxGap, rec.trainAcc - rec.testAcc);
+    if (s.hyper.l2 > 0) stats.epochsWithL2++;
+    if (Number.isFinite(rec.testLoss - rec.trainLoss)) stats.maxLossGap = Math.max(stats.maxLossGap, rec.testLoss - rec.trainLoss);
+    if (!stats.sawTestLossRise && history.length >= 20) stats.sawTestLossRise = detectTestLossRise(history);
     if (!isFiniteNetwork(net) || !Number.isFinite(rec.trainLoss) || rec.trainLoss > 5 || isStuckAboveChance(history)) {
       stats.diverged = true;
       running = false;
@@ -217,18 +248,20 @@ function runEpochs(s: AiLabState, n: number): AiLabState {
 
 const clampNum = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
 
-function loadDataset(s: AiLabState, kind: DatasetKind, count: number, noise: number): AiLabState {
+function loadDataset(s: AiLabState, kind: DatasetKind, count: number, noise: number, dataSeed?: number): AiLabState {
   const rng = new Rng(s.rngSeed);
-  const raw = generateDataset(kind, clampNum(count, 2, MAX_POINTS), clampNum(noise, 0, 1), rng);
+  const dataRng = dataSeed === undefined ? rng : new Rng(dataSeed);
+  const raw = generateDataset(kind, clampNum(count, 2, MAX_POINTS), clampNum(noise, 0, 1), dataRng);
   let id = s.nextPointId;
   const pts: DataPoint[] = raw.map((p) => ({ ...p, id: id++, split: "train" }));
-  const points = assignSplits(pts, s.trainRatio, rng);
+  const points = assignSplits(pts, s.trainRatio, dataRng);
   const network = freshNetwork(s, rng);
   return {
     ...s,
     rngSeed: rng.seed,
     nextPointId: id,
     datasetKind: kind,
+    dataSeed: dataSeed ?? null,
     noise: clampNum(noise, 0, 1),
     points,
     network,
@@ -248,6 +281,7 @@ export function initialState(seed: number): AiLabState {
     rngSeed: seed >>> 0,
     nextPointId: 1,
     datasetKind: "custom",
+    dataSeed: null,
     noise: 0.2,
     points: [],
     trainRatio: 0.8,
@@ -268,7 +302,7 @@ export function initialState(seed: number): AiLabState {
 function reduce(s: AiLabState, a: AiLabAction): AiLabState {
   switch (a.type) {
     case "dataset/generate":
-      return loadDataset(s, a.kind, a.count ?? Math.max(s.points.length, 160), a.noise ?? s.noise);
+      return loadDataset(s, a.kind, a.count ?? Math.max(s.points.length, 160), a.noise ?? s.noise, a.seed ?? (a.keepSeed ? (s.dataSeed ?? undefined) : undefined));
 
     case "dataset/clear":
       return { ...s, points: [], datasetKind: "custom", selectedPointId: null, training: resetTraining(s) };
@@ -405,6 +439,9 @@ function reduce(s: AiLabState, a: AiLabAction): AiLabState {
       return { ...after, hyper: s.hyper, training: { ...after.training, running: s.training.running } };
     }
 
+    case "model/export":
+      return { ...s, stats: { ...s.stats, exports: s.stats.exports + 1 } };
+
     case "train/reset": {
       const rng = new Rng(s.rngSeed);
       return { ...s, network: freshNetwork(s, rng), rngSeed: rng.seed, training: resetTraining(s) };
@@ -482,3 +519,38 @@ export function selectedTrace(s: AiLabState): ForwardTrace | undefined {
 }
 
 export type { Activation };
+
+export interface ExportedModel {
+  format: "inside-tech/mlp@1";
+  inputs: ["x1", "x2"];
+  output: "P(class = 1)";
+  hidden: number[];
+  hiddenActivation: HiddenActivation;
+  layers: { W: number[][]; b: number[]; activation: Activation }[];
+  metrics: { trainAcc: number; testAcc: number; epochs: number; dataset: string };
+}
+
+/** Portable JSON of the active network, runnable with the snippet in `exportedModelRunner`. */
+export function exportModel(s: AiLabState): ExportedModel {
+  const m = evaluateAiLab(s).metrics;
+  const round = (v: number) => Math.round(v * 1e6) / 1e6;
+  return {
+    format: "inside-tech/mlp@1",
+    inputs: ["x1", "x2"],
+    output: "P(class = 1)",
+    hidden: s.hidden,
+    hiddenActivation: s.hiddenActivation,
+    layers: s.network.layers.map((l) => ({ W: l.W.map((r) => r.map(round)), b: l.b.map(round), activation: l.act })),
+    metrics: { trainAcc: m.trainAcc ?? 0, testAcc: m.testAcc ?? 0, epochs: s.training.epoch, dataset: s.datasetKind },
+  };
+}
+
+/** Plain-JS predictor for an exported model, shown to the learner next to the JSON. */
+export const exportedModelRunner = `function predict(model, x1, x2) {
+  const f = { relu: (z) => Math.max(0, z), tanh: Math.tanh, sigmoid: (z) => 1 / (1 + Math.exp(-z)), linear: (z) => z, step: (z) => (z >= 0 ? 1 : 0) };
+  let a = [x1, x2];
+  for (const layer of model.layers) {
+    a = layer.W.map((row, j) => f[layer.activation](row.reduce((s, w, i) => s + w * a[i], layer.b[j])));
+  }
+  return a[0]; // P(class = 1)
+}`;

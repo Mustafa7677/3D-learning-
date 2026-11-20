@@ -230,4 +230,128 @@ export const lessonTraining: L = {
   ],
 };
 
-export const aiLessons: L[] = [lessonData, lessonNeuron, lessonNetwork, lessonTraining];
+const overfitSetup: AiLabAction[] = [
+  { type: "split/setRatio", ratio: 0.4 },
+  { type: "dataset/generate", kind: "circles", count: 80, noise: 1, seed: 21 },
+  { type: "model/select", model: "network" },
+  { type: "network/setActivation", activation: "relu" },
+  { type: "network/setHidden", hidden: [16, 16, 16] },
+  { type: "hyper/set", params: { learningRate: 0.1, batchSize: 4, epochLimit: 600, l2: 0, epochsPerTick: 2 } },
+];
+
+/** Test loss minus train loss: how much worse the model does on data it never saw. */
+const lossGap = (c: { assessment: { metrics: Record<string, number> } }) => m(c, "testLoss") - m(c, "trainLoss");
+
+export const lessonOverfitting: L = {
+  id: "ai-5-overfitting",
+  labId: "ai",
+  order: 5,
+  title: "Overfitting",
+  summary: "Модель деректі жаттап алғанда не болатынын көр және оны екі тәсілмен емде.",
+  estimatedMinutes: 15,
+  steps: [
+    {
+      id: "memorize",
+      title: "Жаттап алу",
+      body:
+        "Деректер аз әрі шулы: шеңберлердің шекарасында нүктелер араласып жатыр. Ал желі үлкен — 3 қабат, әрқайсысында 16 нейрон.\n\nTraining-ті баста да, train және test дәлдігін бақыла. Желі train нүктелерінің әрқайсысының айналасына жеке «арал» салады: шуды да заңдылық деп жаттап алады. Бұл — overfitting.",
+      focus: "surface",
+      onEnter: overfitSetup,
+      objectives: [
+        { id: "train", text: "Кемінде 300 epoch үйрет", check: (s) => s.training.epoch >= 300 },
+        { id: "gap", text: "Test loss train loss-тан 0.6-дан артық жоғары болғанын байқа", check: (s) => s.stats.maxLossGap >= 0.6 },
+      ],
+      hints: ["Бет дұрыс шеңбер емес, шиыршықталған пішін болады. Сол «аралдар» — жаттап алынған шу."],
+    },
+    {
+      id: "more-data",
+      title: "Емі 1: көбірек дерек",
+      body:
+        "Деректер көп болса, жеке шулы нүктелерді жаттап алу қиындайды: желі шын заңдылықты іздеуге мәжбүр.\n\n«Деректер саны» жүгірткісін кемінде 400-ге жылжыт те, қайта үйрет. Сол желі, сол параметрлер — тек дерек көп. Loss айырмасын бақыла: test loss − train loss.",
+      focus: "surface",
+      objectives: [
+        {
+          id: "big",
+          text: "≥ 400 нүктемен кемінде 100 epoch үйрет: loss айырмасы 0.25-тен аз болсын",
+          check: (s, c) => s.points.length >= 400 && s.training.epoch >= 100 && lossGap(c) <= 0.25,
+        },
+      ],
+    },
+    {
+      id: "l2",
+      title: "Емі 2: L2 регуляризация",
+      body:
+        "Көбірек дерек жинау әрдайым мүмкін емес. L2 регуляризация әр epoch сайын салмақтарды нөлге қарай сәл тартады: желі тек шынымен пайдалы үлкен салмақтарды сақтайды, ал шуды жаттайтын шектен тыс иілістер жоғалады.\n\nДеректер қайтадан аз. L2-ні қосып, қайта үйрет.",
+      focus: "surface",
+      onEnter: overfitSetup,
+      objectives: [
+        {
+          id: "reg",
+          text: "L2 ≥ 0.005 болғанда кемінде 300 epoch үйрет: loss айырмасы 0.25-тен аз болсын",
+          check: (s, c) => s.hyper.l2 >= 0.005 && s.training.epoch >= 300 && lossGap(c) <= 0.25,
+        },
+      ],
+      hints: ["L2 жүгірткісін оңға жылжыт (мысалы 0.01), «Training-ті қайта бастау», сосын «Training бастау»."],
+    },
+    {
+      id: "early-stop",
+      title: "Test loss көтерілгенде тоқта",
+      body:
+        "Графикке қара: training басында екі loss та төмендейді. Белгілі бір сәттен кейін train loss төмендей береді, ал test loss өсе бастайды. Дәл осы сәт — модель жалпы заңдылықты үйреніп бітіп, жаттауға көшкен жер.\n\nНақты жобаларда training осы сәтте тоқтатылады (early stopping).",
+      focus: "charts",
+      onEnter: overfitSetup,
+      objectives: [{ id: "rise", text: "Test loss өсіп, train loss төмендеп жатқан сәтті тап", check: (s) => s.stats.sawTestLossRise }],
+    },
+  ],
+};
+
+export const lessonBuild: L = {
+  id: "ai-8-build",
+  labId: "ai",
+  order: 8,
+  title: "Build Your AI",
+  summary: "Өз деректеріңді жина, өз модельіңді құр, ең қиын датасетті шеш және модельді экспортта.",
+  estimatedMinutes: 25,
+  steps: [
+    {
+      id: "own-data",
+      title: "Өз деректерің",
+      body:
+        "Сахна бос. Өз есебіңді ойлап тап: кез келген пішінде екі класс сал — сызық, бұрыш, сақина, екі арал. Сосын модель таңда да, үйрет.\n\nМашиналық оқыту жобасының бәрі осылай басталады: деректер — бірінші.",
+      focus: "dataset",
+      onEnter: [{ type: "dataset/clear" }, { type: "model/select", model: "network" }, { type: "network/setHidden", hidden: [8, 8] }],
+      objectives: [
+        { id: "add", text: "Әр класқа кемінде 10 нүкте сал", check: (s) => s.stats.userAdded[0] >= 10 && s.stats.userAdded[1] >= 10 },
+        { id: "fit", text: "Өз деректеріңде train дәлдігі ≥ 90%", check: (s, c) => s.datasetKind === "custom" && s.training.epoch >= 30 && m(c, "trainAcc") >= 0.9 && m(c, "points") >= 20 },
+      ],
+    },
+    {
+      id: "spiral",
+      title: "Ең қиын есеп: спираль",
+      body:
+        "Екі спираль бір-біріне оралған. Бір нейрон да, шағын желі де мұны шеше алмайды. Бар білгеніңді қолдан: тереңдік, activation, learning rate, epoch саны, training жылдамдығы.\n\nМақсат — test жиынында кемінде 90%.",
+      focus: "surface",
+      onEnter: [
+        { type: "split/setRatio", ratio: 0.8 },
+        { type: "dataset/generate", kind: "spiral", count: 300, noise: 0.1, seed: 5 },
+        { type: "network/setHidden", hidden: [8, 8] },
+      ],
+      objectives: [
+        { id: "spiral90", text: "Спиральда test дәлдігі ≥ 90%", check: (s, c) => s.datasetKind === "spiral" && m(c, "testAcc") >= 0.9 && m(c, "testCount") >= 30 },
+      ],
+      hints: ["Мысалы: 3 қабат × 16 нейрон, tanh, learning rate 0.05, batch 16, epoch шегі 2000, жылдамдық 5."],
+    },
+    {
+      id: "export",
+      title: "Модельді экспортта",
+      body:
+        "Үйретілген модель — жай ғана сандар: салмақтар мен bias-тар. Оларды JSON етіп сақтап, кез келген JavaScript бағдарламасында іске қоса аласың. Экспорт панелінде модельдің JSON-ы мен оны орындайтын 10 жолдық функция тұр.\n\nМодельді экспортта.",
+      focus: "surface",
+      objectives: [
+        { id: "exported", text: "Кемінде 90% test дәлдігі бар модельді экспортта", check: (s, c) => s.stats.exports >= 1 && m(c, "testAcc") >= 0.9 },
+      ],
+    },
+  ],
+};
+
+export const aiLessons: L[] = [lessonData, lessonNeuron, lessonNetwork, lessonTraining, lessonOverfitting, lessonBuild];

@@ -6,6 +6,8 @@ import {
   aiLessons,
   bce,
   createNetwork,
+  exportModel,
+  exportedModelRunner,
   forward,
   generateDataset,
   measure,
@@ -115,6 +117,18 @@ describe("ai-lab plugin", () => {
     expect(rt.evaluate().notes).toContain("diverged");
   });
 
+  it("exports a model that the plain-JS runner reproduces", () => {
+    const rt = new SimulationRuntime(aiLabPlugin, 5);
+    rt.dispatch({ type: "train/epoch", count: 20 });
+    const s = rt.getState();
+    const model = exportModel(s);
+    const run = new Function("model", "x1", "x2", `${exportedModelRunner}; return predict(model, x1, x2);`);
+    for (const p of s.points.slice(0, 10)) {
+      expect(run(model, p.x, p.y)).toBeCloseTo(predict(s.network, [p.x, p.y]), 4);
+    }
+    expect(JSON.parse(JSON.stringify(model)).format).toBe("inside-tech/mlp@1");
+  });
+
   it("selectors produce a grid and a trace", () => {
     let s = aiLabPlugin.initialize(1);
     expect(predictionGrid(s, 8)).toHaveLength(64);
@@ -206,12 +220,50 @@ const scripts: Record<string, Record<string, (d: (a: AiLabAction) => void, s: ()
       tick(250);
     },
   },
+  "ai-5-overfitting": {
+    memorize: (d, _s, tick) => {
+      d({ type: "train/start" });
+      tick(300);
+    },
+    "more-data": (d, _s, tick) => {
+      d({ type: "dataset/generate", kind: "circles", count: 500, keepSeed: true });
+      d({ type: "train/start" });
+      tick(80);
+    },
+    l2: (d, _s, tick) => {
+      d({ type: "hyper/set", params: { l2: 0.01 } });
+      d({ type: "train/start" });
+      tick(300);
+    },
+    "early-stop": (d, _s, tick) => {
+      d({ type: "train/start" });
+      tick(300);
+    },
+  },
+  "ai-8-build": {
+    "own-data": (d, _s, tick) => {
+      for (let i = 0; i < 10; i++) {
+        d({ type: "point/add", x: -0.8 + (i % 5) * 0.1, y: -0.6 + Math.floor(i / 5) * 0.3, label: 0 });
+        d({ type: "point/add", x: 0.4 + (i % 5) * 0.1, y: 0.2 + Math.floor(i / 5) * 0.3, label: 1 });
+      }
+      d({ type: "train/start" });
+      tick(60);
+    },
+    spiral: (d, _s, tick) => {
+      d({ type: "network/setActivation", activation: "tanh" });
+      d({ type: "network/setHidden", hidden: [16, 16, 16] });
+      d({ type: "hyper/set", params: { learningRate: 0.05, batchSize: 16, epochLimit: 2000, epochsPerTick: 5 } });
+      d({ type: "train/start" });
+      tick(400);
+    },
+    export: (d) => d({ type: "model/export" }),
+  },
 };
 
 describe("lessons are completable", () => {
-  for (const lesson of aiLessons) {
-    it(lesson.id, () => {
-      const rt = new SimulationRuntime(aiLabPlugin, 1234);
+  for (const lesson of aiLessons) for (const seed of [1234, 7, 99]) {
+    it(`${lesson.id} (seed ${seed})`, { timeout: 60_000 }, () => {
+      const rt = new SimulationRuntime(aiLabPlugin, seed);
       const engine = new LessonEngine(lesson);
       const sync = () => engine.update(rt.getState(), rt.evaluate());
       const enter = () => engine.step.onEnter?.forEach((a) => rt.dispatch(a));
