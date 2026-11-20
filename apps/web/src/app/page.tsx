@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeroScene } from "@/components/HeroScene";
+import { SiteHeader } from "@/components/SiteHeader";
 import { labs } from "@/lib/catalog";
 import { lessonsForLab } from "@/lib/lessons";
 import styles from "@/components/home.module.css";
@@ -7,14 +8,7 @@ import styles from "@/components/home.module.css";
 export default function Home() {
   return (
     <div className={styles.page}>
-      <header className={styles.nav}>
-        <Link href="/" className={styles.brand}>
-          INSIDE TECH
-        </Link>
-        <Link href="/labs/ai" className="btn">
-          AI зертханасы
-        </Link>
-      </header>
+      <SiteHeader />
 
       <main>
         <section className={styles.hero}>

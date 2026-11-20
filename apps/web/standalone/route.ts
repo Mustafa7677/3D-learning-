@@ -11,5 +11,6 @@ export function pathToHash(href: string): string {
   if (parts.length === 0) return "#";
   if (parts[0] === "labs" && parts[1] && parts.length === 2) return `#${parts[1]}`;
   if (parts[0] === "labs" && parts.length >= 3) return `#${parts[parts.length - 1]}`;
+  if (parts.length === 1) return `#${parts[0]}`;
   return "#";
 }

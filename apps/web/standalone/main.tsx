@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { lessonEntries } from "../src/lib/lessons";
 import Home from "../src/app/page";
 import { LabPage } from "../src/components/LabPage";
+import { AccountPage } from "../src/components/AccountPage";
+import { TeacherPage } from "../src/components/TeacherPage";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
 import "../src/app/globals.css";
@@ -33,6 +35,8 @@ function App() {
 
   if (lesson) return <LessonView key={lesson.id} lessonId={lesson.id} />;
   if (openLabs.some((l) => l.id === route)) return <LabPage labId={route} />;
+  if (route === "account") return <AccountPage />;
+  if (route === "teacher") return <TeacherPage />;
   return <Home />;
 }
 
