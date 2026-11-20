@@ -1,21 +1,31 @@
 import type { LessonDefinition } from "@inside-tech/lesson-engine";
 import { aiLessons, languageLessons } from "@inside-tech/lab-ai";
+import { webLessons } from "@inside-tech/lab-web";
 import type { LabKind } from "./labPort";
 
 export interface LessonEntry {
+  labId: string;
   kind: LabKind;
   // Each kind has its own state type; views narrow by `kind`.
   lesson: LessonDefinition<any, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
-/** Every AI LAB lesson in course order, whichever simulation it runs on. */
+const byOrder = (a: LessonEntry, b: LessonEntry) => a.lesson.order - b.lesson.order;
+
+/** Every lesson, grouped by lab and in course order, whichever simulation it runs on. */
 export const lessonEntries: LessonEntry[] = [
-  ...aiLessons.map((lesson) => ({ kind: "classifier" as const, lesson })),
-  ...languageLessons.map((lesson) => ({ kind: "language" as const, lesson })),
-].sort((a, b) => a.lesson.order - b.lesson.order);
+  ...[
+    ...aiLessons.map((lesson) => ({ labId: "ai", kind: "classifier" as const, lesson })),
+    ...languageLessons.map((lesson) => ({ labId: "ai", kind: "language" as const, lesson })),
+  ].sort(byOrder),
+  ...webLessons.map((lesson) => ({ labId: "web", kind: "web" as const, lesson })).sort(byOrder),
+];
+
+export const lessonsForLab = (labId: string) => lessonEntries.filter((e) => e.labId === labId);
 
 export function findLesson(id: string): { entry: LessonEntry; next?: LessonEntry } | undefined {
-  const i = lessonEntries.findIndex((e) => e.lesson.id === id);
-  if (i < 0) return undefined;
-  return { entry: lessonEntries[i]!, next: lessonEntries[i + 1] };
+  const entry = lessonEntries.find((e) => e.lesson.id === id);
+  if (!entry) return undefined;
+  const inLab = lessonsForLab(entry.labId);
+  return { entry, next: inLab[inLab.indexOf(entry) + 1] };
 }

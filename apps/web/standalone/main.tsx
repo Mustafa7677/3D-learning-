@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { lessonEntries } from "../src/lib/lessons";
 import Home from "../src/app/page";
-import AiLabPage from "../src/app/labs/ai/page";
+import { LabPage } from "../src/components/LabPage";
+import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
 import "../src/app/globals.css";
 
-const TITLES: Record<string, string> = { "": "INSIDE TECH", ai: "AI LAB — INSIDE TECH" };
+
 
 function currentRoute(): string {
   return decodeURIComponent(window.location.hash.replace(/^#/, ""));
@@ -26,11 +27,12 @@ function App() {
 
   const lesson = lessonEntries.find((e) => e.lesson.id === route)?.lesson;
   useEffect(() => {
-    document.title = lesson ? `${lesson.title} — INSIDE TECH` : (TITLES[route] ?? "INSIDE TECH");
+    const lab = openLabs.find((l) => l.id === route);
+    document.title = lesson ? `${lesson.title} — INSIDE TECH` : lab ? `${lab.title} — INSIDE TECH` : "INSIDE TECH";
   }, [route, lesson]);
 
   if (lesson) return <LessonView key={lesson.id} lessonId={lesson.id} />;
-  if (route === "ai") return <AiLabPage />;
+  if (openLabs.some((l) => l.id === route)) return <LabPage labId={route} />;
   return <Home />;
 }
 

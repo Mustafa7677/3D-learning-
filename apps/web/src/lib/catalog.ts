@@ -3,14 +3,30 @@ export interface LabInfo {
   title: string;
   /** What the learner gets to touch inside this lab. */
   inside: string;
+  /** One-paragraph introduction on the lab page. */
+  intro?: string;
   status: "open" | "soon";
   href?: string;
 }
 
-/** The ten labs from the master plan. Only AI is built; the rest are on the roadmap. */
+/** The ten labs from the master plan. Open labs have lessons; the rest are on the roadmap. */
 export const labs: LabInfo[] = [
-  { id: "ai", title: "AI & Machine Learning", inside: "Нейронды өз қолыңмен баптап, желіні нақты үйрет", status: "open", href: "/labs/ai" },
-  { id: "web", title: "Web Development", inside: "Request серверден браузерге дейін қалай жүретінін көр", status: "soon" },
+  {
+    id: "ai",
+    title: "AI & Machine Learning",
+    inside: "Нейронды өз қолыңмен баптап, желіні нақты үйрет",
+    intro: "Деректерден бастап нақты үйретілген нейрондық желіге, сосын тілдік модельдер мен attention-ға дейін. Әр сабақта бір симуляция ішінде жұмыс істейсің, сондықтан әр өзгерістің салдарын бірден көресің.",
+    status: "open",
+    href: "/labs/ai",
+  },
+  {
+    id: "web",
+    title: "Web Development",
+    inside: "Request серверден браузерге дейін қалай жүретінін көр",
+    intro: "URL енгізген сәттен бет ашылғанға дейін: DNS, TCP, HTTP, HTML, CSS, JavaScript event loop, сервер, дерекқор. Соңында өз сайтыңды жасап, «интернетке» шығарасың.",
+    status: "open",
+    href: "/labs/web",
+  },
   { id: "game", title: "Game Development", inside: "Game loop, физика және камера ішінен", status: "soon" },
   { id: "net", title: "Computer Networks", inside: "DNS, TCP және пакеттердің маршруты", status: "soon" },
   { id: "db", title: "Databases", inside: "Индекстер, транзакциялар, query optimizer", status: "soon" },
@@ -20,3 +36,6 @@ export const labs: LabInfo[] = [
   { id: "algo", title: "Algorithms", inside: "Графтар мен сұрыптауды қадаммен бақыла", status: "soon" },
   { id: "iot", title: "Robotics & IoT", inside: "Сенсорлар мен контроллерлер симуляциясы", status: "soon" },
 ];
+
+export const openLabs = labs.filter((l) => l.status === "open");
+export const findLab = (id: string) => labs.find((l) => l.id === id);

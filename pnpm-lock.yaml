@@ -45,6 +45,9 @@ importers:
       '@inside-tech/lab-ai':
         specifier: workspace:*
         version: link:../../packages/lab-ai
+      '@inside-tech/lab-web':
+        specifier: workspace:*
+        version: link:../../packages/lab-web
       '@inside-tech/lesson-engine':
         specifier: workspace:*
         version: link:../../packages/lesson-engine

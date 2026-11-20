@@ -4,10 +4,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { LessonDefinition } from "@inside-tech/lesson-engine";
 import type { LabSession } from "@/lib/useAiLabSession";
+import { findLab } from "@/lib/catalog";
 import { LessonPanel } from "./LessonPanel";
 import styles from "./lab.module.css";
 
 interface Props {
+  labId: string;
   lesson: LessonDefinition<unknown, unknown>;
   nextLessonId?: string;
   session: LabSession<unknown, unknown>;
@@ -16,7 +18,7 @@ interface Props {
 }
 
 /** Shared lesson page frame: top bar, lesson steps on the left, stage, controls on the right. */
-export function LabShell({ lesson, nextLessonId, session, stage, controls }: Props) {
+export function LabShell({ labId, lesson, nextLessonId, session, stage, controls }: Props) {
   const { step } = session;
   return (
     <div className={styles.shell}>
@@ -25,7 +27,7 @@ export function LabShell({ lesson, nextLessonId, session, stage, controls }: Pro
           INSIDE TECH
         </Link>
         <nav aria-label="Навигация">
-          <Link href="/labs/ai">AI LAB</Link>
+          <Link href={`/labs/${labId}`}>{findLab(labId)?.title ?? labId}</Link>
           <span aria-hidden> / </span>
           <span aria-current="page">
             {lesson.order}. {lesson.title}
@@ -46,7 +48,8 @@ export function LabShell({ lesson, nextLessonId, session, stage, controls }: Pro
               onNext={session.next}
               onGoTo={session.goTo}
               onRestart={session.restartStep}
-              nextLessonHref={nextLessonId ? `/labs/ai/${nextLessonId}` : undefined}
+              nextLessonHref={nextLessonId ? `/labs/${labId}/${nextLessonId}` : undefined}
+              labHref={`/labs/${labId}`}
             />
           ) : (
             <p className={styles.small}>Сабақ жүктелуде…</p>

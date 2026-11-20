@@ -267,3 +267,21 @@ a.lab:hover {
     margin-left: 0;
   }
 }
+
+.labSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 14px;
+}
+.labSwitch a {
+  text-decoration: none;
+  color: var(--muted);
+}
+.labSwitch a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.labSwitch a:hover {
+  color: var(--ink);
+}

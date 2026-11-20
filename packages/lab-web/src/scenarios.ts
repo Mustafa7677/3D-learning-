@@ -10,7 +10,8 @@ function lcg(seed: number) {
   let s = seed >>> 0;
   return (n: number) => {
     s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
-    return s % n;
+    // High bits: an LCG’s low bits repeat with a short period.
+    return (s >>> 16) % n;
   };
 }
 

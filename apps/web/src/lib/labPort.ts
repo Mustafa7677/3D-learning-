@@ -1,10 +1,11 @@
 import { exposeRuntime, type MessagePortLike, type SimulationPlugin } from "@inside-tech/sim-core";
 import { aiLabPlugin, langLabPlugin } from "@inside-tech/lab-ai";
+import { webLabPlugin } from "@inside-tech/lab-web";
 import { spawnWorker } from "./spawnWorker";
 
 export const LAB_SEED = 20261120;
 
-export type LabKind = "classifier" | "language";
+export type LabKind = "classifier" | "language" | "web";
 
 export interface LabPort {
   port: MessagePortLike;
@@ -32,11 +33,12 @@ function inThread<S, A>(plugin: SimulationPlugin<S, A>): LabPort {
 
 /**
  * A message port to a lab runtime. The classifier lab trains networks, so it
- * runs in a Web Worker when one can start; the language lab is light and runs
- * on the main thread.
+ * runs in a Web Worker when one can start; the language and web labs are light
+ * and run on the main thread.
  */
 export function createLabPort(kind: LabKind): LabPort {
   if (kind === "language") return inThread(langLabPlugin);
+  if (kind === "web") return inThread(webLabPlugin);
   try {
     const worker = spawnWorker();
     return { port: worker as unknown as MessagePortLike, dispose: () => worker.terminate() };

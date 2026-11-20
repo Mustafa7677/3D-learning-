@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { LessonProgress } from "@inside-tech/lesson-engine";
-import { lessonEntries } from "@/lib/lessons";
+import type { LessonDefinition, LessonProgress } from "@inside-tech/lesson-engine";
+import { lessonsForLab } from "@/lib/lessons";
 import { progressStore } from "@/lib/progress";
 import styles from "./home.module.css";
 
-function completion(lessonIndex: number, p?: LessonProgress): number {
-  const lesson = lessonEntries[lessonIndex]!.lesson;
+function completion(lesson: LessonDefinition<unknown, unknown>, p?: LessonProgress): number {
   if (!p) return 0;
   let total = 0;
   let done = 0;
@@ -19,7 +18,7 @@ function completion(lessonIndex: number, p?: LessonProgress): number {
   return total ? done / total : 0;
 }
 
-export function LessonList() {
+export function LessonList({ labId }: { labId: string }) {
   const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
 
   useEffect(() => {
@@ -30,12 +29,12 @@ export function LessonList() {
 
   return (
     <ol className={styles.lessonList}>
-      {lessonEntries.map(({ lesson: l }, i) => {
+      {lessonsForLab(labId).map(({ lesson: l }) => {
         const p = progress[l.id];
-        const c = completion(i, p);
+        const c = completion(l, p);
         return (
           <li key={l.id}>
-            <Link href={`/labs/ai/${l.id}`} className={styles.lessonItem}>
+            <Link href={`/labs/${labId}/${l.id}`} className={styles.lessonItem}>
               <span className={styles.lessonNum} aria-hidden>
                 {l.order}
               </span>

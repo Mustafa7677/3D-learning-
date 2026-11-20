@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HeroScene } from "@/components/HeroScene";
 import { labs } from "@/lib/catalog";
+import { lessonsForLab } from "@/lib/lessons";
 import styles from "@/components/home.module.css";
 
 export default function Home() {
@@ -55,7 +56,7 @@ export default function Home() {
         <section className={styles.labsSection} aria-labelledby="labs-title">
           <div className={styles.labsInner}>
             <h2 id="labs-title">Он зертхана</h2>
-            <p>AI зертханасы ашық. Қалғандары дәл сол симуляция қозғалтқышының үстіне кезекпен қосылады.</p>
+            <p>AI және Web зертханалары ашық. Қалғандары дәл сол симуляция қозғалтқышының үстіне кезекпен қосылады.</p>
             <ul className={styles.labs}>
               {labs.map((lab) => (
                 <li key={lab.id}>
@@ -63,7 +64,7 @@ export default function Home() {
                     <Link href={lab.href} className={styles.lab}>
                       <h3>{lab.title}</h3>
                       <p>{lab.inside}</p>
-                      <small>8 сабақ ашық</small>
+                      <small>{lessonsForLab(lab.id).length} сабақ ашық</small>
                     </Link>
                   ) : (
                     <div className={styles.lab} aria-disabled="true">

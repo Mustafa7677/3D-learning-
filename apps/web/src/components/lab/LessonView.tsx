@@ -4,20 +4,24 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { LessonDefinition } from "@inside-tech/lesson-engine";
 import type { AiLabAction, AiLabState, LangLabAction, LangLabState } from "@inside-tech/lab-ai";
+import type { WebLabAction, WebLabState } from "@inside-tech/lab-web";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
 import type { SceneFocus } from "../scene/AiScene";
 import type { LangFocus } from "../scene/LangScene";
+import type { WebFocus } from "../scene/WebScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
 import { PointInspector } from "./PointInspector";
+import { WebControlPanel, type WebSection } from "./WebControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
 const AiScene = dynamic(() => import("../scene/AiScene"), { ssr: false, loading: sceneLoading });
 const LangScene = dynamic(() => import("../scene/LangScene"), { ssr: false, loading: sceneLoading });
+const WebScene = dynamic(() => import("../scene/WebScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -32,16 +36,32 @@ const LANG_SECTIONS: Record<string, LangSection[]> = {
   "ai-6-transformers": ["tokens", "embedding", "attention"],
   "ai-7-llm": ["llm"],
 };
+const WEB_SECTIONS: Record<string, WebSection[]> = {
+  "web-1-internet": ["request", "server"],
+  "web-2-html": ["html"],
+  "web-3-css": ["box", "flex"],
+  "web-4-js": ["loop"],
+  "web-5-backend": ["request", "routes"],
+  "web-6-db": ["sql", "request"],
+  "web-7-debug": ["request", "dns", "routes", "sql"],
+  "web-8-deploy": ["html", "deploy", "request", "dns", "cache"],
+};
 
 function Unsupported() {
   return (
     <div className={styles.sceneLoading}>
-      Құрылғыңыз WebGL-ді қолдамайды. Сабақты басқару панелі мен графиктер арқылы жалғастыра аласың.
+      Құрылғыңыз WebGL-ді қолдамайды. Сабақты басқару панелі арқылы жалғастыра аласың.
     </div>
   );
 }
 
-function ClassifierLesson({ lesson, nextLessonId }: { lesson: LessonDefinition<AiLabState, AiLabAction>; nextLessonId?: string }) {
+interface LessonProps<S, A> {
+  labId: string;
+  lesson: LessonDefinition<S, A>;
+  nextLessonId?: string;
+}
+
+function ClassifierLesson({ labId, lesson, nextLessonId }: LessonProps<AiLabState, AiLabAction>) {
   const session = useLabSession(lesson, "classifier");
   const [tool, setTool] = useState<Tool>("select");
   const webgl = useWebGL();
@@ -59,6 +79,7 @@ function ClassifierLesson({ lesson, nextLessonId }: { lesson: LessonDefinition<A
 
   return (
     <LabShell
+      labId={labId}
       lesson={lesson as LessonDefinition<unknown, unknown>}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -94,13 +115,14 @@ function ClassifierLesson({ lesson, nextLessonId }: { lesson: LessonDefinition<A
   );
 }
 
-function LanguageLesson({ lesson, nextLessonId }: { lesson: LessonDefinition<LangLabState, LangLabAction>; nextLessonId?: string }) {
+function LanguageLesson({ labId, lesson, nextLessonId }: LessonProps<LangLabState, LangLabAction>) {
   const session = useLabSession(lesson, "language");
   const webgl = useWebGL();
   const { state, assessment, step } = session;
   const focus = (step?.focus ?? "embedding") as LangFocus;
   return (
     <LabShell
+      labId={labId}
       lesson={lesson as LessonDefinition<unknown, unknown>}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -132,13 +154,50 @@ function LanguageLesson({ lesson, nextLessonId }: { lesson: LessonDefinition<Lan
   );
 }
 
+function WebLesson({ labId, lesson, nextLessonId }: LessonProps<WebLabState, WebLabAction>) {
+  const session = useLabSession(lesson, "web");
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (step?.focus ?? "network") as WebFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson as LessonDefinition<unknown, unknown>}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? (
+            <WebScene state={state} focus={focus} onDomPick={(id) => session.dispatch({ type: "dom/select", id })} />
+          ) : webgl === false ? (
+            <Unsupported />
+          ) : (
+            <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>
+          )}
+        </div>
+      }
+      controls={
+        state && (
+          <WebControlPanel
+            state={state}
+            sections={WEB_SECTIONS[lesson.id] ?? ["request"]}
+            focus={focus}
+            dispatch={session.dispatch}
+            canUndo={session.canUndo}
+            onUndo={session.undo}
+          />
+        )
+      }
+    />
+  );
+}
+
 export function LessonView({ lessonId }: { lessonId: string }) {
   const found = findLesson(lessonId);
   if (!found) return null;
   const { entry, next } = found;
-  return entry.kind === "classifier" ? (
-    <ClassifierLesson lesson={entry.lesson} nextLessonId={next?.lesson.id} />
-  ) : (
-    <LanguageLesson lesson={entry.lesson} nextLessonId={next?.lesson.id} />
-  );
+  const props = { labId: entry.labId, lesson: entry.lesson, nextLessonId: next?.lesson.id };
+  if (entry.kind === "classifier") return <ClassifierLesson {...props} />;
+  if (entry.kind === "language") return <LanguageLesson {...props} />;
+  return <WebLesson {...props} />;
 }

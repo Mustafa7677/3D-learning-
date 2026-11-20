@@ -5,6 +5,7 @@ import { Canvas, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { BufferAttribute, BufferGeometry, Color, InstancedMesh, Object3D } from "three";
 import { EOS, attention, languageModels, nearest, nextTokens, sentenceWords, type LangLabState } from "@inside-tech/lab-ai";
+import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -130,19 +131,14 @@ function ProbabilityBars({ state }: { state: LangLabState }) {
   );
 }
 
-const CAMERA: Record<LangFocus, [number, number, number]> = {
-  tokens: [0, 4, 9],
-  embedding: [0, 4, 9],
-  attention: [0, 4, 9],
-  llm: [0, 2.4, 10.5],
-};
+
 
 export default function LangScene(props: Props) {
   const llm = props.focus === "llm";
   return (
     <Canvas
       key={llm ? "llm" : "space"}
-      camera={{ position: CAMERA[props.focus], fov: 45, near: 0.1, far: 100 }}
+      camera={{ position: [0, 4, 9], fov: 45, near: 0.1, far: 100 }}
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
       role="img"
@@ -159,7 +155,8 @@ export default function LangScene(props: Props) {
           {props.focus === "attention" && <AttentionLines state={props.state} />}
         </>
       )}
-      <OrbitControls makeDefault enableDamping target={llm ? [0, 0.9, 0] : [0, LIFT, 0]} minDistance={3} maxDistance={20} />
+      <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={25} />
+      {llm ? <FitCamera width={7.4} height={4} target={[0, 1.2, 0]} dir={[0, 0.25, 1]} /> : <FitCamera width={7.2} height={5} target={[0, LIFT, 0]} dir={[0, 0.45, 1]} />}
     </Canvas>
   );
 }

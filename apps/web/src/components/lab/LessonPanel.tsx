@@ -13,9 +13,10 @@ interface Props {
   onGoTo(i: number): void;
   onRestart(): void;
   nextLessonHref?: string;
+  labHref?: string;
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, nextLessonHref }: Props) {
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, nextLessonHref, labHref = "/" }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
 
   return (
@@ -82,7 +83,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
                 Келесі сабаққа өту
               </Link>
             ) : (
-              <Link className="btn btn-primary" href="/labs/ai">
+              <Link className="btn btn-primary" href={labHref}>
                 Зертханаға оралу
               </Link>
             )}

@@ -14,13 +14,13 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 - [x] AI LAB 5–8: Overfitting (loss gap, көбірек дерек, L2, early stopping), Transformers (BPE, embedding, self-attention), LLM Inference (триграмма LM, temperature, top-k), Build Your AI (өз деректері, спираль, JSON экспорт)
 - [x] Тіл зертханасы (`lang-lab` plugin): барлық модельдер ішкі қазақ корпусынан браузерде үйретіледі
 - [x] Статикалық нұсқа және GitHub Pages деплойы
+- [x] WEB LAB 1–8 (`lab-web` plugin): желі (DNS, TCP, TLS, HTTP, кэш), HTML парсер және 3D DOM, box model мен flexbox, event loop, backend маршруттары мен авторизация, шағын SQL қозғалтқышы мен индекстер, debugging сценарийі, deploy және кэш
 
 ## Келесі кезеңдер
 
 | Кезең | Мазмұны |
 |---|---|
 | Платформа | PostgreSQL репозиторийі (Drizzle), OAuth/OIDC, анонимді прогресті аккаунтқа қосу, сессия recording-тарын серверге жүктеу |
-| WEB LAB | `lab-web` plugin: URL → DNS → TCP → HTTP симуляциясы, DOM/CSS 3D, event loop, Monaco + sandbox iframe |
 | GAME LAB | `lab-game` plugin: Rapier WASM, scene graph, game loop, ойын экспорттау |
 | Learning Platform | Мұғалім панелі, тапсырма тағайындау, аналитика (replay арқылы қай жерде қателескенін көру) |
 | Lesson Creator | `LessonDefinition`-ды JSON ретінде сақтау, мақсаттарды DSL арқылы сипаттау, редактор |
