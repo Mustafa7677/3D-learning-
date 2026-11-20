@@ -50,6 +50,11 @@ const html = `<title>INSIDE TECH</title>
 <div id="root"></div>
 <script type="module" src="app.js"></script>
 `;
-await writeFile(resolve(out, "index.html"), html);
+// FULL_HTML=1 emits a complete document for ordinary static hosts (GitHub Pages);
+// the default fragment is for hosts that wrap the page in their own skeleton.
+const page = process.env.FULL_HTML
+  ? `<!doctype html>\n<html lang="kk">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n${html.replace('<div id="root"></div>\n<script type="module" src="app.js"></script>\n', "")}</head>\n<body>\n<div id="root"></div>\n<script type="module" src="app.js"></script>\n</body>\n</html>\n`
+  : html;
+await writeFile(resolve(out, "index.html"), page);
 await rm(resolve(out, "app.css"));
 console.log("built", out);
