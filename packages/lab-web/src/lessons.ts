@@ -1,4 +1,5 @@
-import type { LessonDefinition } from "@inside-tech/lesson-engine";
+import { withContent, type LessonDefinition } from "@inside-tech/lesson-engine";
+import { webContent } from "./content";
 import { findAll, parseHtml, textContent } from "./html";
 import { boxSizes, type WebLabAction, type WebLabState } from "./plugin";
 import { BROKEN_HTML, DEPLOY_HTML, STARTER_HTML } from "./scenarios";
@@ -432,4 +433,5 @@ export const lessonDeploy: L = {
   ],
 };
 
-export const webLessons: L[] = [lessonInternet, lessonHtml, lessonCss, lessonJs, lessonBackend, lessonDb, lessonDebug, lessonDeploy];
+/** Lessons with their lecture text and concept checks merged in. */
+export const webLessons: L[] = [lessonInternet, lessonHtml, lessonCss, lessonJs, lessonBackend, lessonDb, lessonDebug, lessonDeploy].map((l) => withContent(l, webContent[l.id] ?? {}));

@@ -292,6 +292,7 @@ describe("web lessons are completable", () => {
         sync();
         const view = engine.view();
         expect(view.objectives.filter((o) => !o.done).map((o) => o.text), `${lesson.id}/${step.id}`).toEqual([]);
+        for (const q of step.quiz ?? []) expect(engine.answer(q.id, q.answer).correct).toBe(true);
         if (!engine.isLastStep()) {
           engine.advance();
           enter();
