@@ -54,3 +54,22 @@
   background: var(--c1-soft);
   border-left: 3px solid var(--c1);
 }
+
+.deep {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  background: var(--panel-2);
+}
+.deep summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--c0);
+}
+.deep[open] summary {
+  margin-bottom: 8px;
+}
+.deepBody {
+  display: grid;
+  gap: 10px;
+}

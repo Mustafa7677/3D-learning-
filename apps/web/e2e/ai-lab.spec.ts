@@ -61,3 +61,30 @@ test("progress survives a reload", async ({ page }) => {
   await page.goto("/labs/ai");
   await expect(page.getByText(/% орындалды/)).toBeVisible();
 });
+
+test("«Есептеу ішінен» shows the numbers behind a prediction and one gradient step", async ({ page }) => {
+  await page.goto("/labs/ai/ai-2-neuron");
+  await page.getByRole("button", { name: "Нүктені талдау" }).click();
+  const dialog = page.getByRole("dialog", { name: "Таңдалған нүкте" });
+  await expect(dialog.getByText("Есептеу ішінен")).toBeVisible();
+  await expect(dialog.getByText("Backprop мүмкін емес.")).toBeVisible();
+  await page.getByRole("button", { name: "sigmoid", exact: true }).click();
+  await expect(dialog.getByText("∂L/∂z = p − y =")).toBeVisible();
+  await expect(dialog.getByText(/w₁: .* → /)).toBeVisible();
+
+  await page.goto("/labs/ai/ai-3-network");
+  await page.getByRole("button", { name: "Қабат қосу" }).click();
+  await page.getByRole("button", { name: "Қате нүктені табу" }).click();
+  const net = page.getByRole("dialog", { name: "Таңдалған нүкте" });
+  await net.getByText("Есептеу ішінен").click();
+  await expect(net.locator("table caption", { hasText: "Шығыс" })).toBeVisible();
+});
+
+test("deep dives are collapsed until opened", async ({ page }) => {
+  await page.goto("/labs/ai/ai-4-training");
+  const deep = page.locator("details", { hasText: "Тереңірек: ∂L/∂z = p − y" });
+  await expect(deep).toBeVisible();
+  await expect(deep.getByText("Сандармен.")).toBeHidden();
+  await deep.locator("summary").click();
+  await expect(deep.getByText(/Бір қадамда loss 3 есеге/)).toBeVisible();
+});

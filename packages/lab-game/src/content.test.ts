@@ -19,3 +19,22 @@ describe("game lab lesson content", () => {
     }
   }
 });
+
+import { gameDeepDives } from "./deep";
+
+describe("deep dives", () => {
+  it("are well-formed collapsible sections", () => {
+    let n = 0;
+    for (const [lessonId, dives] of Object.entries(gameDeepDives)) {
+      for (const [stepId, text] of Object.entries(dives)) {
+        n++;
+        const heads = text.split("\n").filter((l) => /^##+ /.test(l));
+        expect(heads, `${lessonId}/${stepId}`).toHaveLength(1);
+        expect(heads[0]).toMatch(/^## Тереңірек: /);
+        expect(text.length).toBeGreaterThan(500);
+        expect((text.match(/```/g) ?? []).length % 2, "balanced code fences").toBe(0);
+      }
+    }
+    expect(n).toBeGreaterThanOrEqual(9);
+  });
+});

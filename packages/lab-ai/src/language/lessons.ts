@@ -1,6 +1,7 @@
-import { withContent, type LessonDefinition } from "@inside-tech/lesson-engine";
+import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { languageContent } from "../content/language";
 import type { LangLabAction, LangLabState } from "./plugin";
+import { aiDeepDives } from "../content/deep";
 
 type L = LessonDefinition<LangLabState, LangLabAction>;
 
@@ -108,4 +109,4 @@ export const lessonLlm: L = {
   ],
 };
 
-export const languageLessons: L[] = [lessonTransformers, lessonLlm].map((l) => withContent(l, languageContent[l.id] ?? {}));
+export const languageLessons: L[] = [lessonTransformers, lessonLlm].map((l) => withDeepDives(withContent(l, languageContent[l.id] ?? {}), aiDeepDives[l.id] ?? {}));

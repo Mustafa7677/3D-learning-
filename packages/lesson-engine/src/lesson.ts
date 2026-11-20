@@ -94,3 +94,23 @@ export function withContent<S, A>(lesson: LessonDefinition<S, A>, content: Recor
     }),
   };
 }
+
+/**
+ * Insert optional deep-dive sections (Markdown starting with "## Тереңірек")
+ * into step bodies, just before the "## Енді сен" task section if present.
+ */
+export function withDeepDives<S, A>(lesson: LessonDefinition<S, A>, dives: Record<string, string>): LessonDefinition<S, A> {
+  for (const id of Object.keys(dives)) {
+    if (!lesson.steps.some((s) => s.id === id)) throw new Error(`${lesson.id}: deep dive for unknown step "${id}"`);
+  }
+  return {
+    ...lesson,
+    steps: lesson.steps.map((s) => {
+      const d = dives[s.id];
+      if (!d) return s;
+      const at = s.body.indexOf("## Енді сен");
+      const body = at >= 0 ? `${s.body.slice(0, at)}${d.trim()}\n\n${s.body.slice(at)}` : `${s.body}\n\n${d.trim()}`;
+      return { ...s, body };
+    }),
+  };
+}

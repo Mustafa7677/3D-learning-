@@ -62,3 +62,12 @@ describe("concept checks", () => {
     expect(() => withContent(base, { nope: { body: "x" } })).toThrow(/unknown step/);
   });
 });
+
+describe("deep dives", () => {
+  it("go before the task section", async () => {
+    const { withDeepDives } = await import("./index");
+    const l = withDeepDives({ ...base, steps: [{ ...base.steps[0]!, body: "## Идея\nx\n\n## Енді сен\nдо" }] }, { a: "## Тереңірек: дәлел\ny" });
+    expect(l.steps[0]!.body).toBe("## Идея\nx\n\n## Тереңірек: дәлел\ny\n\n## Енді сен\nдо");
+    expect(() => withDeepDives(base, { zz: "x" })).toThrow(/unknown step/);
+  });
+});

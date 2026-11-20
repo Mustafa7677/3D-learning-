@@ -1,4 +1,5 @@
 import { Rng, type AssessmentResult, type SimulationPlugin } from "@inside-tech/sim-core";
+import { walkthrough, type SampleWalkthrough } from "./ml/explain";
 import { generateDataset, type DatasetKind } from "./ml/datasets";
 import {
   createNetwork,
@@ -554,3 +555,10 @@ export const exportedModelRunner = `function predict(model, x1, x2) {
   }
   return a[0]; // P(class = 1)
 }`;
+
+/** Full numeric walkthrough (forward, loss, backprop, next step) for the selected point. */
+export function selectedWalkthrough(s: AiLabState): SampleWalkthrough | undefined {
+  const p = s.points.find((q) => q.id === s.selectedPointId);
+  if (!p) return undefined;
+  return walkthrough(activeNetwork(s), [p.x, p.y], p.label, s.hyper.learningRate, s.hyper.l2);
+}

@@ -1,6 +1,7 @@
 "use client";
 
-import { activeNetwork, predict, type AiLabState } from "@inside-tech/lab-ai";
+import { activeNetwork, predict, selectedWalkthrough, type AiLabState } from "@inside-tech/lab-ai";
+import { Walkthrough } from "./Walkthrough";
 import styles from "./lab.module.css";
 
 /** 2D readout of the selected sample: the accessible twin of clicking a sphere in 3D. */
@@ -9,6 +10,7 @@ export function PointInspector({ state, onClose }: { state: AiLabState; onClose(
   if (!p) return null;
   const prob = predict(activeNetwork(state), [p.x, p.y]);
   const predicted = prob >= 0.5 ? 1 : 0;
+  const walk = state.model === "network" && state.network.layers.length === 0 ? undefined : selectedWalkthrough(state);
   return (
     <div className={styles.inspector} role="dialog" aria-label="Таңдалған нүкте">
       <button type="button" className={styles.close} onClick={onClose} aria-label="Жабу">
@@ -31,6 +33,7 @@ export function PointInspector({ state, onClose }: { state: AiLabState; onClose(
           {predicted !== p.label && <strong className={styles.wrong}> қате</strong>}
         </dd>
       </dl>
+      {walk && <Walkthrough w={walk} learningRate={state.hyper.learningRate} />}
     </div>
   );
 }

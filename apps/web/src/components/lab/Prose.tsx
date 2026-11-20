@@ -75,46 +75,63 @@ function parse(src: string): Block[] {
   return blocks;
 }
 
+function renderBlock(b: Block, k: string): ReactNode {
+  switch (b.kind) {
+    case "h":
+      return <h3 key={k}>{inline(b.text, k)}</h3>;
+    case "p":
+      return <p key={k}>{inline(b.text, k)}</p>;
+    case "ul":
+      return (
+        <ul key={k}>
+          {b.items.map((it, j) => (
+            <li key={j}>{inline(it, `${k}-${j}`)}</li>
+          ))}
+        </ul>
+      );
+    case "ol":
+      return (
+        <ol key={k} start={b.start}>
+          {b.items.map((it, j) => (
+            <li key={j}>{inline(it, `${k}-${j}`)}</li>
+          ))}
+        </ol>
+      );
+    case "code":
+      return (
+        <pre key={k}>
+          <code>{b.text}</code>
+        </pre>
+      );
+    case "note":
+      return (
+        <aside key={k} className={styles.note} data-tone={b.tone}>
+          <Fragment>{inline(b.text, k)}</Fragment>
+        </aside>
+      );
+  }
+}
+
+/** A heading that starts with this word opens an optional, collapsible deep dive. */
+const DEEP = /^Тереңірек/;
+
 export function Prose({ text }: { text: string }) {
-  return (
-    <div className={styles.prose}>
-      {parse(text).map((b, i) => {
-        const k = `b${i}`;
-        switch (b.kind) {
-          case "h":
-            return <h3 key={k}>{inline(b.text, k)}</h3>;
-          case "p":
-            return <p key={k}>{inline(b.text, k)}</p>;
-          case "ul":
-            return (
-              <ul key={k}>
-                {b.items.map((it, j) => (
-                  <li key={j}>{inline(it, `${k}-${j}`)}</li>
-                ))}
-              </ul>
-            );
-          case "ol":
-            return (
-              <ol key={k} start={b.start}>
-                {b.items.map((it, j) => (
-                  <li key={j}>{inline(it, `${k}-${j}`)}</li>
-                ))}
-              </ol>
-            );
-          case "code":
-            return (
-              <pre key={k}>
-                <code>{b.text}</code>
-              </pre>
-            );
-          case "note":
-            return (
-              <aside key={k} className={styles.note} data-tone={b.tone}>
-                <Fragment>{inline(b.text, k)}</Fragment>
-              </aside>
-            );
-        }
-      })}
-    </div>
-  );
+  const blocks = parse(text);
+  const out: ReactNode[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i]!;
+    if (b.kind === "h" && DEEP.test(b.text)) {
+      const inner: ReactNode[] = [];
+      let j = i + 1;
+      for (; j < blocks.length && blocks[j]!.kind !== "h"; j++) inner.push(renderBlock(blocks[j]!, `d${i}-${j}`));
+      out.push(
+        <details key={`d${i}`} className={styles.deep}>
+          <summary>{inline(b.text, `s${i}`)}</summary>
+          <div className={styles.deepBody}>{inner}</div>
+        </details>,
+      );
+      i = j - 1;
+    } else out.push(renderBlock(b, `b${i}`));
+  }
+  return <div className={styles.prose}>{out}</div>;
 }

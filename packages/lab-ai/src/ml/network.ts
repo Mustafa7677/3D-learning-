@@ -147,6 +147,51 @@ export function cloneNetwork(net: Network): Network {
 }
 
 /**
+ * Backpropagation for one sample: adds ∂L/∂W and ∂L/∂b (binary cross-entropy)
+ * into the accumulators and returns the forward trace and per-layer deltas
+ * (deltas[l][j] = ∂L/∂z of unit j in layer l).
+ */
+export function backprop(net: Network, s: Sample, gW: number[][][], gb: number[][]): { trace: ForwardTrace; deltas: number[][] } {
+  const L = net.layers.length;
+  const trace = forward(net, s.x);
+  const { a, z } = trace;
+  const deltas: number[][] = new Array(L);
+  // Output delta: for sigmoid+BCE dL/dz = p - y. Other output activations use chain rule.
+  const outLayer = net.layers[L - 1]!;
+  const p = a[L]![0]!;
+  let delta: number[] =
+    outLayer.act === "sigmoid" ? [p - s.y] : [((p - s.y) / Math.max(EPS, p * (1 - p))) * activateDeriv(outLayer.act, z[L - 1]![0]!, p)];
+
+  for (let l = L - 1; l >= 0; l--) {
+    deltas[l] = delta;
+    const layer = net.layers[l]!;
+    const input = a[l]!;
+    for (let j = 0; j < layer.b.length; j++) {
+      const d = delta[j]!;
+      gb[l]![j]! += d;
+      const gRow = gW[l]![j]!;
+      for (let i = 0; i < input.length; i++) gRow[i]! += d * input[i]!;
+    }
+    if (l > 0) {
+      const prev = net.layers[l - 1]!;
+      const next: number[] = new Array(input.length).fill(0);
+      for (let i = 0; i < input.length; i++) {
+        let s2 = 0;
+        for (let j = 0; j < layer.b.length; j++) s2 += layer.W[j]![i]! * delta[j]!;
+        next[i] = s2 * activateDeriv(prev.act, z[l - 1]![i]!, a[l]![i]!);
+      }
+      delta = next;
+    }
+  }
+  return { trace, deltas };
+}
+
+/** Zeroed gradient accumulators shaped like `net`. */
+export function zeroGrads(net: Network): { gW: number[][][]; gb: number[][] } {
+  return { gW: net.layers.map((l) => l.W.map((r) => r.map(() => 0))), gb: net.layers.map((l) => l.b.map(() => 0)) };
+}
+
+/**
  * One epoch of mini-batch SGD with binary cross-entropy (sigmoid output).
  * Returns a new network; the input is not mutated. Shuffle order comes from `rng`.
  */
@@ -159,41 +204,9 @@ export function trainEpoch(net: Network, data: Sample[], cfg: TrainConfig, rng: 
 
   for (let start = 0; start < order.length; start += bs) {
     const batch = order.slice(start, start + bs);
-    const gW = out.layers.map((l) => l.W.map((r) => r.map(() => 0)));
-    const gb = out.layers.map((l) => l.b.map(() => 0));
+    const { gW, gb } = zeroGrads(out);
 
-    for (const idx of batch) {
-      const s = data[idx]!;
-      const { a, z } = forward(out, s.x);
-      // Output delta: for sigmoid+BCE dL/dz = p - y. Other output activations use chain rule.
-      const outLayer = out.layers[L - 1]!;
-      const p = a[L]![0]!;
-      let delta: number[] =
-        outLayer.act === "sigmoid"
-          ? [p - s.y]
-          : [((p - s.y) / Math.max(EPS, p * (1 - p))) * activateDeriv(outLayer.act, z[L - 1]![0]!, p)];
-
-      for (let l = L - 1; l >= 0; l--) {
-        const layer = out.layers[l]!;
-        const input = a[l]!;
-        for (let j = 0; j < layer.b.length; j++) {
-          const d = delta[j]!;
-          gb[l]![j]! += d;
-          const gRow = gW[l]![j]!;
-          for (let i = 0; i < input.length; i++) gRow[i]! += d * input[i]!;
-        }
-        if (l > 0) {
-          const prev = out.layers[l - 1]!;
-          const next: number[] = new Array(input.length).fill(0);
-          for (let i = 0; i < input.length; i++) {
-            let s2 = 0;
-            for (let j = 0; j < layer.b.length; j++) s2 += layer.W[j]![i]! * delta[j]!;
-            next[i] = s2 * activateDeriv(prev.act, z[l - 1]![i]!, a[l]![i]!);
-          }
-          delta = next;
-        }
-      }
-    }
+    for (const idx of batch) backprop(out, data[idx]!, gW, gb);
 
     const scale = cfg.learningRate / batch.length;
     for (let l = 0; l < L; l++) {

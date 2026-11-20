@@ -1,7 +1,7 @@
 "use client";
 
 import type { AiLabAction, AiLabState, DatasetKind, HiddenActivation } from "@inside-tech/lab-ai";
-import { MAX_HIDDEN_LAYERS, MAX_POINTS, MAX_UNITS, parameterCount } from "@inside-tech/lab-ai";
+import { MAX_HIDDEN_LAYERS, MAX_POINTS, MAX_UNITS, activeNetwork, parameterCount, predict } from "@inside-tech/lab-ai";
 import { ExportPanel } from "./ExportPanel";
 import type { AssessmentResult } from "@inside-tech/sim-core";
 import { LossChart } from "./LossChart";
@@ -100,6 +100,8 @@ export function ControlPanel({ state, assessment, sections, tool, onTool, dispat
           {assessment.notes.map((n) => NOTE_TEXT[n] && <li key={n}>{NOTE_TEXT[n]}</li>)}
         </ul>
       )}
+
+      {state.points.length > 0 && <InspectPoint state={state} dispatch={dispatch} />}
 
       {has("data") && (
         <fieldset className={styles.group}>
@@ -306,5 +308,30 @@ export function ControlPanel({ state, assessment, sections, tool, onTool, dispat
         </button>
       </div>
     </aside>
+  );
+}
+
+/** Opens the «Есептеу ішінен» walkthrough without clicking in 3D (keyboard and screen-reader friendly). */
+function InspectPoint({ state, dispatch }: { state: AiLabState; dispatch(a: AiLabAction): void }) {
+  const pick = (wrongOnly: boolean) => {
+    const net = activeNetwork(state);
+    const pts = state.points;
+    const from = Math.max(0, pts.findIndex((p) => p.id === state.selectedPointId) + 1);
+    for (let k = 0; k < pts.length; k++) {
+      const p = pts[(from + k) % pts.length]!;
+      const wrong = net.layers.length > 0 && (predict(net, [p.x, p.y]) >= 0.5 ? 1 : 0) !== p.label;
+      if (!wrongOnly || wrong) return dispatch({ type: "point/select", id: p.id });
+    }
+    dispatch({ type: "point/select", id: pts[from % pts.length]!.id });
+  };
+  return (
+    <div className={styles.row} role="group" aria-label="Нүктені талдау">
+      <button type="button" className="btn" onClick={() => pick(false)}>
+        Нүктені талдау
+      </button>
+      <button type="button" className="btn" onClick={() => pick(true)}>
+        Қате нүктені табу
+      </button>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 export * from "./ml/network";
 export * from "./ml/datasets";
+export * from "./ml/explain";
 export * from "./plugin";
 export * from "./lessons";
 export * from "./language/corpus";
