@@ -703,3 +703,32 @@ div.walkSteps {
 .dockerfile :global(.btn) {
   padding: 4px 10px;
 }
+
+.cinemaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 7px 14px 7px 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--c1-soft);
+  border: 1px solid var(--c1);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.cinemaBtn::before {
+  content: "";
+  width: 14px;
+  height: 10px;
+  border: 2px solid var(--c1);
+  border-radius: 2px;
+  transform: perspective(40px) rotateY(-28deg);
+}
+.cinemaBtn:hover,
+.cinemaBtn:focus-visible {
+  background: var(--c1);
+  color: #18203a;
+}

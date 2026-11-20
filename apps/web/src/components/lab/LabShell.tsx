@@ -51,6 +51,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
               onAnswer={session.answer}
               nextLessonHref={nextLessonId ? `/labs/${labId}/${nextLessonId}` : undefined}
               labHref={`/labs/${labId}`}
+              labId={labId}
             />
           ) : (
             <p className={styles.small}>Сабақ жүктелуде…</p>

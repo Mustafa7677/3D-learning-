@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { AnswerResult, QuizView, StepView } from "@inside-tech/lesson-engine";
 import { Prose } from "./Prose";
+import { LectureCinema } from "../film/LectureCinema";
 import styles from "./lab.module.css";
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
   onAnswer(questionId: string, option: number): AnswerResult;
   nextLessonHref?: string;
   labHref?: string;
+  /** Which lab this is, for the emblem behind the 3D lecture. */
+  labId?: string;
 }
 
 /** One concept-check question: pick an option, get feedback, retry until right. */
@@ -51,8 +54,9 @@ function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] })
   );
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, nextLessonHref, labHref = "/" }: Props) {
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, nextLessonHref, labHref = "/", labId = "ai" }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
+  const [cinema, setCinema] = useState(false);
   const total = step.objectives.length + step.quiz.length;
   const done = step.objectives.filter((o) => o.done).length + step.quiz.filter((q) => q.answered).length;
 
@@ -81,9 +85,25 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
       <h1 id="lesson-step-title" className={styles.stepTitle}>
         {step.title}
       </h1>
+      <button type="button" className={styles.cinemaBtn} onClick={() => setCinema(true)}>
+        Түсіндірмені 3D-де оқу
+      </button>
       <Prose text={step.body} />
+      {cinema && (
+        <LectureCinema
+          labId={labId}
+          stepTitle={step.title}
+          body={step.body}
+          onClose={() => {
+            setCinema(false);
+            document.getElementById("lesson-task")?.scrollIntoView({ block: "start" });
+          }}
+        />
+      )}
 
-      <h2 className={styles.objHeading}>Тапсырма</h2>
+      <h2 id="lesson-task" className={styles.objHeading}>
+        Тапсырма
+      </h2>
       <ul className={styles.objectives}>
         {step.objectives.map((o) => (
           <li key={o.id} data-done={o.done}>

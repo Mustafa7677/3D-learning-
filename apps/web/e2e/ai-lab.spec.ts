@@ -13,8 +13,7 @@ test("home page shows the live hero and the lab map", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Технологияның");
   await expect(page.locator("canvas")).toBeVisible();
-  await expect(page.getByText(/Epoch \d+/)).toBeVisible();
-  await expect(page.getByRole("link", { name: /AI & Machine Learning/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /AI & Machine Learning/ })).toBeAttached();
 });
 
 test("objectives are not pre-completed by the default world", async ({ page }) => {

@@ -1,0 +1,538 @@
+/* The cinematic pages: silicon night, copper traces, cobalt for what is active. */
+.page {
+  --night: #121831;
+  --die: #283052;
+  --die-edge: #3a4470;
+  --copper: #e3a04f;
+  --cobalt: #2f5bea;
+  --glow: #8da5ff;
+  --paper: #e9edf3;
+  --paper-dim: #aab3cc;
+  background: var(--night);
+  color: var(--paper);
+  min-height: 100dvh;
+}
+
+.header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px var(--gutter);
+  background: linear-gradient(var(--night), rgb(18 24 49 / 0));
+}
+.brand {
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+  text-decoration: none;
+}
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  justify-content: flex-end;
+}
+.menuLink {
+  font: inherit;
+  font-size: 15px;
+  color: var(--paper-dim);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.menuLink:hover,
+.menuLink:focus-visible {
+  color: var(--paper);
+}
+
+/* ---- the film: a sticky stage under scrolling chapters ---- */
+.film {
+  position: relative;
+}
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 60% 40%, #1d2550 0%, var(--night) 60%);
+}
+.stage > div:first-child {
+  position: absolute !important;
+  inset: 0;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(18 24 49 / 0.85) 0%, rgb(18 24 49 / 0.35) 38%, rgb(18 24 49 / 0) 60%);
+}
+.chapters {
+  position: relative;
+  margin-top: -100vh;
+  margin-top: -100svh;
+  pointer-events: none;
+}
+.chapter {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 96px var(--gutter) 64px;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.chapter > * {
+  pointer-events: auto;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 7.4vw, 104px);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0 0 28px;
+  color: var(--paper);
+}
+.title span {
+  display: block;
+}
+.title span + span {
+  /* the second line is set in copper: the inside of the chip */
+  color: var(--copper);
+  padding-left: 0.6em;
+}
+.lead {
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.55;
+  max-width: 40ch;
+  color: var(--paper-dim);
+  margin: 0 0 32px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.enter,
+.ghost,
+.inline {
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 999px;
+}
+.enter {
+  font-family: var(--font-display);
+  font-size: 18px;
+  padding: 16px 40px;
+  border: 0;
+  color: var(--night);
+  background: var(--copper);
+  box-shadow: 0 0 0 0 rgb(227 160 79 / 0.6);
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+.enter:hover,
+.enter:focus-visible {
+  box-shadow: 0 0 0 10px rgb(227 160 79 / 0.18);
+  transform: translateY(-1px);
+}
+.ghost {
+  font-size: 16px;
+  padding: 15px 26px;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid rgb(233 237 243 / 0.35);
+}
+.ghost:hover,
+.ghost:focus-visible {
+  border-color: var(--paper);
+}
+.scrollHint {
+  margin-top: 48px;
+  font-size: 14px;
+  color: var(--paper-dim);
+}
+
+.card {
+  max-width: 30rem;
+  padding: 28px 30px;
+  border-radius: 18px;
+  background: rgb(18 24 49 / 0.72);
+  border: 1px solid rgb(141 165 255 / 0.18);
+  backdrop-filter: blur(6px);
+}
+.card h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+  color: var(--paper);
+}
+.card p {
+  margin: 0 0 18px;
+  line-height: 1.6;
+  color: var(--paper-dim);
+  font-size: 17px;
+}
+.inline {
+  display: inline-block;
+  font-size: 15px;
+  padding: 10px 18px;
+  color: var(--paper);
+  background: rgb(47 91 234 / 0.35);
+  border: 1px solid var(--cobalt);
+}
+.inline:hover,
+.inline:focus-visible {
+  background: var(--cobalt);
+}
+
+/* reel: one dot per chapter, on the right edge */
+.reel {
+  position: absolute;
+  right: clamp(10px, 2vw, 28px);
+  top: 50%;
+  transform: translateY(-50%);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  z-index: 5;
+}
+.reel button {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--paper-dim);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.reel button[aria-current="step"] {
+  background: var(--copper);
+  border-color: var(--copper);
+  height: 26px;
+  border-radius: 6px;
+}
+
+/* ---- without WebGL: the same die in CSS perspective ---- */
+.cssStage {
+  display: grid;
+  place-items: center;
+  perspective: 1400px;
+}
+.cssDie {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  width: min(760px, 86vw);
+  padding: 26px;
+  margin-left: 18vw;
+  background: var(--die);
+  border: 2px solid var(--die-edge);
+  border-radius: 10px;
+  transform: rotateX(52deg) rotateZ(-24deg);
+  box-shadow: 0 40px 80px rgb(0 0 0 / 0.45), inset 0 0 0 6px rgb(227 160 79 / 0.08);
+  background-image: linear-gradient(var(--copper), var(--copper));
+  background-size: calc(100% - 52px) 3px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.cssBlock {
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: end start;
+  padding: 10px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--paper);
+  background: var(--die-edge);
+  border-radius: 6px;
+  box-shadow: 0 6px 0 #1a2140;
+}
+
+/* ---- the course page: stations along a copper trace ---- */
+.labIntro {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+.labTitle {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 6vw, 84px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0 0 24px;
+  max-width: 12ch;
+}
+.stations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.station {
+  min-height: 85vh;
+  min-height: 85svh;
+  display: flex;
+  align-items: center;
+  padding: 40px var(--gutter);
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.stationCard {
+  pointer-events: auto;
+  display: grid;
+  gap: 10px;
+  max-width: 30rem;
+  padding: 26px 28px;
+  border-radius: 18px;
+  color: var(--paper);
+  text-decoration: none;
+  background: rgb(18 24 49 / 0.74);
+  border: 1px solid rgb(141 165 255 / 0.18);
+  backdrop-filter: blur(6px);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.station[data-active="true"] .stationCard {
+  border-color: var(--cobalt);
+}
+.stationCard:hover,
+.stationCard:focus-visible {
+  border-color: var(--copper);
+  transform: translateX(4px);
+}
+.stationCard h2 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.6vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.stationCard p {
+  margin: 0;
+  color: var(--paper-dim);
+  line-height: 1.6;
+  font-size: 16px;
+}
+.stationNum {
+  font-size: 14px;
+  color: var(--copper);
+}
+.stationMeta {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--paper-dim);
+  margin-top: 6px;
+}
+.bar {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(233 237 243 / 0.12);
+  overflow: hidden;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--copper);
+}
+
+/* without WebGL: the trace as a column of pads */
+.cssTrace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 26px;
+  margin-left: 40vw;
+  background: linear-gradient(var(--copper), var(--copper)) center / 3px 70% no-repeat;
+}
+.cssTrace span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--die-edge);
+  border: 2px solid var(--night);
+  box-shadow: 0 0 0 2px var(--die-edge);
+}
+.cssTrace span[data-done="true"] {
+  background: var(--copper);
+}
+.cssTrace span[data-active="true"] {
+  background: var(--cobalt);
+  box-shadow: 0 0 0 6px rgb(47 91 234 / 0.3);
+}
+
+/* ---- course list after the film ---- */
+.courses {
+  position: relative;
+  padding: clamp(64px, 9vw, 120px) var(--gutter) 80px;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.courses h2 {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 36px;
+}
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  perspective: 1200px;
+}
+.course {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 22px 22px 26px;
+  color: var(--paper);
+  text-decoration: none;
+  background: var(--die);
+  border: 1px solid var(--die-edge);
+  border-radius: 14px;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease, border-color 0.3s;
+}
+/* a copper trace enters every block from the left, as on the die */
+.course::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 28px;
+  width: 18px;
+  height: 3px;
+  background: var(--copper);
+  border-radius: 0 2px 2px 0;
+}
+.course:hover,
+.course:focus-visible {
+  transform: rotateX(8deg) rotateY(-8deg) translateZ(18px);
+  border-color: var(--copper);
+}
+.course h3 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0;
+}
+.course p {
+  margin: 0;
+  color: var(--paper-dim);
+  line-height: 1.5;
+  font-size: 15px;
+}
+.courseCount {
+  font-size: 13px;
+  color: var(--copper);
+}
+
+.footer {
+  padding: 32px var(--gutter) 48px;
+  color: var(--paper-dim);
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .vignette {
+    background: linear-gradient(0deg, rgb(18 24 49 / 0.9) 0%, rgb(18 24 49 / 0.3) 55%, rgb(18 24 49 / 0) 75%);
+  }
+  .chapter {
+    justify-content: flex-end;
+  }
+  .title {
+    font-size: clamp(36px, 11vw, 56px);
+  }
+  .lead {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+  .scrollHint {
+    margin-top: 24px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-top: 10px;
+  }
+  .menu {
+    justify-content: flex-start;
+  }
+  .card,
+  .stationCard {
+    padding: 22px;
+  }
+  .station {
+    align-items: flex-end;
+  }
+  .cssTrace {
+    margin-left: 0;
+    justify-content: flex-start;
+    padding-top: 110px;
+    gap: 14px;
+  }
+  .cssDie {
+    margin-left: 0;
+    gap: 8px;
+    padding: 16px;
+  }
+  .cssBlock {
+    font-size: 9px;
+    padding: 6px;
+  }
+  .menu {
+    gap: 2px 12px;
+  }
+  .menuLink {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .course,
+  .stationCard {
+    transition: none;
+  }
+  .course:hover,
+  .course:focus-visible {
+    transform: none;
+  }
+}
