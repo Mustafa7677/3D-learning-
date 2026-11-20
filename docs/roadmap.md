@@ -11,12 +11,14 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 - [x] AI LAB 1–4 сабақтары: Data → Neuron → Neural Network → Training
 - [x] Web: басты бет (hero-да тірі training), зертхана беті, сабақ беті (3D + басқару + loss графигі)
 - [x] API қаңқасы: Fastify, анонимді learner cookie, прогресс API, PostgreSQL схемасы
+- [x] AI LAB 5–8: Overfitting (loss gap, көбірек дерек, L2, early stopping), Transformers (BPE, embedding, self-attention), LLM Inference (триграмма LM, temperature, top-k), Build Your AI (өз деректері, спираль, JSON экспорт)
+- [x] Тіл зертханасы (`lang-lab` plugin): барлық модельдер ішкі қазақ корпусынан браузерде үйретіледі
+- [x] Статикалық нұсқа және GitHub Pages деплойы
 
 ## Келесі кезеңдер
 
 | Кезең | Мазмұны |
 |---|---|
-| AI LAB 5–8 | Overfitting (L2, деректің көлемі), Transformers (tokenization, attention), LLM inference (Transformers.js), Build Your AI (өз классификаторын экспорттау) |
 | Платформа | PostgreSQL репозиторийі (Drizzle), OAuth/OIDC, анонимді прогресті аккаунтқа қосу, сессия recording-тарын серверге жүктеу |
 | WEB LAB | `lab-web` plugin: URL → DNS → TCP → HTTP симуляциясы, DOM/CSS 3D, event loop, Monaco + sandbox iframe |
 | GAME LAB | `lab-game` plugin: Rapier WASM, scene graph, game loop, ойын экспорттау |

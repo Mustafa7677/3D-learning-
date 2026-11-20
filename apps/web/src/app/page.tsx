@@ -63,7 +63,7 @@ export default function Home() {
                     <Link href={lab.href} className={styles.lab}>
                       <h3>{lab.title}</h3>
                       <p>{lab.inside}</p>
-                      <small>4 сабақ ашық</small>
+                      <small>8 сабақ ашық</small>
                     </Link>
                   ) : (
                     <div className={styles.lab} aria-disabled="true">

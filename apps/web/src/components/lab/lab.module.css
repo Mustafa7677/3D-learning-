@@ -80,12 +80,15 @@
   background: var(--scene-bg);
   min-height: 420px;
 }
-.stage[data-tool="add0"],
-.stage[data-tool="add1"] {
+.stageInner {
+  position: absolute;
+  inset: 0;
+}
+.stageInner[data-tool="add0"],
+.stageInner[data-tool="add1"] {
   cursor: crosshair;
 }
-.stage > canvas,
-.stage > div:first-child {
+.stageInner > div:first-child {
   position: absolute !important;
   inset: 0;
 }

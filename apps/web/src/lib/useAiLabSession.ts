@@ -3,18 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RemoteRuntime, type AssessmentResult } from "@inside-tech/sim-core";
 import { LessonEngine, type LessonDefinition, type StepView } from "@inside-tech/lesson-engine";
-import type { AiLabAction, AiLabState } from "@inside-tech/lab-ai";
-import { createLabPort } from "./labPort";
+import { createLabPort, type LabKind } from "./labPort";
 import { progressStore } from "./progress";
 
-export interface AiLabSession {
+export interface LabSession<S, A> {
   ready: boolean;
-  state?: AiLabState;
+  state?: S;
   assessment?: AssessmentResult;
   canUndo: boolean;
   step?: StepView;
   completion: number;
-  dispatch(a: AiLabAction): void;
+  dispatch(a: A): void;
   undo(): void;
   next(): void;
   goTo(index: number): void;
@@ -22,25 +21,29 @@ export interface AiLabSession {
 }
 
 /**
- * Wires one lesson to a simulation runtime living in a Web Worker.
- * The worker owns all compute (training included); the main thread only
- * renders snapshots and grades objectives with the LessonEngine.
+ * Wires one lesson to its simulation runtime (Web Worker or main-thread
+ * channel — same protocol). The main thread renders snapshots and grades
+ * objectives with the LessonEngine, only on states that already include the
+ * step's setup actions (`ack` ≥ the last setup command).
  */
-export function useAiLabSession(lesson: LessonDefinition<AiLabState, AiLabAction>): AiLabSession {
-  const remote = useRef<RemoteRuntime<AiLabState, AiLabAction> | null>(null);
-  const engine = useRef<LessonEngine<AiLabState, AiLabAction> | null>(null);
-  const [snap, setSnap] = useState<{ state: AiLabState; assessment: AssessmentResult; canUndo: boolean }>();
+export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKind): LabSession<S, A> {
+  const remote = useRef<RemoteRuntime<S, A> | null>(null);
+  const engine = useRef<LessonEngine<S, A> | null>(null);
+  const [snap, setSnap] = useState<{ state: S; assessment: AssessmentResult; canUndo: boolean }>();
   const [step, setStep] = useState<StepView>();
   const [completion, setCompletion] = useState(0);
   const gate = useRef(Number.POSITIVE_INFINITY);
 
   useEffect(() => {
     let disposed = false;
-    const lab = createLabPort();
-    const rt = new RemoteRuntime<AiLabState, AiLabAction>(lab.port);
+    const lab = createLabPort(kind);
+    const rt = new RemoteRuntime<S, A>(lab.port);
     remote.current = rt;
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
-    // Objectives are graded only on states that already include the step's setup actions.
+    let flush = () => {};
+    // A reload or tab close skips React cleanup; pagehide still fires.
+    const onHide = () => flush();
+    window.addEventListener("pagehide", onHide);
     gate.current = Number.POSITIVE_INFINITY;
 
     progressStore()
@@ -53,7 +56,15 @@ export function useAiLabSession(lesson: LessonDefinition<AiLabState, AiLabAction
           clearTimeout(saveTimer);
           saveTimer = setTimeout(() => void progressStore().save(p), 400);
         });
-        // Build the step's world, then start the fixed-step loop.
+        // Milestones are saved at once; routine updates are debounced above.
+        const saveNow = () => {
+          clearTimeout(saveTimer);
+          void progressStore().save(eng.getProgress());
+        };
+        eng.bus.on("stepEntered", saveNow);
+        eng.bus.on("stepCompleted", saveNow);
+        eng.bus.on("lessonCompleted", saveNow);
+        flush = saveNow;
         eng.step.onEnter?.forEach((a) => rt.dispatch(a));
         rt.play();
         gate.current = rt.lastSent;
@@ -67,6 +78,7 @@ export function useAiLabSession(lesson: LessonDefinition<AiLabState, AiLabAction
 
     return () => {
       disposed = true;
+      window.removeEventListener("pagehide", onHide);
       clearTimeout(saveTimer);
       if (engine.current) void progressStore().save(engine.current.getProgress());
       rt.dispose();
@@ -74,16 +86,15 @@ export function useAiLabSession(lesson: LessonDefinition<AiLabState, AiLabAction
       remote.current = null;
       engine.current = null;
     };
-  }, [lesson]);
+  }, [lesson, kind]);
 
-  const dispatch = useCallback((a: AiLabAction) => remote.current?.dispatch(a), []);
+  const dispatch = useCallback((a: A) => remote.current?.dispatch(a), []);
   const undo = useCallback(() => remote.current?.undo(), []);
 
   const enter = useCallback(() => {
     const eng = engine.current;
-    if (!eng) return;
     const rt = remote.current;
-    if (!rt) return;
+    if (!eng || !rt) return;
     eng.step.onEnter?.forEach((a) => rt.dispatch(a));
     gate.current = rt.lastSent;
     setStep(eng.view());

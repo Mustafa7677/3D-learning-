@@ -1,13 +1,14 @@
 "use client";
 
 import type { AiLabAction, AiLabState, DatasetKind, HiddenActivation } from "@inside-tech/lab-ai";
-import { MAX_HIDDEN_LAYERS, MAX_UNITS, parameterCount } from "@inside-tech/lab-ai";
+import { MAX_HIDDEN_LAYERS, MAX_POINTS, MAX_UNITS, parameterCount } from "@inside-tech/lab-ai";
+import { ExportPanel } from "./ExportPanel";
 import type { AssessmentResult } from "@inside-tech/sim-core";
 import { LossChart } from "./LossChart";
 import styles from "./lab.module.css";
 
 export type Tool = "select" | "add0" | "add1" | "relabel" | "remove";
-export type Section = "data" | "neuron" | "network" | "training";
+export type Section = "data" | "neuron" | "network" | "training" | "export";
 
 interface Props {
   state: AiLabState;
@@ -141,7 +142,18 @@ export function ControlPanel({ state, assessment, sections, tool, onTool, dispat
             max={1}
             step={0.05}
             format={(v) => v.toFixed(2)}
-            onChange={(v) => dispatch({ type: "dataset/generate", kind: state.datasetKind === "custom" ? "blobs" : state.datasetKind, noise: v })}
+            onChange={(v) => dispatch({ type: "dataset/generate", kind: state.datasetKind === "custom" ? "blobs" : state.datasetKind, noise: v, keepSeed: true })}
+          />
+          <Slider
+            id="count"
+            label="Деректер саны"
+            value={state.points.length}
+            min={20}
+            max={MAX_POINTS}
+            step={10}
+            onChange={(v) =>
+              dispatch({ type: "dataset/generate", kind: state.datasetKind === "custom" ? "blobs" : state.datasetKind, count: v, keepSeed: true })
+            }
           />
           <Slider
             id="split"
@@ -254,7 +266,16 @@ export function ControlPanel({ state, assessment, sections, tool, onTool, dispat
               </button>
             ))}
           </div>
-          <Slider id="epochs" label="Epoch шегі" value={state.hyper.epochLimit} min={10} max={1000} step={10} onChange={(v) => dispatch({ type: "hyper/set", params: { epochLimit: v } })} />
+          <Slider id="epochs" label="Epoch шегі" value={state.hyper.epochLimit} min={10} max={3000} step={10} onChange={(v) => dispatch({ type: "hyper/set", params: { epochLimit: v } })} />
+          <Slider
+            id="speed"
+            label="Жылдамдық (epoch / кадр)"
+            value={state.hyper.epochsPerTick}
+            min={1}
+            max={10}
+            step={1}
+            onChange={(v) => dispatch({ type: "hyper/set", params: { epochsPerTick: v } })}
+          />
           <Slider id="l2" label="L2 регуляризация" value={state.hyper.l2} min={0} max={0.01} step={0.0005} format={(v) => v.toFixed(4)} onChange={(v) => dispatch({ type: "hyper/set", params: { l2: v } })} />
           <div className={styles.row}>
             {state.training.running ? (
@@ -276,6 +297,8 @@ export function ControlPanel({ state, assessment, sections, tool, onTool, dispat
           <LossChart history={state.training.history} />
         </fieldset>
       )}
+
+      {has("export") && <ExportPanel state={state} onExported={() => dispatch({ type: "model/export" })} />}
 
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>

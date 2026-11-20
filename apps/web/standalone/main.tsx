@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { aiLessons } from "@inside-tech/lab-ai";
+import { lessonEntries } from "../src/lib/lessons";
 import Home from "../src/app/page";
 import AiLabPage from "../src/app/labs/ai/page";
 import { LessonView } from "../src/components/lab/LessonView";
@@ -24,7 +24,7 @@ function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const lesson = aiLessons.find((l) => l.id === route);
+  const lesson = lessonEntries.find((e) => e.lesson.id === route)?.lesson;
   useEffect(() => {
     document.title = lesson ? `${lesson.title} — INSIDE TECH` : (TITLES[route] ?? "INSIDE TECH");
   }, [route, lesson]);

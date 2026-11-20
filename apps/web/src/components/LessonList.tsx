@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { LessonProgress } from "@inside-tech/lesson-engine";
-import { aiLessons } from "@inside-tech/lab-ai";
+import { lessonEntries } from "@/lib/lessons";
 import { progressStore } from "@/lib/progress";
 import styles from "./home.module.css";
 
 function completion(lessonIndex: number, p?: LessonProgress): number {
-  const lesson = aiLessons[lessonIndex]!;
+  const lesson = lessonEntries[lessonIndex]!.lesson;
   if (!p) return 0;
   let total = 0;
   let done = 0;
@@ -30,7 +30,7 @@ export function LessonList() {
 
   return (
     <ol className={styles.lessonList}>
-      {aiLessons.map((l, i) => {
+      {lessonEntries.map(({ lesson: l }, i) => {
         const p = progress[l.id];
         const c = completion(i, p);
         return (

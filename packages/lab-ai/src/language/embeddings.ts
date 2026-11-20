@@ -63,9 +63,14 @@ export function trainEmbeddings(sentences: string[][], dim = 8, window = 2): Emb
     const n = Math.hypot(...x) || 1;
     return x.map((y) => y / n);
   });
-  const coords3 = vectors.map((x) => [x[0] ?? 0, x[1] ?? 0, x[2] ?? 0] as [number, number, number]);
-  const span = [0, 1, 2].map((d) => Math.max(1e-6, ...coords3.map((c) => Math.abs(c[d]!))));
-  const coords = coords3.map((c) => c.map((x, d) => x / span[d]!) as [number, number, number]);
+  // Layout: three components after the first (which mostly encodes word frequency),
+  // centred on the mean and scaled to about [-1, 1] per axis.
+  const pick = dim >= 4 ? [1, 2, 3] : [0, 1, 2];
+  const coords3 = vectors.map((x) => pick.map((k) => x[k] ?? 0) as [number, number, number]);
+  const mean = [0, 1, 2].map((d) => coords3.reduce((s, c) => s + c[d]!, 0) / Math.max(1, coords3.length));
+  const centred = coords3.map((c) => c.map((x, d) => x - mean[d]!) as [number, number, number]);
+  const span = [0, 1, 2].map((d) => Math.max(1e-6, ...centred.map((c) => Math.abs(c[d]!))));
+  const coords = centred.map((c) => c.map((x, d) => x / span[d]!) as [number, number, number]);
   return { vocab, index, vectors, coords, dim };
 }
 
