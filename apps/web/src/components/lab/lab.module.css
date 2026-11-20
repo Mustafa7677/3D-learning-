@@ -640,3 +640,16 @@ div.walkSteps {
   background: var(--panel);
   font: 13px ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
+
+/* ---- cybersecurity lab ---- */
+.cipherBox {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 140px;
+  overflow: auto;
+}

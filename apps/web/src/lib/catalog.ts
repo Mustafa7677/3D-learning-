@@ -47,7 +47,14 @@ export const labs: LabInfo[] = [
     href: "/labs/arch",
   },
   { id: "cloud", title: "Cloud & DevOps", inside: "Контейнерлер, Kubernetes, CI/CD", status: "soon" },
-  { id: "sec", title: "Cybersecurity", inside: "Шифрлау мен аутентификацияны қорғау зертханасында", status: "soon" },
+  {
+    id: "sec",
+    title: "Cybersecurity",
+    inside: "Шифрлау мен аутентификацияны қорғау зертханасында",
+    intro: "Шифрды жаса, сосын оны бұз. Цезарьдан RSA-ға дейін, ашық мәтіннен Argon2-ге дейін: әр қорғаныс қабатын алдымен шабуылшының көзімен көресің. Нақты SHA-256, нақты сөздік шабуылы, нақты SQL injection — бәрі қауіпсіз құмсалғышта.",
+    status: "open",
+    href: "/labs/sec",
+  },
   {
     id: "algo",
     title: "Algorithms",

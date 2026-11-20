@@ -54,6 +54,9 @@ importers:
       '@inside-tech/lab-game':
         specifier: workspace:*
         version: link:../../packages/lab-game
+      '@inside-tech/lab-sec':
+        specifier: workspace:*
+        version: link:../../packages/lab-sec
       '@inside-tech/lab-web':
         specifier: workspace:*
         version: link:../../packages/lab-web
@@ -129,6 +132,15 @@ importers:
         version: link:../sim-core
 
   packages/lab-game:
+    dependencies:
+      '@inside-tech/lesson-engine':
+        specifier: workspace:*
+        version: link:../lesson-engine
+      '@inside-tech/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+
+  packages/lab-sec:
     dependencies:
       '@inside-tech/lesson-engine':
         specifier: workspace:*

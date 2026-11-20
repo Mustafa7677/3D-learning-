@@ -223,6 +223,35 @@ KINDS.push({
   ],
 });
 
+KINDS.push({
+  kind: "sec",
+  labId: "sec",
+  title: "Cybersecurity",
+  focus: [
+    { id: "cipher", label: "Цезарь шифры" },
+    { id: "xor", label: "XOR" },
+    { id: "hash", label: "SHA-256" },
+    { id: "passwords", label: "Ұрланған дерекқор" },
+    { id: "strength", label: "Құпиясөз күші" },
+    { id: "rsa", label: "RSA" },
+    { id: "attack", label: "Injection және XSS" },
+  ],
+  conditions: [
+    { id: "shifts", label: "Шифрлау кілті таңдалды", build: () => ({ path: "stats.ownShifts", op: "lengthAtLeast", value: 1 }) },
+    { id: "hashes", label: "Хэштелген мәтін ≥ N", value: 3, build: len("stats.hashes") },
+    { id: "cracks", label: "Сөздік шабуылы ≥ N", value: 1, build: len("stats.crackRuns") },
+    { id: "strong", label: "Тексерілген құпиясөз ≥ N", value: 2, build: len("stats.strengths") },
+    { id: "keys", label: "RSA кілттер жұбы жасалды", build: () => ({ path: "stats.keyPairs", op: "lengthAtLeast", value: 1 }) },
+    { id: "logins", label: "Кіру әрекеті ≥ N", value: 2, build: len("stats.logins") },
+  ],
+  setups: [
+    { id: "short", label: "Ұсталған қысқа хабар", actions: [{ type: "mode/set", mode: "cipher" }, { type: "cipher/source", source: "short" }] },
+    { id: "long", label: "Ұсталған ұзын хабар", actions: [{ type: "mode/set", mode: "cipher" }, { type: "cipher/source", source: "long" }] },
+    { id: "hash-store", label: "Дерекқор: тек хэш", actions: [{ type: "mode/set", mode: "passwords" }, { type: "pw/storage", storage: "hash" }] },
+    { id: "vulnerable", label: "Осал кіру формасы", actions: [{ type: "mode/set", mode: "attack" }, { type: "attack/param", on: false }] },
+  ],
+});
+
 export const kindInfo = (kind: string) => KINDS.find((k) => k.kind === kind) ?? KINDS[0]!;
 
 export function newSpec(kind: LabKind): LessonSpec {
