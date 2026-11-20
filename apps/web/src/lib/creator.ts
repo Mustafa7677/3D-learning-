@@ -278,6 +278,40 @@ KINDS.push({
 });
 
 KINDS.push({
+  kind: "iot",
+  labId: "iot",
+  title: "Robotics & IoT",
+  focus: [
+    { id: "adc", label: "АЦП" },
+    { id: "sampling", label: "Дискреттеу" },
+    { id: "filter", label: "Сүзгі" },
+    { id: "thermo", label: "Термостат" },
+    { id: "pid", label: "PID" },
+    { id: "arm", label: "Робот қолы" },
+    { id: "kalman", label: "Калман" },
+    { id: "mqtt", label: "MQTT" },
+    { id: "power", label: "Батарея" },
+  ],
+  conditions: [
+    { id: "reads", label: "АЦП оқу ≥ N", value: 2, build: len("stats.adcReads") },
+    { id: "samplings", label: "Дискреттеу тәжірибесі ≥ N", value: 3, build: len("stats.samplings") },
+    { id: "filters", label: "Сүзгі жүргізу ≥ N", value: 2, build: len("stats.filterRuns") },
+    { id: "thermo", label: "Термостат жүргізу ≥ N", value: 2, build: len("stats.thermoRuns") },
+    { id: "pid", label: "PID жүргізу ≥ N", value: 3, build: len("stats.pidRuns") },
+    { id: "reach", label: "Қол нысанаға жетті ≥ N", value: 1, build: len("stats.armReaches") },
+    { id: "kalman", label: "Калман жүргізу ≥ N", value: 2, build: len("stats.kalmanRuns") },
+    { id: "subs", label: "MQTT жазылым ≥ N", value: 2, build: len("stats.subscriptions") },
+  ],
+  setups: [
+    { id: "adc", label: "АЦП: 8 бит", actions: [{ type: "mode/set", mode: "adc" }, { type: "adc/set", bits: 8 }] },
+    { id: "pid", label: "PID: тек P", actions: [{ type: "mode/set", mode: "pid" }, { type: "pid/set", kp: 5, ki: 0, kd: 0, plant: "lift" }] },
+    { id: "heavy", label: "PID: ауыр жүк", actions: [{ type: "mode/set", mode: "pid" }, { type: "pid/set", plant: "heavy" }] },
+    { id: "arm", label: "Қол: нысана (−1; 2.5)", actions: [{ type: "mode/set", mode: "arm" }, { type: "arm/target", target: 1 }] },
+    { id: "kalman", label: "Калман: GPS σ = 6", actions: [{ type: "mode/set", mode: "kalman" }, { type: "kalman/set", gpsNoise: 6 }] },
+  ],
+});
+
+KINDS.push({
   kind: "cloud",
   labId: "cloud",
   title: "Cloud & DevOps",

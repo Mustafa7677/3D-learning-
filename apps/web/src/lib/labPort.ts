@@ -8,11 +8,12 @@ import { secLabPlugin } from "@inside-tech/lab-sec";
 import { dbLabPlugin } from "@inside-tech/lab-db";
 import { netLabPlugin } from "@inside-tech/lab-net";
 import { cloudLabPlugin } from "@inside-tech/lab-cloud";
+import { iotLabPlugin } from "@inside-tech/lab-iot";
 import { spawnWorker } from "./spawnWorker";
 
 export const LAB_SEED = 20261120;
 
-export type LabKind = "classifier" | "language" | "web" | "game" | "algo" | "arch" | "sec" | "db" | "net" | "cloud";
+export type LabKind = "classifier" | "language" | "web" | "game" | "algo" | "arch" | "sec" | "db" | "net" | "cloud" | "iot";
 
 export interface LabPort {
   port: MessagePortLike;
@@ -53,6 +54,7 @@ export function createLabPort(kind: LabKind): LabPort {
   if (kind === "db") return inThread(dbLabPlugin);
   if (kind === "net") return inThread(netLabPlugin);
   if (kind === "cloud") return inThread(cloudLabPlugin);
+  if (kind === "iot") return inThread(iotLabPlugin);
   try {
     const worker = spawnWorker();
     return { port: worker as unknown as MessagePortLike, dispose: () => worker.terminate() };

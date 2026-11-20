@@ -12,6 +12,7 @@ import type { SecLabAction, SecLabState } from "@inside-tech/lab-sec";
 import type { DbLabAction, DbLabState } from "@inside-tech/lab-db";
 import type { NetLabAction, NetLabState } from "@inside-tech/lab-net";
 import type { CloudLabAction, CloudLabState } from "@inside-tech/lab-cloud";
+import type { IotLabAction, IotLabState } from "@inside-tech/lab-iot";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -25,6 +26,7 @@ import type { SecFocus } from "../scene/SecScene";
 import type { DbFocus } from "../scene/DbScene";
 import type { NetFocus } from "../scene/NetScene";
 import type { CloudFocus } from "../scene/CloudScene";
+import type { IotFocus } from "../scene/IotScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
@@ -37,6 +39,7 @@ import { SecControlPanel } from "./SecControlPanel";
 import { DbControlPanel } from "./DbControlPanel";
 import { NetControlPanel } from "./NetControlPanel";
 import { CloudControlPanel } from "./CloudControlPanel";
+import { IotControlPanel } from "./IotControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
@@ -50,6 +53,7 @@ const SecScene = dynamic(() => import("../scene/SecScene"), { ssr: false, loadin
 const DbScene = dynamic(() => import("../scene/DbScene"), { ssr: false, loading: sceneLoading });
 const NetScene = dynamic(() => import("../scene/NetScene"), { ssr: false, loading: sceneLoading });
 const CloudScene = dynamic(() => import("../scene/CloudScene"), { ssr: false, loading: sceneLoading });
+const IotScene = dynamic(() => import("../scene/IotScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -370,6 +374,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "db") return <DbLesson {...props} />;
   if (entry.kind === "net") return <NetLesson {...props} />;
   if (entry.kind === "cloud") return <CloudLesson {...props} />;
+  if (entry.kind === "iot") return <IotLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -389,6 +394,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "db") return <DbLesson {...(props as LessonProps<DbLabState, DbLabAction>)} />;
   if (spec.kind === "net") return <NetLesson {...(props as LessonProps<NetLabState, NetLabAction>)} />;
   if (spec.kind === "cloud") return <CloudLesson {...(props as LessonProps<CloudLabState, CloudLabAction>)} />;
+  if (spec.kind === "iot") return <IotLesson {...(props as LessonProps<IotLabState, IotLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
 
@@ -530,6 +536,29 @@ function CloudLesson({ labId, lesson, nextLessonId, persist }: LessonProps<Cloud
         </div>
       }
       controls={state && <CloudControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+    />
+  );
+}
+
+const IOT_FOCI: IotFocus[] = ["adc", "sampling", "filter", "thermo", "pid", "arm", "kalman", "mqtt", "power"];
+
+function IotLesson({ labId, lesson, nextLessonId, persist }: LessonProps<IotLabState, IotLabAction>) {
+  const session = useLabSession(lesson, "iot", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (IOT_FOCI.includes(step?.focus as IotFocus) ? step!.focus : "adc") as IotFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <IotScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <IotControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }
