@@ -278,6 +278,38 @@ KINDS.push({
 });
 
 KINDS.push({
+  kind: "cloud",
+  labId: "cloud",
+  title: "Cloud & DevOps",
+  focus: [
+    { id: "image", label: "Docker образы" },
+    { id: "cluster", label: "Кластер" },
+    { id: "scale", label: "Жүктеме мен кешігу" },
+    { id: "autoscale", label: "Автомасштабтау" },
+    { id: "pipeline", label: "CI/CD" },
+    { id: "release", label: "Релиз" },
+    { id: "availability", label: "Қолжетімділік" },
+    { id: "incident", label: "Инцидент" },
+  ],
+  conditions: [
+    { id: "builds", label: "Образ жинау ≥ N", value: 2, build: len("stats.imageBuilds") },
+    { id: "kills", label: "Құлатылған pod ≥ N", value: 1, build: n("stats.podsKilled") },
+    { id: "scale", label: "Жүктеме тәжірибесі ≥ N", value: 3, build: len("stats.scaleChecks") },
+    { id: "days", label: "Жүргізілген тәулік ≥ N", value: 2, build: len("stats.days") },
+    { id: "pipelines", label: "Конвейер іске қосу ≥ N", value: 2, build: len("stats.pipelines") },
+    { id: "releases", label: "Релиз ≥ N", value: 1, build: len("stats.releases") },
+    { id: "zones", label: "Зона құлау сынағы ≥ N", value: 1, build: len("stats.zoneTests") },
+  ],
+  setups: [
+    { id: "image", label: "Dockerfile: нашар рет", actions: [{ type: "mode/set", mode: "image" }] },
+    { id: "cluster", label: "Кластер: 3 реплика", actions: [{ type: "mode/set", mode: "cluster" }, { type: "cluster/desired", n: 3 }] },
+    { id: "fixed", label: "Автомасштаб: тұрақты 8", actions: [{ type: "mode/set", mode: "autoscale" }, { type: "autoscale/set", min: 8, max: 8 }] },
+    { id: "canary", label: "Релиз: canary", actions: [{ type: "mode/set", mode: "release" }, { type: "release/strategy", strategy: "canary" }] },
+    { id: "incident", label: "Инцидент", actions: [{ type: "mode/set", mode: "incident" }] },
+  ],
+});
+
+KINDS.push({
   kind: "net",
   labId: "net",
   title: "Computer Networks",

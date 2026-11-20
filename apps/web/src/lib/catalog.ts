@@ -60,7 +60,14 @@ export const labs: LabInfo[] = [
     status: "open",
     href: "/labs/arch",
   },
-  { id: "cloud", title: "Cloud & DevOps", inside: "Контейнерлер, Kubernetes, CI/CD", status: "soon" },
+  {
+    id: "cloud",
+    title: "Cloud & DevOps",
+    inside: "Контейнерлер, Kubernetes, CI/CD",
+    intro: "Бұлттың іші: Docker қабаттары мен кэш, Kubernetes контроллері, кезек теориясы мен SLO, автомасштабтау, CI/CD конвейері, canary релиздер, «тоғыздар» мен қолжетімділік зоналары және түнгі 3-тегі инцидент. Әр санды өзің өлшеп, әр құлауды өзің тудырасың.",
+    status: "open",
+    href: "/labs/cloud",
+  },
   {
     id: "sec",
     title: "Cybersecurity",

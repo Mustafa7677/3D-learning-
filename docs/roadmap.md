@@ -35,6 +35,7 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 - [x] DATABASES LAB 1–8 + Problem Set (`lab-db` plugin): өз SQL қозғалтқышы (recursive-descent парсер; JOIN, GROUP BY/HAVING, агрегаттар, индекстер, EXPLAIN, PRIMARY/FOREIGN KEY, NOT NULL, BEGIN/COMMIT/ROLLBACK), сервердің құлауы, жоғалған жаңарту және SELECT … FOR UPDATE, mod N мен consistent hashing шардингі; нәтижелер эталон сұраныспен салыстырылады
 
 - [x] COMPUTER NETWORKS LAB 1–8 + Problem Set (`lab-net` plugin): пакеттеу мен тақырыптар, IPv4/CIDR калькуляторы, link-state (Дейкстра) және distance-vector (Беллман–Форд) маршрутизация, сызық үзілісі мен желі бөлінуі, stop-and-wait пен жылжымалы терезе (BDP), Reno/Tahoe кептелісті басқару, NAT
+- [x] CLOUD & DEVOPS LAB 1–8 + Problem Set (`lab-cloud` plugin): Docker қабаттары мен кэш реті, Kubernetes reconciliation контроллері, M/M/1 кезек теориясы мен SLO, тәуліктік автомасштабтау, CI/CD конвейері (параллель, кэш, қақпалар), canary/rolling/blue-green релиздер, «тоғыздар» мен қолжетімділік зоналары, түпкі себепті табу
 
 ## Келесі кезеңдер
 

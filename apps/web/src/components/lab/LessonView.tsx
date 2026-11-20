@@ -11,6 +11,7 @@ import type { ArchLabAction, ArchLabState } from "@inside-tech/lab-arch";
 import type { SecLabAction, SecLabState } from "@inside-tech/lab-sec";
 import type { DbLabAction, DbLabState } from "@inside-tech/lab-db";
 import type { NetLabAction, NetLabState } from "@inside-tech/lab-net";
+import type { CloudLabAction, CloudLabState } from "@inside-tech/lab-cloud";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -23,6 +24,7 @@ import type { ArchFocus } from "../scene/ArchScene";
 import type { SecFocus } from "../scene/SecScene";
 import type { DbFocus } from "../scene/DbScene";
 import type { NetFocus } from "../scene/NetScene";
+import type { CloudFocus } from "../scene/CloudScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
@@ -34,6 +36,7 @@ import { ArchControlPanel } from "./ArchControlPanel";
 import { SecControlPanel } from "./SecControlPanel";
 import { DbControlPanel } from "./DbControlPanel";
 import { NetControlPanel } from "./NetControlPanel";
+import { CloudControlPanel } from "./CloudControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
@@ -46,6 +49,7 @@ const ArchScene = dynamic(() => import("../scene/ArchScene"), { ssr: false, load
 const SecScene = dynamic(() => import("../scene/SecScene"), { ssr: false, loading: sceneLoading });
 const DbScene = dynamic(() => import("../scene/DbScene"), { ssr: false, loading: sceneLoading });
 const NetScene = dynamic(() => import("../scene/NetScene"), { ssr: false, loading: sceneLoading });
+const CloudScene = dynamic(() => import("../scene/CloudScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -365,6 +369,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "sec") return <SecLesson {...props} />;
   if (entry.kind === "db") return <DbLesson {...props} />;
   if (entry.kind === "net") return <NetLesson {...props} />;
+  if (entry.kind === "cloud") return <CloudLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -383,6 +388,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "sec") return <SecLesson {...(props as LessonProps<SecLabState, SecLabAction>)} />;
   if (spec.kind === "db") return <DbLesson {...(props as LessonProps<DbLabState, DbLabAction>)} />;
   if (spec.kind === "net") return <NetLesson {...(props as LessonProps<NetLabState, NetLabAction>)} />;
+  if (spec.kind === "cloud") return <CloudLesson {...(props as LessonProps<CloudLabState, CloudLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
 
@@ -501,6 +507,29 @@ function NetLesson({ labId, lesson, nextLessonId, persist }: LessonProps<NetLabS
         </div>
       }
       controls={state && <NetControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+    />
+  );
+}
+
+const CLOUD_FOCI: CloudFocus[] = ["image", "cluster", "scale", "autoscale", "pipeline", "release", "availability", "incident"];
+
+function CloudLesson({ labId, lesson, nextLessonId, persist }: LessonProps<CloudLabState, CloudLabAction>) {
+  const session = useLabSession(lesson, "cloud", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (CLOUD_FOCI.includes(step?.focus as CloudFocus) ? step!.focus : "image") as CloudFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <CloudScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <CloudControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }
