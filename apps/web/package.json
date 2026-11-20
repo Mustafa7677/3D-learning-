@@ -25,6 +25,7 @@
     "react-dom": "^19.2.0",
     "three": "^0.180.0",
     "@inside-tech/lab-web": "workspace:*",
+    "@inside-tech/lab-algo": "workspace:*",
     "@inside-tech/lab-game": "workspace:*"
   },
   "devDependencies": {

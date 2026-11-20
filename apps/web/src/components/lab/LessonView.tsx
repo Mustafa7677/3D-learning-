@@ -6,6 +6,7 @@ import { compileLesson, type LessonDefinition, type LessonSpec } from "@inside-t
 import type { AiLabAction, AiLabState, LangLabAction, LangLabState } from "@inside-tech/lab-ai";
 import type { WebLabAction, WebLabState } from "@inside-tech/lab-web";
 import type { GameLabAction, GameLabState, Tile } from "@inside-tech/lab-game";
+import type { AlgoLabAction, AlgoLabState } from "@inside-tech/lab-algo";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -13,12 +14,14 @@ import type { SceneFocus } from "../scene/AiScene";
 import type { LangFocus } from "../scene/LangScene";
 import type { WebFocus } from "../scene/WebScene";
 import type { GameFocus } from "../scene/GameScene";
+import type { AlgoFocus } from "../scene/AlgoScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
 import { PointInspector } from "./PointInspector";
 import { WebControlPanel, type WebSection } from "./WebControlPanel";
 import { GameControlPanel, type GameSection } from "./GameControlPanel";
+import { AlgoControlPanel, type AlgoSection } from "./AlgoControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
@@ -26,6 +29,7 @@ const AiScene = dynamic(() => import("../scene/AiScene"), { ssr: false, loading:
 const LangScene = dynamic(() => import("../scene/LangScene"), { ssr: false, loading: sceneLoading });
 const WebScene = dynamic(() => import("../scene/WebScene"), { ssr: false, loading: sceneLoading });
 const GameScene = dynamic(() => import("../scene/GameScene"), { ssr: false, loading: sceneLoading });
+const AlgoScene = dynamic(() => import("../scene/AlgoScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -95,6 +99,14 @@ const GAME_FOCUS_SECTIONS: Record<string, GameSection[]> = {
   graphics: ["graphics"],
   game: ["play", "rules", "ai"],
   editor: ["editor", "play", "rules", "ai"],
+};
+
+/** Algorithms lessons show the controls of the step's mode; authored lessons do the same by focus. */
+const ALGO_SECTIONS: Record<string, AlgoSection[]> = {
+  sort: ["sort"],
+  search: ["search"],
+  graph: ["graph"],
+  bench: ["bench"],
 };
 
 const KEYS: Record<string, "up" | "down" | "left" | "right"> = {
@@ -332,6 +344,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "classifier") return <ClassifierLesson {...props} />;
   if (entry.kind === "language") return <LanguageLesson {...props} />;
   if (entry.kind === "web") return <WebLesson {...props} />;
+  if (entry.kind === "algo") return <AlgoLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -345,5 +358,37 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "classifier") return <ClassifierLesson {...(props as LessonProps<AiLabState, AiLabAction>)} />;
   if (spec.kind === "language") return <LanguageLesson {...(props as LessonProps<LangLabState, LangLabAction>)} />;
   if (spec.kind === "web") return <WebLesson {...(props as LessonProps<WebLabState, WebLabAction>)} />;
+  if (spec.kind === "algo") return <AlgoLesson {...(props as LessonProps<AlgoLabState, AlgoLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
+}
+
+function AlgoLesson({ labId, lesson, nextLessonId, persist }: LessonProps<AlgoLabState, AlgoLabAction>) {
+  const session = useLabSession(lesson, "algo", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (step?.focus ?? "sort") as AlgoFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <AlgoScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={
+        state && (
+          <AlgoControlPanel
+            state={state}
+            sections={ALGO_SECTIONS[focus] ?? ["sort"]}
+            dispatch={session.dispatch}
+            canUndo={session.canUndo}
+            onUndo={session.undo}
+          />
+        )
+      }
+    />
+  );
 }

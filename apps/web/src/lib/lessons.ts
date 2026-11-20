@@ -2,6 +2,7 @@ import type { LessonDefinition } from "@inside-tech/lesson-engine";
 import { aiLessons, languageLessons } from "@inside-tech/lab-ai";
 import { webLessons } from "@inside-tech/lab-web";
 import { gameLessons } from "@inside-tech/lab-game";
+import { algoLessons } from "@inside-tech/lab-algo";
 import type { LabKind } from "./labPort";
 
 export interface LessonEntry {
@@ -21,6 +22,7 @@ export const lessonEntries: LessonEntry[] = [
   ].sort(byOrder),
   ...webLessons.map((lesson) => ({ labId: "web", kind: "web" as const, lesson })).sort(byOrder),
   ...gameLessons.map((lesson) => ({ labId: "game", kind: "game" as const, lesson })).sort(byOrder),
+  ...algoLessons.map((lesson) => ({ labId: "algo", kind: "algo" as const, lesson })).sort(byOrder),
 ];
 
 export const lessonsForLab = (labId: string) => lessonEntries.filter((e) => e.labId === labId);

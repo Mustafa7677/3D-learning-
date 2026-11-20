@@ -2,11 +2,12 @@ import { exposeRuntime, type MessagePortLike, type SimulationPlugin } from "@ins
 import { aiLabPlugin, langLabPlugin } from "@inside-tech/lab-ai";
 import { webLabPlugin } from "@inside-tech/lab-web";
 import { gameLabPlugin } from "@inside-tech/lab-game";
+import { algoLabPlugin } from "@inside-tech/lab-algo";
 import { spawnWorker } from "./spawnWorker";
 
 export const LAB_SEED = 20261120;
 
-export type LabKind = "classifier" | "language" | "web" | "game";
+export type LabKind = "classifier" | "language" | "web" | "game" | "algo";
 
 export interface LabPort {
   port: MessagePortLike;
@@ -41,6 +42,7 @@ export function createLabPort(kind: LabKind): LabPort {
   if (kind === "language") return inThread(langLabPlugin);
   if (kind === "web") return inThread(webLabPlugin);
   if (kind === "game") return inThread(gameLabPlugin);
+  if (kind === "algo") return inThread(algoLabPlugin);
   try {
     const worker = spawnWorker();
     return { port: worker as unknown as MessagePortLike, dispose: () => worker.terminate() };

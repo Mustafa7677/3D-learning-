@@ -595,3 +595,27 @@ div.walkSteps {
   color: var(--muted);
   opacity: 0.6;
 }
+
+/* ---- algorithms lab ---- */
+.numInput {
+  width: 90px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  background: var(--panel);
+}
+.benchTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: 12.5px/1.4 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+.benchTable th,
+.benchTable td {
+  text-align: right;
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.benchTable th:first-child,
+.benchTable td:first-child {
+  text-align: left;
+}

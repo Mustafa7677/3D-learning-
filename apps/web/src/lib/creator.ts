@@ -167,6 +167,34 @@ export const KINDS: KindInfo[] = [
   },
 ];
 
+KINDS.push({
+  kind: "algo",
+  labId: "algo",
+  title: "Algorithms",
+  focus: [
+    { id: "sort", label: "Сұрыптау" },
+    { id: "search", label: "Іздеу" },
+    { id: "graph", label: "Граф" },
+    { id: "bench", label: "Тәжірибе (Big O)" },
+  ],
+  conditions: [
+    { id: "steps", label: "Қолмен жасалған сұрыптау қадамы ≥ N", value: 10, build: n("stats.manualSortSteps") },
+    { id: "runs", label: "Аяқталған сұрыптау ≥ N", value: 1, build: len("stats.sortRuns") },
+    { id: "searches", label: "Аяқталған іздеу ≥ N", value: 1, build: len("stats.searches") },
+    { id: "graphs", label: "Аяқталған граф іздеуі ≥ N", value: 1, build: len("stats.graphRuns") },
+    { id: "bench", label: "Big O өлшемі ≥ N", value: 3, build: len("stats.bench") },
+    { id: "graphMode", label: "Граф режимі ашылды", build: has("stats.modes", "graph") },
+  ],
+  setups: [
+    { id: "bubble", label: "Bubble sort, 12 кездейсоқ", actions: [{ type: "mode/set", mode: "sort" }, { type: "sort/config", alg: "bubble", preset: "random", n: 12 }] },
+    { id: "insertion", label: "Insertion sort, дерлік сұрыпталған", actions: [{ type: "mode/set", mode: "sort" }, { type: "sort/config", alg: "insertion", preset: "nearly", n: 24 }] },
+    { id: "merge", label: "Merge sort, 16 кездейсоқ", actions: [{ type: "mode/set", mode: "sort" }, { type: "sort/config", alg: "merge", preset: "random", n: 16 }] },
+    { id: "binary", label: "Екілік іздеу, 64 элемент", actions: [{ type: "mode/set", mode: "search" }, { type: "search/config", kind: "binary", n: 64, sorted: true }] },
+    { id: "bfs", label: "BFS, 4×4 тор", actions: [{ type: "mode/set", mode: "graph" }, { type: "graph/config", preset: "grid", alg: "bfs" }] },
+    { id: "dijkstra", label: "Дейкстра, жолдар картасы", actions: [{ type: "mode/set", mode: "graph" }, { type: "graph/config", preset: "roads", alg: "dijkstra" }] },
+  ],
+});
+
 export const kindInfo = (kind: string) => KINDS.find((k) => k.kind === kind) ?? KINDS[0]!;
 
 export function newSpec(kind: LabKind): LessonSpec {

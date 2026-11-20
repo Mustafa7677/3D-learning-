@@ -40,7 +40,14 @@ export const labs: LabInfo[] = [
   { id: "arch", title: "Computer Architecture", inside: "CPU, жады және екілік сандар", status: "soon" },
   { id: "cloud", title: "Cloud & DevOps", inside: "Контейнерлер, Kubernetes, CI/CD", status: "soon" },
   { id: "sec", title: "Cybersecurity", inside: "Шифрлау мен аутентификацияны қорғау зертханасында", status: "soon" },
-  { id: "algo", title: "Algorithms", inside: "Графтар мен сұрыптауды қадаммен бақыла", status: "soon" },
+  {
+    id: "algo",
+    title: "Algorithms",
+    inside: "Графтар мен сұрыптауды қадаммен бақыла",
+    intro: "Іздеу, сұрыптау және графтар — әр салыстыру мен әр ауыстыру 3D-де көрінеді. Алгоритмнің қадамдарын өзің санап, Big O-ны тәжірибемен дәлелдейсің, соңында навигатор сияқты ең арзан жолды табасың.",
+    status: "open",
+    href: "/labs/algo",
+  },
   { id: "iot", title: "Robotics & IoT", inside: "Сенсорлар мен контроллерлер симуляциясы", status: "soon" },
 ];
 
