@@ -5,6 +5,8 @@ import { RemoteRuntime, type AssessmentResult } from "@inside-tech/sim-core";
 import { LessonEngine, type AnswerResult, type LessonDefinition, type StepView } from "@inside-tech/lesson-engine";
 import { createLabPort, type LabKind } from "./labPort";
 import { progressStore } from "./progress";
+import { apiEnabled } from "./api";
+import { SessionLog } from "./sessionLog";
 
 export interface LabSession<S, A> {
   ready: boolean;
@@ -36,6 +38,7 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
   const [step, setStep] = useState<StepView>();
   const [completion, setCompletion] = useState(0);
   const gate = useRef(Number.POSITIVE_INFINITY);
+  const log = useRef<SessionLog | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -66,7 +69,22 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
         eng.bus.on("stepEntered", saveNow);
         eng.bus.on("stepCompleted", saveNow);
         eng.bus.on("lessonCompleted", saveNow);
-        flush = saveNow;
+        // Learning analytics for teachers (only with an API, only for saved sessions).
+        const slog = persist && apiEnabled ? new SessionLog() : null;
+        log.current = slog;
+        if (slog) {
+          slog.push("enter", eng.step.id);
+          const send = () => void rt.record().then((rec) => slog.upload(lesson.id, kind, rec), () => slog.upload(lesson.id, kind));
+          eng.bus.on("stepEntered", (e) => slog.push("enter", e.stepId));
+          eng.bus.on("stepCompleted", (e) => {
+            slog.push("done", e.stepId);
+            send();
+          });
+        }
+        flush = () => {
+          saveNow();
+          void slog?.upload(lesson.id, kind, undefined, true);
+        };
         eng.step.onEnter?.forEach((a) => rt.dispatch(a));
         rt.play();
         gate.current = rt.lastSent;
@@ -83,6 +101,8 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
       window.removeEventListener("pagehide", onHide);
       clearTimeout(saveTimer);
       if (engine.current) void progressStore().save(engine.current.getProgress());
+      void log.current?.upload(lesson.id, kind, undefined, true);
+      log.current = null;
       rt.dispose();
       lab.dispose();
       remote.current = null;
@@ -91,7 +111,10 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
   }, [lesson, kind]);
 
   const dispatch = useCallback((a: A) => remote.current?.dispatch(a), []);
-  const undo = useCallback(() => remote.current?.undo(), []);
+  const undo = useCallback(() => {
+    if (engine.current) log.current?.push("undo", engine.current.step.id);
+    remote.current?.undo();
+  }, []);
 
   const enter = useCallback(() => {
     const eng = engine.current;
@@ -116,7 +139,9 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
   const answer = useCallback((questionId: string, option: number): AnswerResult => {
     const eng = engine.current;
     if (!eng) return { correct: false, feedback: "Сабақ әлі жүктелуде." };
+    const before = eng.view().quiz.find((q) => q.id === questionId)?.answered;
     const r = eng.answer(questionId, option);
+    if (!before) log.current?.push(r.correct ? "right" : "wrong", eng.step.id, { q: questionId, o: option });
     setStep(eng.view());
     setCompletion(eng.completion());
     return r;
@@ -134,6 +159,9 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
     undo,
     next,
     goTo,
-    restartStep: enter,
+    restartStep: () => {
+      if (engine.current) log.current?.push("restart", engine.current.step.id);
+      enter();
+    },
   };
 }

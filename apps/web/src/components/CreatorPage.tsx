@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { apiEnabled, authoredHref, errorText, saveAuthored } from "@/lib/api";
 import { decodeLessonSpec, encodeLessonSpec, validateLessonSpec, type LessonSpec, type ObjectiveSpec, type QuizQuestion, type StepSpec } from "@inside-tech/lesson-engine";
 import {
   KINDS,
@@ -213,6 +214,28 @@ function LessonEditor(props: {
       window.prompt("Сілтемені көшір:", url);
     }
   };
+  /** Server copy: the local lesson id maps to the server id, so saving again updates it. */
+  const SERVER_IDS = "inside-tech:authored-ids";
+  const saveToServer = async () => {
+    let ids: Record<string, string> = {};
+    try {
+      ids = JSON.parse(localStorage.getItem(SERVER_IDS) ?? "{}") as Record<string, string>;
+    } catch {
+      /* storage unavailable */
+    }
+    try {
+      const saved = await saveAuthored(spec, ids[spec.id]);
+      try {
+        localStorage.setItem(SERVER_IDS, JSON.stringify({ ...ids, [spec.id]: saved.id }));
+      } catch {
+        /* storage unavailable */
+      }
+      const url = new URL(authoredHref(saved.id), window.location.href).toString();
+      props.onStatus(`Серверге сақталды. Енді оны «Мұғалімге» бетінде сыныпқа тапсыра аласың. Сілтеме: ${url}`);
+    } catch (e) {
+      props.onStatus(errorText(e));
+    }
+  };
   const download = () => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(spec, null, 2)], { type: "application/json" }));
@@ -320,6 +343,11 @@ function LessonEditor(props: {
         <button type="button" className="btn" disabled={issues.length > 0} onClick={share}>
           Оқушыларға сілтеме
         </button>
+        {apiEnabled && (
+          <button type="button" className="btn" disabled={issues.length > 0} onClick={saveToServer}>
+            Серверге сақтау
+          </button>
+        )}
         <button type="button" className="btn" onClick={download}>
           JSON жүктеп алу
         </button>

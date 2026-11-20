@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { decodeLessonSpec, validateLessonSpec, type LessonSpec } from "@inside-tech/lesson-engine";
 import Link from "next/link";
 import { KIND_IDS } from "@/lib/creator";
+import { errorText, getAuthored } from "@/lib/api";
 import { SpecLessonView } from "./lab/LessonView";
 import { SiteHeader } from "./SiteHeader";
 import styles from "./home.module.css";
@@ -15,6 +16,18 @@ export function PlayPage({ code: given }: { code?: string }) {
   const [state, setState] = useState<{ spec?: LessonSpec; code?: string; error?: string }>();
 
   useEffect(() => {
+    // A lesson saved on the server: "#id=custom-…" (or "play=id:custom-…" in the static build).
+    const serverId = given?.startsWith("id:") ? given.slice(3) : /(?:^|[#&])id=(custom-[a-z0-9-]+)/.exec(window.location.hash)?.[1];
+    if (serverId) {
+      getAuthored(serverId).then(
+        (l) => {
+          const issues = validateLessonSpec(l.spec, KIND_IDS);
+          setState(issues.length ? { error: `Сабақты ашу мүмкін емес: ${issues[0]?.message}.` } : { spec: l.spec as LessonSpec });
+        },
+        (e) => setState({ error: errorText(e) }),
+      );
+      return;
+    }
     const code = given ?? /(?:^|[#&])l=([A-Za-z0-9_-]+)/.exec(window.location.hash)?.[1];
     if (!code) return setState({ error: "Сілтемеде сабақ жоқ." });
     const spec = decodeLessonSpec(code);
@@ -27,9 +40,11 @@ export function PlayPage({ code: given }: { code?: string }) {
       <>
         <div className={css.playBar} role="note">
           <span>Мұғалім жасаған сабақ: <strong>{state.spec.title}</strong></span>
-          <Link href={process.env.NEXT_PUBLIC_STANDALONE === "1" ? `#import=${state.code}` : `/create#import=${state.code}`} className="btn">
-            Көшірмесін өңдеу
-          </Link>
+          {state.code && (
+            <Link href={process.env.NEXT_PUBLIC_STANDALONE === "1" ? `#import=${state.code}` : `/create#import=${state.code}`} className="btn">
+              Көшірмесін өңдеу
+            </Link>
+          )}
         </div>
         <SpecLessonView spec={state.spec} />
       </>

@@ -164,6 +164,67 @@ describe("classes", () => {
     // The student can see assignments but not the report.
     expect((await app2.inject({ method: "GET", url: `/v1/classes/${cls.id}/assignments`, headers: studentJar })).json()).toHaveLength(1);
     expect((await app2.inject({ method: "GET", url: `/v1/classes/${cls.id}/report`, headers: studentJar })).statusCode).toBe(403);
+
+    // ---- learning analytics: the student's session reaches the teacher, students cannot read it
+    const events = [
+      { t: 0, type: "enter", step: "explore" },
+      { t: 30_000, type: "wrong", step: "explore", q: "q1", o: 2 },
+      { t: 35_000, type: "wrong", step: "explore", q: "q1", o: 0 },
+      { t: 40_000, type: "undo", step: "explore" },
+      { t: 60_000, type: "done", step: "explore" },
+      { t: 61_000, type: "enter", step: "label" },
+      { t: 90_000, type: "restart", step: "label" },
+    ];
+    const recording = { pluginId: "ai-lab", pluginVersion: "1", seed: 1, fixedDt: 0.05, ticks: 4, journal: [{ tick: 2, action: { type: "dataset/generate" } }] };
+    expect((await app2.inject({ method: "PUT", url: "/v1/sessions/ai-1-data", headers: studentJar, payload: { kind: "classifier", events, recording } })).statusCode).toBe(204);
+    expect((await app2.inject({ method: "PUT", url: "/v1/sessions/ai-1-data", headers: studentJar, payload: { kind: "classifier", events: [{ t: 0, type: "hack", step: "x" }] } })).statusCode).toBe(400);
+    // A log sent on tab close (no recording field) keeps the stored replay.
+    expect((await app2.inject({ method: "PUT", url: "/v1/sessions/ai-1-data", headers: studentJar, payload: { kind: "classifier", events } })).statusCode).toBe(204);
+    const sessions = (await app.inject({ method: "GET", url: `/v1/classes/${cls.id}/sessions/ai-1-data`, headers: teacherJar })).json();
+    expect(sessions.students[0]).toMatchObject({ name: "Ерлан", started: true, hasRecording: true, undos: 1, restarts: 1, wrong: { "explore/q1": 2 }, stepMs: { explore: 60_000, label: 29_000 }, stepsDone: ["explore"] });
+    expect(sessions.hardest[0]).toEqual({ key: "explore/q1", wrong: 2, learners: 1 });
+    const student = report.students[0].id;
+    const full = await app.inject({ method: "GET", url: `/v1/classes/${cls.id}/sessions/ai-1-data/${student}`, headers: teacherJar });
+    expect(full.json()).toMatchObject({ kind: "classifier", recording });
+    expect((await app2.inject({ method: "GET", url: `/v1/classes/${cls.id}/sessions/ai-1-data`, headers: studentJar })).statusCode).toBe(403);
+  });
+
+  it("authored lessons: save, update by the author only, assign, play for free", async () => {
+    const { app, idp, store } = await setup({ sub: "t9", email: "t9@school.kz", name: "Мұғалім" });
+    const jar = await signIn(app, idp, { cookie: "" });
+    const me = (await app.inject({ method: "GET", url: "/auth/me", headers: jar })).json();
+    await store.updateLearner(me.id, { role: "teacher" });
+    const spec = {
+      format: "inside-tech/lesson@1",
+      id: "my-lesson",
+      labId: "iot",
+      kind: "iot",
+      title: "PID-ті баптау",
+      summary: "Өз сабағым",
+      estimatedMinutes: 10,
+      steps: [{ id: "s1", title: "Бірінші", body: "Мәтін", objectives: [{ id: "o1", text: "Жүргіз", when: { path: "stats.pidRuns", op: "lengthAtLeast", value: 1 } }] }],
+    };
+    const anon = await app.inject({ method: "POST", url: "/v1/lessons", payload: { spec } });
+    expect(anon.statusCode).toBe(401);
+    const created = await app.inject({ method: "POST", url: "/v1/lessons", headers: jar, payload: { spec } });
+    expect(created.statusCode, created.body).toBe(201);
+    const { id } = created.json();
+    expect(id).toMatch(/^custom-/);
+    expect((await app.inject({ method: "POST", url: "/v1/lessons", headers: jar, payload: { spec: { ...spec, steps: [] } } })).statusCode).toBe(400);
+    expect((await app.inject({ method: "PUT", url: `/v1/lessons/${id}`, headers: jar, payload: { spec: { ...spec, title: "Жаңа" } } })).json()).toEqual({ id, title: "Жаңа" });
+    const pub = (await app.inject({ method: "GET", url: `/v1/lessons/${id}` })).json();
+    expect(pub).toMatchObject({ id, title: "Жаңа", spec: { id, kind: "iot" } });
+    expect((await app.inject({ method: "GET", url: "/v1/lessons", headers: jar })).json()).toEqual([expect.objectContaining({ id, title: "Жаңа" })]);
+    // Someone else cannot overwrite it.
+    const other = await app.inject({ method: "GET", url: "/v1/progress" });
+    const otherJar = jarFrom(other);
+    expect((await app.inject({ method: "PUT", url: `/v1/lessons/${id}`, headers: otherJar, payload: { spec } })).statusCode).toBe(401);
+    // Assign it, and an unknown custom lesson is refused.
+    const cls = (await app.inject({ method: "POST", url: "/v1/classes", headers: jar, payload: { name: "8Б" } })).json();
+    expect((await app.inject({ method: "POST", url: `/v1/classes/${cls.id}/assignments`, headers: jar, payload: { lessonId: id } })).statusCode).toBe(201);
+    expect((await app.inject({ method: "POST", url: `/v1/classes/${cls.id}/assignments`, headers: jar, payload: { lessonId: "custom-nope" } })).statusCode).toBe(404);
+    // Free learners may save progress in teacher lessons.
+    expect((await app.inject({ method: "PUT", url: `/v1/progress/${id}`, headers: otherJar, payload: progress(id) })).statusCode).toBe(204);
   });
 });
 

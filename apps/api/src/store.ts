@@ -31,6 +31,37 @@ export interface Assignment {
   createdAt: number;
 }
 
+/** One thing that happened in a lesson session, `t` ms after it started. */
+export interface SessionEvent {
+  t: number;
+  type: "enter" | "done" | "wrong" | "right" | "undo" | "restart";
+  step: string;
+  /** Question id and chosen option for answers. */
+  q?: string;
+  o?: number;
+}
+
+/** The latest session of a learner in a lesson. */
+export interface LessonSession {
+  learnerId: string;
+  lessonId: string;
+  kind: string;
+  events: SessionEvent[];
+  /** sim-core Recording (journal of actions) for replay, or null. */
+  recording: unknown;
+  updatedAt: number;
+}
+
+/** A lesson made in the Lesson Creator and kept on the server. */
+export interface AuthoredLesson {
+  id: string;
+  authorId: string;
+  title: string;
+  spec: unknown;
+  createdAt: number;
+  updatedAt: number;
+}
+
 /**
  * Persistence boundary of the API. `MemoryStore` serves tests and local dev;
  * `PgStore` (pg-store.ts) implements the same contract on PostgreSQL.
@@ -56,6 +87,15 @@ export interface Store {
   classMembers(classId: string): Promise<Learner[]>;
   addAssignment(a: Assignment): Promise<void>;
   assignments(classId: string): Promise<Assignment[]>;
+
+  /** Insert or replace the learner's session for the lesson; ignores older writes. */
+  putSession(s: LessonSession): Promise<void>;
+  getSession(learnerId: string, lessonId: string): Promise<LessonSession | undefined>;
+
+  /** Insert or update an authored lesson (by id). */
+  putAuthoredLesson(l: AuthoredLesson): Promise<void>;
+  getAuthoredLesson(id: string): Promise<AuthoredLesson | undefined>;
+  authoredLessonsBy(authorId: string): Promise<AuthoredLesson[]>;
 }
 
 const clone = <T,>(x: T): T => structuredClone(x);
@@ -66,6 +106,8 @@ export class MemoryStore implements Store {
   private classes = new Map<string, ClassRoom>();
   private members = new Map<string, Set<string>>();
   private assignmentList: Assignment[] = [];
+  private sessions = new Map<string, LessonSession>();
+  private lessons = new Map<string, AuthoredLesson>();
 
   async getLearner(id: string) {
     const l = this.learners.get(id);
@@ -137,5 +179,28 @@ export class MemoryStore implements Store {
   }
   async assignments(classId: string) {
     return this.assignmentList.filter((a) => a.classId === classId).map(clone);
+  }
+
+  async putSession(s: LessonSession) {
+    const key = `${s.learnerId}|${s.lessonId}`;
+    const prev = this.sessions.get(key);
+    if (prev && prev.updatedAt > s.updatedAt) return;
+    this.sessions.set(key, clone(s));
+  }
+  async getSession(learnerId: string, lessonId: string) {
+    const s = this.sessions.get(`${learnerId}|${lessonId}`);
+    return s && clone(s);
+  }
+
+  async putAuthoredLesson(l: AuthoredLesson) {
+    const prev = this.lessons.get(l.id);
+    this.lessons.set(l.id, clone(prev ? { ...l, createdAt: prev.createdAt, authorId: prev.authorId } : l));
+  }
+  async getAuthoredLesson(id: string) {
+    const l = this.lessons.get(id);
+    return l && clone(l);
+  }
+  async authoredLessonsBy(authorId: string) {
+    return [...this.lessons.values()].filter((l) => l.authorId === authorId).sort((a, b) => b.updatedAt - a.updatedAt).map(clone);
   }
 }

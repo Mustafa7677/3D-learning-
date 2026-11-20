@@ -67,9 +67,51 @@ export const joinClass = (code: string) => api<{ id: string; name: string }>("/v
 export const classAssignments = (id: string) => api<AssignmentInfo[]>(`/v1/classes/${id}/assignments`);
 export const classReport = (id: string) => api<Report>(`/v1/classes/${id}/report`);
 export const assignLesson = (id: string, lessonId: string) => api<AssignmentInfo>(`/v1/classes/${id}/assignments`, { method: "POST", body: JSON.stringify({ lessonId }) });
+export interface SessionRow {
+  learnerId: string;
+  name: string;
+  started: boolean;
+  hasRecording: boolean;
+  updatedAt: number | null;
+  totalMs?: number;
+  stepMs?: Record<string, number>;
+  wrong?: Record<string, number>;
+  undos?: number;
+  restarts?: number;
+  stepsDone?: string[];
+}
+export interface SessionsReport {
+  lessonId: string;
+  students: SessionRow[];
+  hardest: { key: string; wrong: number; learners: number }[];
+}
+export interface SessionDetail {
+  lessonId: string;
+  kind: string;
+  events: { t: number; type: string; step: string; q?: string; o?: number }[];
+  recording: unknown;
+  updatedAt: number;
+}
+export interface AuthoredInfo {
+  id: string;
+  title: string;
+  updatedAt: number;
+}
+export const classSessions = (classId: string, lessonId: string) => api<SessionsReport>(`/v1/classes/${classId}/sessions/${lessonId}`);
+export const sessionDetail = (classId: string, lessonId: string, learnerId: string) => api<SessionDetail>(`/v1/classes/${classId}/sessions/${lessonId}/${learnerId}`);
+export const myLessons = () => api<AuthoredInfo[]>("/v1/lessons");
+export const getAuthored = (id: string) => api<{ id: string; title: string; spec: unknown; updatedAt: number }>(`/v1/lessons/${id}`);
+export const saveAuthored = (spec: unknown, id?: string) =>
+  api<{ id: string; title: string }>(id ? `/v1/lessons/${id}` : "/v1/lessons", { method: id ? "PUT" : "POST", body: JSON.stringify({ spec }) });
+
+/** Link that opens a server-saved lesson. */
+export const authoredHref = (id: string) => (process.env.NEXT_PUBLIC_STANDALONE === "1" ? `#play=id:${id}` : `/play#id=${id}`);
+
 export const checkout = (plan: "premium" | "classroom") => api<{ url: string }>("/v1/billing/checkout", { method: "POST", body: JSON.stringify({ plan }) });
 
 export const ERROR_TEXT: Record<string, string> = {
+  lesson_not_found: "Сабақ табылмады.",
+  invalid_lesson: "Сабақ толық емес: редактордағы ескертулерді түзет.",
   sign_in_required: "Алдымен аккаунтқа кір.",
   forbidden: "Бұл әрекетке рұқсатың жоқ.",
   class_not_found: "Мұндай сынып табылмады. Кодты тексер.",

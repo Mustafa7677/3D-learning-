@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { LessonProgress } from "@inside-tech/lesson-engine";
-import { apiEnabled, checkout, classAssignments, errorText, getMe, joinClass, listClasses, logout, signInUrl, type AssignmentInfo, type ClassInfo, type Me } from "@/lib/api";
+import { apiEnabled, checkout, classAssignments, errorText, getMe, joinClass, listClasses, logout, signInUrl, type AssignmentInfo, type ClassInfo, type Me, authoredHref } from "@/lib/api";
 import { findLab, openLabs } from "@/lib/catalog";
 import { findLesson, lessonsForLab } from "@/lib/lessons";
 import { progressStore } from "@/lib/progress";
@@ -173,6 +173,8 @@ export function AccountPage() {
                                 <Link href={`/labs/${found.entry.labId}/${a.lessonId}`}>
                                   {findLab(found.entry.labId)?.title} · {found.entry.lesson.order}. {found.entry.lesson.title}
                                 </Link>
+                              ) : a.lessonId.startsWith("custom-") ? (
+                                <Link href={authoredHref(a.lessonId)}>Мұғалімнің сабағы</Link>
                               ) : (
                                 a.lessonId
                               )}

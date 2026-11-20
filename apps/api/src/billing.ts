@@ -83,6 +83,8 @@ export function signWebhook(payload: string, secret: string, t = Math.floor(Date
 /** Free tier: the first four lessons of every lab. Paid plans unlock everything. */
 export function canAccessLesson(plan: Plan, lessonId: string): boolean {
   if (plan !== "free") return true;
+  // Lessons written by teachers are always free to their students.
+  if (lessonId.startsWith("custom-")) return true;
   const n = Number(/^[a-z]+-(\d+)-/.exec(lessonId)?.[1]);
   return Number.isFinite(n) && n <= 4;
 }

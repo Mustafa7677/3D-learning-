@@ -1,5 +1,5 @@
 import type { LessonProgress } from "@inside-tech/lesson-engine";
-import type { Assignment, ClassRoom, Learner, Store } from "./store";
+import type { Assignment, AuthoredLesson, ClassRoom, Learner, LessonSession, Store } from "./store";
 
 /**
  * The one method PgStore needs from a PostgreSQL client. Both `pg`
@@ -57,7 +57,7 @@ const toProgress = (r: ProgressRow): LessonProgress => ({
   ...(r.completed_at ? { completedAt: ms(r.completed_at)! } : {}),
 });
 
-/** PostgreSQL implementation of Store. Schema: db/migrations/0001_init.sql + 0002_platform.sql. */
+/** PostgreSQL implementation of Store. Schema: db/migrations/0001…0003. */
 export class PgStore implements Store {
   constructor(private readonly db: Queryable) {}
 
@@ -159,5 +159,49 @@ export class PgStore implements Store {
       [classId],
     );
     return rows.map((r) => ({ id: r.id, classId: r.class_id, lessonId: r.lesson_id, dueAt: ms(r.due_at), createdAt: ms(r.created_at)! }));
+  }
+
+  async putSession(x: LessonSession) {
+    await this.db.query(
+      `insert into lesson_sessions (learner_id, lesson_id, kind, events, recording, updated_at)
+       values ($1, $2, $3, $4::jsonb, $5::jsonb, to_timestamp($6 / 1000.0))
+       on conflict (learner_id, lesson_id) do update set
+         kind = excluded.kind, events = excluded.events, recording = excluded.recording, updated_at = excluded.updated_at
+       where lesson_sessions.updated_at <= excluded.updated_at`,
+      [x.learnerId, x.lessonId, x.kind, JSON.stringify(x.events), x.recording == null ? null : JSON.stringify(x.recording), x.updatedAt],
+    );
+  }
+  async getSession(learnerId: string, lessonId: string) {
+    const { rows } = await this.db.query<{ learner_id: string; lesson_id: string; kind: string; events: LessonSession["events"]; recording: unknown; updated_at: Date | string }>(
+      "select * from lesson_sessions where learner_id = $1 and lesson_id = $2",
+      [learnerId, lessonId],
+    );
+    const r = rows[0];
+    return r && { learnerId: r.learner_id, lessonId: r.lesson_id, kind: r.kind, events: r.events, recording: r.recording ?? null, updatedAt: ms(r.updated_at)! };
+  }
+
+  async putAuthoredLesson(l: AuthoredLesson) {
+    await this.db.query(
+      `insert into authored_lessons (id, author_id, title, spec, created_at, updated_at)
+       values ($1, $2, $3, $4::jsonb, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0))
+       on conflict (id) do update set title = excluded.title, spec = excluded.spec, updated_at = excluded.updated_at`,
+      [l.id, l.authorId, l.title, JSON.stringify(l.spec), l.createdAt, l.updatedAt],
+    );
+  }
+  private toLesson = (r: { id: string; author_id: string; title: string; spec: unknown; created_at: Date | string; updated_at: Date | string }): AuthoredLesson => ({
+    id: r.id,
+    authorId: r.author_id,
+    title: r.title,
+    spec: r.spec,
+    createdAt: ms(r.created_at)!,
+    updatedAt: ms(r.updated_at)!,
+  });
+  async getAuthoredLesson(id: string) {
+    const { rows } = await this.db.query<Parameters<PgStore["toLesson"]>[0]>("select * from authored_lessons where id = $1", [id]);
+    return rows[0] && this.toLesson(rows[0]);
+  }
+  async authoredLessonsBy(authorId: string) {
+    const { rows } = await this.db.query<Parameters<PgStore["toLesson"]>[0]>("select * from authored_lessons where author_id = $1 order by updated_at desc", [authorId]);
+    return rows.map(this.toLesson);
   }
 }

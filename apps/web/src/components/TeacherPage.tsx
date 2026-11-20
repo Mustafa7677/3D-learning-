@@ -1,19 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiEnabled, assignLesson, classReport, createClass, errorText, getMe, listClasses, signInUrl, type ClassInfo, type Me, type Report } from "@/lib/api";
+import { apiEnabled, assignLesson, classReport, createClass, errorText, getMe, listClasses, myLessons, signInUrl, type AuthoredInfo, type ClassInfo, type Me, type Report } from "@/lib/api";
+import { AnalyticsPanel } from "./AnalyticsPanel";
 import { findLab } from "@/lib/catalog";
 import { findLesson, lessonEntries } from "@/lib/lessons";
 import { SiteHeader } from "./SiteHeader";
 import styles from "./home.module.css";
 import panel from "./platform.module.css";
 
-const lessonLabel = (id: string) => {
+const lessonLabel = (id: string, mine: AuthoredInfo[] = []) => {
   const f = findLesson(id);
-  return f ? `${findLab(f.entry.labId)?.title.split(" ")[0]} ${f.entry.lesson.order}. ${f.entry.lesson.title}` : id;
+  if (f) return `${findLab(f.entry.labId)?.title.split(" ")[0]} ${f.entry.lesson.order}. ${f.entry.lesson.title}`;
+  const own = mine.find((l) => l.id === id);
+  return own ? `Менің сабағым: ${own.title}` : id;
 };
 
-function ClassReport({ cls }: { cls: ClassInfo }) {
+function ClassReport({ cls, mine }: { cls: ClassInfo; mine: AuthoredInfo[] }) {
+  const [analysis, setAnalysis] = useState<string>();
   const [report, setReport] = useState<Report>();
   const [lessonId, setLessonId] = useState(lessonEntries[0]!.lesson.id);
   const [message, setMessage] = useState("");
@@ -24,7 +28,7 @@ function ClassReport({ cls }: { cls: ClassInfo }) {
     ev.preventDefault();
     try {
       await assignLesson(cls.id, lessonId);
-      setMessage(`Тапсырма берілді: ${lessonLabel(lessonId)}`);
+      setMessage(`Тапсырма берілді: ${lessonLabel(lessonId, mine)}`);
       await load();
     } catch (e) {
       setMessage(errorText(e));
@@ -42,11 +46,22 @@ function ClassReport({ cls }: { cls: ClassInfo }) {
           Сабақ
         </label>
         <select id={`assign-${cls.id}`} className={panel.input} value={lessonId} onChange={(e) => setLessonId(e.target.value)}>
-          {lessonEntries.map((e) => (
-            <option key={e.lesson.id} value={e.lesson.id}>
-              {lessonLabel(e.lesson.id)}
-            </option>
-          ))}
+          {mine.length > 0 && (
+            <optgroup label="Менің сабақтарым">
+              {mine.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.title}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <optgroup label="Курс сабақтары">
+            {lessonEntries.map((e) => (
+              <option key={e.lesson.id} value={e.lesson.id}>
+                {lessonLabel(e.lesson.id)}
+              </option>
+            ))}
+          </optgroup>
         </select>
         <button type="submit" className="btn">
           Тапсырма беру
@@ -66,7 +81,10 @@ function ClassReport({ cls }: { cls: ClassInfo }) {
                 <th scope="col">Оқушы</th>
                 {report.assignments.map((a) => (
                   <th key={a.id} scope="col">
-                    {lessonLabel(a.lessonId)}
+                    {lessonLabel(a.lessonId, mine)}{" "}
+                    <button type="button" className="btn" aria-pressed={analysis === a.lessonId} onClick={() => setAnalysis((v) => (v === a.lessonId ? undefined : a.lessonId))}>
+                      Талдау
+                    </button>
                   </th>
                 ))}
               </tr>
@@ -89,6 +107,7 @@ function ClassReport({ cls }: { cls: ClassInfo }) {
           </table>
         </div>
       )}
+      {analysis && <AnalyticsPanel classId={cls.id} lessonId={analysis} title={lessonLabel(analysis, mine)} onClose={() => setAnalysis(undefined)} />}
     </section>
   );
 }
@@ -96,6 +115,7 @@ function ClassReport({ cls }: { cls: ClassInfo }) {
 export function TeacherPage() {
   const [me, setMe] = useState<Me>();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
+  const [mine, setMine] = useState<AuthoredInfo[]>([]);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
 
@@ -103,7 +123,10 @@ export function TeacherPage() {
     try {
       const m = await getMe();
       setMe(m);
-      if (m.signedIn && m.role !== "student") setClasses((await listClasses()).teaching);
+      if (m.signedIn && m.role !== "student") {
+        setClasses((await listClasses()).teaching);
+        setMine(await myLessons().catch(() => []));
+      }
     } catch (e) {
       setMessage(errorText(e));
     }
@@ -128,7 +151,7 @@ export function TeacherPage() {
       <SiteHeader current="teacher" />
       <main className={panel.main}>
         <h1>Мұғалім панелі</h1>
-        <p className={panel.lead}>Сынып құр, оқушыларға сабақ тапсыр және кім қай тапсырманы орындағанын бір кестеден көр.</p>
+        <p className={panel.lead}>Сынып құр, оқушыларға курс сабағын не өзің жасаған сабақты тапсыр, кім қай жерде тұрып қалғанын талдап, сессиясын қайта көр.</p>
         {!apiEnabled ? (
           <section className={panel.card}>
             <h2>Сервер қажет</h2>
@@ -165,7 +188,7 @@ export function TeacherPage() {
               </p>
             )}
             {classes.map((c) => (
-              <ClassReport key={c.id} cls={c} />
+              <ClassReport key={c.id} cls={c} mine={mine} />
             ))}
           </>
         )}

@@ -57,6 +57,37 @@ function contract(name: string, make: () => Promise<Store>) {
       await store.addAssignment(a);
       expect(await store.assignments(c.id)).toEqual([a]);
     });
+
+    it("keeps the newest session per learner and lesson", async () => {
+      const l = learner();
+      await store.createLearner(l);
+      const s = {
+        learnerId: l.id,
+        lessonId: "iot-5-pid",
+        kind: "iot",
+        events: [{ t: 0, type: "enter" as const, step: "p" }, { t: 4000, type: "wrong" as const, step: "p", q: "sse", o: 2 }],
+        recording: { pluginId: "iot-lab", journal: [{ tick: 3, action: { type: "pid/run" } }] },
+        updatedAt: 1_700_000_100_000,
+      };
+      await store.putSession(s);
+      await store.putSession({ ...s, events: [], updatedAt: 1_700_000_050_000 });
+      expect(await store.getSession(l.id, "iot-5-pid")).toEqual(s);
+      await store.putSession({ ...s, recording: null, updatedAt: 1_700_000_200_000 });
+      expect((await store.getSession(l.id, "iot-5-pid"))?.recording).toBeNull();
+      expect(await store.getSession(l.id, "ai-1-data")).toBeUndefined();
+    });
+
+    it("authored lessons: create, update keeps author and creation time", async () => {
+      const a = learner({ role: "teacher" });
+      await store.createLearner(a);
+      const id = `custom-${randomUUID()}`;
+      const l = { id, authorId: a.id, title: "Менің сабағым", spec: { format: "inside-tech/lesson@1", steps: [] }, createdAt: 1_700_000_000_000, updatedAt: 1_700_000_000_000 };
+      await store.putAuthoredLesson(l);
+      await store.putAuthoredLesson({ ...l, title: "Жаңа атау", createdAt: 1_800_000_000_000, updatedAt: 1_700_000_500_000 });
+      expect(await store.getAuthoredLesson(id)).toEqual({ ...l, title: "Жаңа атау", updatedAt: 1_700_000_500_000 });
+      expect((await store.authoredLessonsBy(a.id)).map((x) => x.id)).toEqual([id]);
+      expect(await store.getAuthoredLesson("custom-none")).toBeUndefined();
+    });
   });
 }
 
@@ -90,7 +121,7 @@ if (PORT) {
   contract("postgres", async () => {
     const db = `inside_test_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
     psql("postgres", `create database ${db};`);
-    for (const m of ["0001_init.sql", "0002_platform.sql"]) psql(db, readFileSync(new URL(`../db/migrations/${m}`, import.meta.url), "utf8"));
+    for (const m of ["0001_init.sql", "0002_platform.sql", "0003_sessions_lessons.sql"]) psql(db, readFileSync(new URL(`../db/migrations/${m}`, import.meta.url), "utf8"));
     return new PgStore(viaPsql(db));
   });
 }

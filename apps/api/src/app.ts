@@ -1,10 +1,11 @@
 import { randomInt, randomUUID } from "node:crypto";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import cookie from "@fastify/cookie";
-import type { LessonProgress } from "@inside-tech/lesson-engine";
+import { validateLessonSpec, type LessonProgress } from "@inside-tech/lesson-engine";
+import { hardest, summarize } from "./analytics";
 import { canAccessLesson, createCheckoutSession, verifyWebhook, type BillingConfig } from "./billing";
 import { authorizeUrl, discover, exchangeCode, fetchJwks, randomToken, verifyIdToken, type Discovery, type OidcConfig } from "./oidc";
-import { MemoryStore, type Learner, type Plan, type Store } from "./store";
+import { MemoryStore, type Learner, type Plan, type SessionEvent, type Store } from "./store";
 
 export interface AppOptions {
   store?: Store;
@@ -60,6 +61,33 @@ const progressSchema = {
 } as const;
 
 const lessonParams = { type: "object", properties: { lessonId: { type: "string", pattern: ID_PATTERN } } } as const;
+const CUSTOM_PATTERN = "^custom-[a-z0-9-]{1,56}$";
+
+const sessionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind", "events"],
+  properties: {
+    kind: { type: "string", pattern: "^[a-z]{1,32}$" },
+    events: {
+      type: "array",
+      maxItems: 600,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["t", "type", "step"],
+        properties: {
+          t: { type: "number", minimum: 0, maximum: 1e9 },
+          type: { type: "string", enum: ["enter", "done", "wrong", "right", "undo", "restart"] },
+          step: { type: "string", pattern: ID_PATTERN },
+          q: { type: "string", pattern: ID_PATTERN },
+          o: { type: "integer", minimum: 0, maximum: 20 },
+        },
+      },
+    },
+    recording: { type: ["object", "null"] },
+  },
+} as const;
 const uuidParams = { type: "object", properties: { id: { type: "string", format: "uuid" } } } as const;
 
 const publicLearner = (l: Learner) => ({ id: l.id, name: l.name, email: l.email, role: l.role, plan: l.plan, signedIn: !!l.authSubject });
@@ -324,6 +352,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     async (req, reply) => {
       const c = await ownClass(req, reply);
       if (!c) return;
+      if (req.body.lessonId.startsWith("custom-") && !(await store.getAuthoredLesson(req.body.lessonId))) return reply.code(404).send({ error: "lesson_not_found" });
       const a = { id: randomUUID(), classId: c.id, lessonId: req.body.lessonId, dueAt: req.body.dueAt ?? null, createdAt: now() };
       await store.addAssignment(a);
       return reply.code(201).send(a);
@@ -361,6 +390,114 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     const member = c && ((await store.classesForStudent(l.id)).some((x) => x.id === c.id) || c.teacherId === l.id);
     if (!c || !member) return reply.code(404).send({ error: "class_not_found" });
     return store.assignments(c.id);
+  });
+
+  // ---------------- learning analytics ----------------
+
+  /** The learner's latest session in a lesson: event log plus the simulation journal for replay. */
+  app.put<{ Params: { lessonId: string }; Body: { kind: string; events: SessionEvent[]; recording?: unknown } }>(
+    "/v1/sessions/:lessonId",
+    { bodyLimit: 512 * 1024, schema: { params: lessonParams, body: sessionSchema } },
+    async (req, reply) => {
+      const l = await learner(req, reply);
+      if (!canAccessLesson(l.plan, req.params.lessonId)) return reply.code(402).send({ error: "plan_required" });
+      // Without a "recording" field the stored replay is kept (e.g. a log sent while the tab closes).
+      const recording = req.body.recording !== undefined ? req.body.recording : ((await store.getSession(l.id, req.params.lessonId))?.recording ?? null);
+      await store.putSession({ learnerId: l.id, lessonId: req.params.lessonId, kind: req.body.kind, events: req.body.events, recording, updatedAt: now() });
+      return reply.code(204).send();
+    },
+  );
+
+  /** Per student: time per step, wrong answers, undos, restarts; and the class's hardest questions. */
+  app.get<{ Params: { id: string; lessonId: string } }>(
+    "/v1/classes/:id/sessions/:lessonId",
+    { schema: { params: { type: "object", properties: { id: { type: "string", format: "uuid" }, lessonId: { type: "string", pattern: ID_PATTERN } } } } },
+    async (req, reply) => {
+      const c = await ownClass(req, reply);
+      if (!c) return;
+      const members = await store.classMembers(c.id);
+      const rows = await Promise.all(
+        members.map(async (m) => {
+          const s = await store.getSession(m.id, req.params.lessonId);
+          return { learnerId: m.id, name: m.name ?? m.email ?? "Оқушы", session: s };
+        }),
+      );
+      const students = rows.map((r) => ({
+        learnerId: r.learnerId,
+        name: r.name,
+        started: !!r.session,
+        hasRecording: !!r.session?.recording,
+        updatedAt: r.session?.updatedAt ?? null,
+        ...(r.session ? summarize(r.session.events) : {}),
+      }));
+      return { lessonId: req.params.lessonId, students, hardest: hardest(rows.filter((r) => r.session).map((r) => summarize(r.session!.events))) };
+    },
+  );
+
+  /** One student's full session, for replay. */
+  app.get<{ Params: { id: string; lessonId: string; learnerId: string } }>(
+    "/v1/classes/:id/sessions/:lessonId/:learnerId",
+    {
+      schema: {
+        params: { type: "object", properties: { id: { type: "string", format: "uuid" }, lessonId: { type: "string", pattern: ID_PATTERN }, learnerId: { type: "string", format: "uuid" } } },
+      },
+    },
+    async (req, reply) => {
+      const c = await ownClass(req, reply);
+      if (!c) return;
+      if (!(await store.classMembers(c.id)).some((m) => m.id === req.params.learnerId)) return reply.code(404).send({ error: "not_found" });
+      const s = await store.getSession(req.params.learnerId, req.params.lessonId);
+      if (!s) return reply.code(404).send({ error: "not_found" });
+      return s;
+    },
+  );
+
+  // ---------------- authored lessons ----------------
+
+  const specBody = { type: "object", additionalProperties: false, required: ["spec"], properties: { spec: { type: "object" } } } as const;
+  const checkSpec = (spec: unknown) => {
+    const issues = validateLessonSpec(spec);
+    return issues.length ? issues[0]!.message : null;
+  };
+
+  app.post<{ Body: { spec: Record<string, unknown> } }>("/v1/lessons", { bodyLimit: 256 * 1024, schema: { body: specBody } }, async (req, reply) => {
+    const l = await learner(req, reply);
+    if (!l.authSubject) return reply.code(401).send({ error: "sign_in_required" });
+    const id = `custom-${randomUUID()}`;
+    const spec: Record<string, unknown> = { ...req.body.spec, id };
+    const bad = checkSpec(spec);
+    if (bad) return reply.code(400).send({ error: "invalid_lesson", message: bad });
+    const t = now();
+    await store.putAuthoredLesson({ id, authorId: l.id, title: String(spec.title), spec, createdAt: t, updatedAt: t });
+    return reply.code(201).send({ id, title: spec.title });
+  });
+
+  app.put<{ Params: { id: string }; Body: { spec: Record<string, unknown> } }>(
+    "/v1/lessons/:id",
+    { bodyLimit: 256 * 1024, schema: { params: { type: "object", properties: { id: { type: "string", pattern: CUSTOM_PATTERN } } }, body: specBody } },
+    async (req, reply) => {
+      const l = await learner(req, reply);
+      if (!l.authSubject) return reply.code(401).send({ error: "sign_in_required" });
+      const prev = await store.getAuthoredLesson(req.params.id);
+      if (!prev) return reply.code(404).send({ error: "lesson_not_found" });
+      if (prev.authorId !== l.id && l.role !== "admin") return reply.code(403).send({ error: "forbidden" });
+      const spec: Record<string, unknown> = { ...req.body.spec, id: prev.id };
+      const bad = checkSpec(spec);
+      if (bad) return reply.code(400).send({ error: "invalid_lesson", message: bad });
+      await store.putAuthoredLesson({ ...prev, title: String(spec.title), spec, updatedAt: now() });
+      return { id: prev.id, title: spec.title };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>("/v1/lessons/:id", { schema: { params: { type: "object", properties: { id: { type: "string", pattern: CUSTOM_PATTERN } } } } }, async (req, reply) => {
+    const l = await store.getAuthoredLesson(req.params.id);
+    if (!l) return reply.code(404).send({ error: "lesson_not_found" });
+    return { id: l.id, title: l.title, spec: l.spec, updatedAt: l.updatedAt };
+  });
+
+  app.get("/v1/lessons", async (req, reply) => {
+    const l = await learner(req, reply);
+    return (await store.authoredLessonsBy(l.id)).map(({ id, title, updatedAt }) => ({ id, title, updatedAt }));
   });
 
   // ---------------- billing ----------------

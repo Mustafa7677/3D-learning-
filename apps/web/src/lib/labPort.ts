@@ -39,6 +39,24 @@ function inThread<S, A>(plugin: SimulationPlugin<S, A>): LabPort {
   };
 }
 
+/** The simulation plugin behind a lab kind (for replays on the main thread). */
+export function pluginFor(kind: string): SimulationPlugin<unknown, unknown> | undefined {
+  const all: Record<string, SimulationPlugin<never, never>> = {
+    classifier: aiLabPlugin as never,
+    language: langLabPlugin as never,
+    web: webLabPlugin as never,
+    game: gameLabPlugin as never,
+    algo: algoLabPlugin as never,
+    arch: archLabPlugin as never,
+    sec: secLabPlugin as never,
+    db: dbLabPlugin as never,
+    net: netLabPlugin as never,
+    cloud: cloudLabPlugin as never,
+    iot: iotLabPlugin as never,
+  };
+  return all[kind] as SimulationPlugin<unknown, unknown> | undefined;
+}
+
 /**
  * A message port to a lab runtime. The classifier lab trains networks, so it
  * runs in a Web Worker when one can start; the language and web labs are light
