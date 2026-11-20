@@ -1,0 +1,269 @@
+.page {
+  min-height: 100dvh;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px var(--gutter);
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(20px, 4vw, 56px);
+  align-items: center;
+  padding: clamp(16px, 4vw, 48px) var(--gutter) clamp(40px, 6vw, 80px);
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.heroText h1 {
+  font-size: clamp(36px, 5.4vw, 72px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  margin-bottom: 24px;
+}
+.heroText h1 span {
+  display: block;
+}
+.lead {
+  font-size: clamp(17px, 1.4vw, 19px);
+  max-width: 46ch;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cta :global(.btn) {
+  padding: 12px 18px;
+  font-size: 16px;
+}
+
+.heroStage {
+  position: relative;
+  aspect-ratio: 4 / 3.2;
+  background: var(--scene-bg);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.heroStage > div:first-child {
+  position: absolute !important;
+  inset: 0;
+}
+.heroCaption {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  right: 16px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 44ch;
+}
+
+.modes {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) clamp(48px, 7vw, 96px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 40px);
+}
+.modes h2 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.modes p {
+  color: var(--muted);
+  max-width: 38ch;
+}
+.modes > div {
+  border-top: 2px solid var(--ink);
+  padding-top: 16px;
+}
+
+.labsSection {
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+.labsInner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 80px) var(--gutter);
+}
+.labsInner > h2 {
+  font-size: clamp(24px, 2.8vw, 36px);
+  margin-bottom: 10px;
+}
+.labsInner > p {
+  color: var(--muted);
+  max-width: 60ch;
+  margin-bottom: 32px;
+}
+.labs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+.labs li {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.lab {
+  display: grid;
+  gap: 6px;
+  padding: 20px;
+  height: 100%;
+  text-decoration: none;
+  align-content: start;
+}
+.lab h3 {
+  font-size: 16px;
+  font-weight: 500;
+}
+.lab p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+.lab small {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+a.lab {
+  background: var(--ink);
+  color: var(--panel);
+}
+a.lab p,
+a.lab small {
+  color: color-mix(in srgb, var(--panel) 75%, transparent);
+}
+a.lab:hover {
+  background: var(--c0);
+}
+
+.footer {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px var(--gutter) 40px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---- AI lab overview ---- */
+.labHead {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 64px) var(--gutter) 24px;
+}
+.labHead h1 {
+  font-size: clamp(30px, 4vw, 52px);
+  margin-bottom: 14px;
+}
+.labHead p {
+  color: var(--muted);
+  max-width: 60ch;
+  font-size: 17px;
+}
+.lessonList {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px var(--gutter) 64px;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.lessonItem {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+}
+.lessonItem:hover {
+  border-color: var(--ink);
+}
+.lessonNum {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--c0);
+}
+.lessonItem h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.lessonItem p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+.lessonMeta {
+  text-align: right;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.lessonMeta strong {
+  display: block;
+  color: var(--ok);
+  font-weight: 600;
+}
+.bar {
+  display: block;
+  width: 90px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--panel-2);
+  margin: 6px 0 0 auto;
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--c0);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .modes {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .lessonItem {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .lessonMeta {
+    text-align: left;
+  }
+  .bar {
+    margin-left: 0;
+  }
+}

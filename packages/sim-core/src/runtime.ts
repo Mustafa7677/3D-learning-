@@ -98,6 +98,7 @@ export class SimulationRuntime<State, Action> {
   advance(elapsed: number): number {
     this.accumulator += Math.max(0, elapsed);
     let steps = 0;
+    const before = this.state;
     while (this.accumulator + 1e-9 >= this.fixedDt && steps < this.maxStepsPerFrame) {
       this.state = this.plugin.step(this.state, this.fixedDt);
       this.tick++;
@@ -105,7 +106,8 @@ export class SimulationRuntime<State, Action> {
       steps++;
     }
     if (steps === this.maxStepsPerFrame) this.accumulator = 0;
-    if (steps > 0) this.publish();
+    // Plugins return the same object when nothing changed; skip publishing idle frames.
+    if (steps > 0 && this.state !== before) this.publish();
     return steps;
   }
 

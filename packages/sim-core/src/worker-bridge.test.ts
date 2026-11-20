@@ -36,6 +36,7 @@ describe("worker bridge", () => {
     remote.dispatch({ type: "inc" });
     remote.dispatch({ type: "inc" });
     expect(remote.snapshot?.state.n).toBe(2);
+    expect(remote.snapshot?.ack).toBe(remote.lastSent);
     expect(remote.snapshot?.assessment.score).toBe(1);
     remote.undo();
     expect(remote.snapshot?.state.n).toBe(1);

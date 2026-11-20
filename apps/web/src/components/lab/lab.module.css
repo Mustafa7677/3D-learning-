@@ -1,0 +1,475 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 14px;
+}
+.topbar nav {
+  display: flex;
+  gap: 6px;
+  color: var(--muted);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar nav a {
+  text-decoration: none;
+}
+.topbar nav a:hover {
+  text-decoration: underline;
+}
+.topbar nav [aria-current] {
+  color: var(--ink);
+  font-weight: 500;
+}
+.brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+.progress {
+  margin-left: auto;
+  width: 120px;
+  height: 6px;
+  background: var(--panel-2);
+  border-radius: 3px;
+  overflow: hidden;
+  flex: none;
+}
+.progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--c0), var(--c1));
+  transition: width 0.4s ease;
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr minmax(300px, 360px);
+  min-height: 0;
+}
+
+.left,
+.right {
+  background: var(--panel);
+  overflow-y: auto;
+  max-height: calc(100dvh - 47px);
+}
+.left {
+  border-right: 1px solid var(--line);
+}
+.right {
+  border-left: 1px solid var(--line);
+}
+
+.stage {
+  position: relative;
+  background: var(--scene-bg);
+  min-height: 420px;
+}
+.stage[data-tool="add0"],
+.stage[data-tool="add1"] {
+  cursor: crosshair;
+}
+.stage > canvas,
+.stage > div:first-child {
+  position: absolute !important;
+  inset: 0;
+}
+.sceneLoading {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+.stageTip {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--panel);
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* ---- lesson panel ---- */
+.lesson {
+  padding: 22px 22px 28px;
+}
+.lessonName {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.stepper {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+.stepDot {
+  width: 34px;
+  height: 6px;
+  border-radius: 3px;
+  border: 0;
+  padding: 0;
+  background: var(--line);
+  cursor: pointer;
+}
+.stepDot[data-state="done"] {
+  background: var(--c0);
+}
+.stepDot[data-state="current"] {
+  background: var(--c1);
+}
+.stepTitle {
+  font-size: 22px;
+  margin-bottom: 14px;
+}
+.body {
+  font-size: 15px;
+  max-width: 62ch;
+}
+.objHeading {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 20px 0 8px;
+}
+.objectives {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.objectives li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 15px;
+}
+.check {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--panel);
+  transition: background 0.2s;
+}
+.objectives li[data-done="true"] .check {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+.objectives li[data-done="true"] > span:last-child {
+  color: var(--muted);
+}
+.hint {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.linkBtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--c0);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-bottom: 6px;
+}
+.lessonActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+  align-items: center;
+}
+.done {
+  width: 100%;
+  font-weight: 600;
+  color: var(--ok);
+  margin: 0;
+}
+
+/* ---- controls ---- */
+.controls {
+  padding: 16px 18px 28px;
+  display: grid;
+  gap: 14px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.metrics div {
+  padding: 8px 10px;
+  display: grid;
+}
+.metrics div + div {
+  border-left: 1px solid var(--line);
+}
+.metrics span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.metrics strong {
+  font-size: 18px;
+  font-weight: 600;
+}
+.notes {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  background: var(--c1-soft);
+  border-radius: var(--r-md);
+  font-size: 14px;
+}
+.group {
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 12px 0 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.group legend {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 8px 0 0;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.small {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  font-size: 14px;
+}
+.slider output {
+  font-weight: 600;
+}
+.slider input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--c0);
+}
+.formula {
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border-radius: var(--r-sm);
+  font-size: 15px;
+}
+.layers {
+  display: grid;
+  gap: 6px;
+}
+.layer {
+  display: grid;
+  grid-template-columns: 1fr auto 2.5em auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.layer strong {
+  text-align: center;
+}
+.layer .btn,
+.layer button {
+  padding: 3px 10px;
+}
+
+/* ---- chart ---- */
+.chart {
+  margin: 0;
+  position: relative;
+}
+.chart svg {
+  width: 100%;
+  height: 120px;
+  display: block;
+  background: var(--panel-2);
+  border-radius: var(--r-sm);
+}
+.chartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.chartLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chartMuted {
+  color: var(--muted);
+}
+.swLoss,
+.swAcc {
+  width: 14px;
+  height: 3px;
+  display: inline-block;
+}
+.swLoss {
+  background: var(--c1);
+}
+.swAcc {
+  background: var(--c0);
+}
+.axis {
+  stroke: var(--line);
+}
+.lossLine,
+.accLine {
+  fill: none;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.lossLine {
+  stroke: var(--c1);
+}
+.accLine {
+  stroke: var(--c0);
+}
+.dashed {
+  stroke-dasharray: 4 3;
+}
+.chartEmpty {
+  position: absolute;
+  inset: 26px 0 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 0 16px;
+  text-align: center;
+}
+
+/* ---- inspector ---- */
+.inspector {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 36px 12px 14px;
+  font-size: 14px;
+  box-shadow: 0 6px 20px rgb(24 32 58 / 0.12);
+}
+.inspector dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 14px;
+}
+.inspector dt {
+  color: var(--muted);
+}
+.inspector dd {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+.wrong {
+  color: var(--danger);
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "stage stage"
+      "left right";
+  }
+  .stage {
+    grid-area: stage;
+    height: 56vh;
+  }
+  .left {
+    grid-area: left;
+    max-height: none;
+  }
+  .right {
+    grid-area: right;
+    max-height: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas: "stage" "left" "right";
+  }
+  .stage {
+    height: 52vh;
+    min-height: 320px;
+  }
+  .left,
+  .right {
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+  .progress {
+    width: 64px;
+  }
+  .topbar nav {
+    display: none;
+  }
+}

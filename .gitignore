@@ -8,5 +8,5 @@ coverage
 !.env.example
 test-results
 playwright-report
-next-env.d.ts
 *.tsbuildinfo
+next-env.d.ts

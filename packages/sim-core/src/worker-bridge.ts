@@ -2,7 +2,7 @@ import { SimulationRuntime, type Recording, type RuntimeOptions } from "./runtim
 import type { AssessmentResult, SimulationPlugin } from "./types";
 
 /** Messages main thread → worker. */
-export type HostMessage<Action> =
+type HostCommand<Action> =
   | { type: "dispatch"; action: Action }
   | { type: "play" }
   | { type: "pause" }
@@ -10,9 +10,12 @@ export type HostMessage<Action> =
   | { type: "reset" }
   | { type: "record"; requestId: number };
 
+/** Every command carries a sequence number; state messages echo the last one processed (`ack`). */
+export type HostMessage<Action> = HostCommand<Action> & { seq: number };
+
 /** Messages worker → main thread. */
 export type WorkerMessage<State, Action> =
-  | { type: "state"; state: State; tick: number; canUndo: boolean; playing: boolean; assessment: AssessmentResult }
+  | { type: "state"; state: State; tick: number; canUndo: boolean; playing: boolean; assessment: AssessmentResult; ack: number }
   | { type: "recording"; requestId: number; recording: Recording<Action> };
 
 export interface MessagePortLike {
@@ -37,6 +40,7 @@ export function exposeRuntime<State, Action>(
   let timer: ReturnType<typeof setInterval> | undefined;
   let last = 0;
   let dirty = true;
+  let ack = 0;
 
   const post = () => {
     const msg: WorkerMessage<State, Action> = {
@@ -46,6 +50,7 @@ export function exposeRuntime<State, Action>(
       canUndo: runtime.canUndo(),
       playing,
       assessment: runtime.plugin.evaluate(runtime.getState()),
+      ack,
     };
     port.postMessage(msg);
     dirty = false;
@@ -63,6 +68,7 @@ export function exposeRuntime<State, Action>(
 
   port.addEventListener("message", (ev) => {
     const msg = ev.data as HostMessage<Action>;
+    ack = Math.max(ack, msg.seq);
     switch (msg.type) {
       case "dispatch":
         runtime.dispatch(msg.action);
@@ -90,7 +96,8 @@ export function exposeRuntime<State, Action>(
         port.postMessage({ type: "recording", requestId: msg.requestId, recording: runtime.record() });
         return;
     }
-    if (dirty) post();
+    // Always answer so the host learns its command was applied, even if state is unchanged.
+    post();
   });
   post();
   return runtime;
@@ -102,6 +109,8 @@ export interface RemoteSnapshot<State> {
   canUndo: boolean;
   playing: boolean;
   assessment: AssessmentResult;
+  /** Sequence number of the last command the worker had applied when this state was produced. */
+  ack: number;
 }
 
 /** Main-thread proxy for a runtime living in a worker. */
@@ -110,6 +119,7 @@ export class RemoteRuntime<State, Action> {
   private latest: RemoteSnapshot<State> | undefined;
   private pending = new Map<number, (r: Recording<Action>) => void>();
   private nextId = 1;
+  private seq = 0;
   private readonly onMessage = (ev: { data: unknown }) => {
     const msg = ev.data as WorkerMessage<State, Action>;
     if (msg.type === "state") {
@@ -124,6 +134,11 @@ export class RemoteRuntime<State, Action> {
 
   constructor(private readonly port: MessagePortLike) {
     port.addEventListener("message", this.onMessage);
+  }
+
+  /** Sequence number of the most recently sent command. A snapshot with `ack >= lastSent` reflects it. */
+  get lastSent(): number {
+    return this.seq;
   }
 
   get snapshot(): RemoteSnapshot<State> | undefined {
@@ -163,7 +178,7 @@ export class RemoteRuntime<State, Action> {
     this.listeners.clear();
   }
 
-  private send(msg: HostMessage<Action>): void {
-    this.port.postMessage(msg);
+  private send(msg: HostCommand<Action>): void {
+    this.port.postMessage({ ...msg, seq: ++this.seq });
   }
 }
