@@ -1,4 +1,4 @@
-import type { LessonDefinition, Objective } from "./lesson";
+import type { LessonDefinition, Objective, QuizQuestion } from "./lesson";
 
 /**
  * Declarative lessons: everything a lesson needs, as plain JSON. Objectives
@@ -29,6 +29,8 @@ export interface StepSpec {
   /** Simulation actions dispatched when the step starts (lab-specific JSON). */
   onEnter?: unknown[];
   objectives: ObjectiveSpec[];
+  /** Concept checks the learner must answer to finish the step. */
+  quiz?: QuizQuestion[];
 }
 
 export interface LessonSpec {
@@ -132,6 +134,21 @@ export function validateLessonSpec(spec: unknown, knownKinds?: string[]): SpecIs
     if (st.onEnter !== undefined && (!Array.isArray(st.onEnter) || st.onEnter.length > 20 || st.onEnter.some((a) => !a || typeof a !== "object" || typeof (a as { type?: unknown }).type !== "string")))
       out.push({ where: `${w}.onEnter`, message: "onEnter: { type: ... } әрекеттерінің тізімі" });
     if (!Array.isArray(st.objectives) || st.objectives.length === 0 || st.objectives.length > 8) out.push({ where: `${w}.objectives`, message: "1–8 тапсырма болуы керек" });
+    if (st.quiz !== undefined) {
+      if (!Array.isArray(st.quiz) || st.quiz.length > 6) out.push({ where: `${w}.quiz`, message: "Сұрақтар тізімі (6-ға дейін)" });
+      const qIds = new Set<string>();
+      (Array.isArray(st.quiz) ? st.quiz : []).forEach((q, k) => {
+        const qw = `${w}.quiz[${k}]`;
+        if (typeof q?.id !== "string" || !ID.test(q.id) || qIds.has(q.id)) out.push({ where: `${qw}.id`, message: "Сұрақ id дұрыс емес не қайталанған" });
+        else qIds.add(q.id);
+        if (typeof q?.question !== "string" || !q.question.trim() || q.question.length > 300) out.push({ where: `${qw}.question`, message: "Сұрақ мәтіні керек (300 таңбаға дейін)" });
+        const opts = q?.options as unknown;
+        if (!Array.isArray(opts) || opts.length < 2 || opts.length > 6 || opts.some((o) => typeof o !== "string" || !o.trim()))
+          out.push({ where: `${qw}.options`, message: "2–6 бос емес жауап нұсқасы керек" });
+        else if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= opts.length) out.push({ where: `${qw}.answer`, message: "Дұрыс жауап нұсқалардың бірі болуы керек" });
+        if (typeof q?.explain !== "string" || !q.explain.trim()) out.push({ where: `${qw}.explain`, message: "Түсіндірме керек: неге бұл жауап дұрыс" });
+      });
+    }
     const objIds = new Set<string>();
     (Array.isArray(st.objectives) ? st.objectives : []).forEach((o, j) => {
       const ow = `${w}.objectives[${j}]`;
@@ -159,6 +176,7 @@ export function compileLesson<S, A>(spec: LessonSpec, order = 100): LessonDefini
       body: st.body,
       focus: st.focus,
       hints: st.hints,
+      quiz: st.quiz?.map((q) => ({ id: q.id, question: q.question, options: [...q.options], answer: q.answer, explain: q.explain, wrongHint: q.wrongHint })),
       onEnter: st.onEnter as A[] | undefined,
       objectives: st.objectives.map(
         (o): Objective<S> => ({
@@ -170,4 +188,27 @@ export function compileLesson<S, A>(spec: LessonSpec, order = 100): LessonDefini
       ),
     })),
   };
+}
+
+/**
+ * Pack a spec into a URL-safe string (UTF-8 → base64url) so a lesson can be
+ * shared as a link without a server. Decoding never trusts the input: callers
+ * must still run validateLessonSpec on the result.
+ */
+export function encodeLessonSpec(spec: LessonSpec): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(spec));
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function decodeLessonSpec(text: string): unknown {
+  try {
+    const b64 = text.replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4));
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    return undefined;
+  }
 }

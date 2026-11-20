@@ -28,7 +28,7 @@ const common = {
   format: "esm",
   target: "es2022",
   jsx: "automatic",
-  define: { "process.env.NODE_ENV": '"production"', "process.env.NEXT_PUBLIC_API_URL": JSON.stringify(process.env.NEXT_PUBLIC_API_URL ?? "") },
+  define: { "process.env.NODE_ENV": '"production"', "process.env.NEXT_PUBLIC_API_URL": JSON.stringify(process.env.NEXT_PUBLIC_API_URL ?? ""), "process.env.NEXT_PUBLIC_STANDALONE": '"1"' },
   logLevel: "warning",
   plugins: [shims],
   legalComments: "none",

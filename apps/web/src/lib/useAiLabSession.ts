@@ -27,7 +27,9 @@ export interface LabSession<S, A> {
  * objectives with the LessonEngine, only on states that already include the
  * step's setup actions (`ack` ≥ the last setup command).
  */
-export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKind): LabSession<S, A> {
+/** `persist: false` runs a throwaway session (lesson previews): nothing is loaded or saved. */
+export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKind, opts: { persist?: boolean } = {}): LabSession<S, A> {
+  const persist = opts.persist !== false;
   const remote = useRef<RemoteRuntime<S, A> | null>(null);
   const engine = useRef<LessonEngine<S, A> | null>(null);
   const [snap, setSnap] = useState<{ state: S; assessment: AssessmentResult; canUndo: boolean }>();
@@ -47,20 +49,19 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
     window.addEventListener("pagehide", onHide);
     gate.current = Number.POSITIVE_INFINITY;
 
-    progressStore()
-      .load(lesson.id)
+    (persist ? progressStore().load(lesson.id) : Promise.resolve(undefined))
       .then((saved) => {
         if (disposed) return;
         const eng = new LessonEngine(lesson, saved);
         engine.current = eng;
         eng.bus.on("progress", (p) => {
           clearTimeout(saveTimer);
-          saveTimer = setTimeout(() => void progressStore().save(p), 400);
+          if (persist) saveTimer = setTimeout(() => void progressStore().save(p), 400);
         });
         // Milestones are saved at once; routine updates are debounced above.
         const saveNow = () => {
           clearTimeout(saveTimer);
-          void progressStore().save(eng.getProgress());
+          if (persist) void progressStore().save(eng.getProgress());
         };
         eng.bus.on("stepEntered", saveNow);
         eng.bus.on("stepCompleted", saveNow);

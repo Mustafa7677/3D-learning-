@@ -5,6 +5,8 @@ import Home from "../src/app/page";
 import { LabPage } from "../src/components/LabPage";
 import { AccountPage } from "../src/components/AccountPage";
 import { TeacherPage } from "../src/components/TeacherPage";
+import { CreatorPage } from "../src/components/CreatorPage";
+import { PlayPage } from "../src/components/PlayPage";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
 import "../src/app/globals.css";
@@ -37,6 +39,8 @@ function App() {
   if (openLabs.some((l) => l.id === route)) return <LabPage labId={route} />;
   if (route === "account") return <AccountPage />;
   if (route === "teacher") return <TeacherPage />;
+  if (route === "create" || route.startsWith("import=")) return <CreatorPage />;
+  if (route.startsWith("play=")) return <PlayPage key={route} code={route.slice(5)} />;
   return <Home />;
 }
 

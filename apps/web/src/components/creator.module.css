@@ -1,0 +1,178 @@
+.lessonList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.lessonList li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 14px;
+}
+.field {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  min-width: 0;
+}
+.field > span {
+  color: var(--muted);
+}
+.field .num,
+.field input {
+  min-width: 0;
+}
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.steps [aria-selected="true"] {
+  background: var(--ink);
+  color: var(--panel);
+  border-color: var(--ink);
+}
+.stepTools {
+  display: flex;
+  gap: 6px;
+}
+.stepEditor {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  min-width: 0;
+}
+.group {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  background: var(--panel);
+}
+.group legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+.check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+}
+.bodyGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.textarea,
+.small {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  background: var(--panel);
+  resize: vertical;
+}
+.textarea {
+  min-height: 320px;
+}
+.small {
+  min-height: 70px;
+}
+.preview {
+  border: 1px dashed var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  background: var(--panel);
+  max-height: 460px;
+  overflow: auto;
+  min-width: 0;
+}
+.objective {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 80px minmax(0, 1.4fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+.objective > * {
+  min-width: 0;
+}
+.num {
+  width: 80px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px;
+  background: var(--panel);
+}
+.question {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+.issues {
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+.issues p {
+  margin: 0;
+}
+.issues ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.issues .ok {
+  color: var(--ok, #17895c);
+}
+.issues:has(.ok) {
+  background: color-mix(in srgb, #17895c 10%, transparent);
+}
+.playBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px var(--gutter, 16px);
+  background: var(--c1-soft);
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+@media (max-width: 760px) {
+  .bodyGrid {
+    grid-template-columns: 1fr;
+  }
+  .objective {
+    grid-template-columns: 1fr 80px;
+  }
+  .objective > input:not(.num) {
+    grid-column: 1 / -1;
+  }
+}
+.group > button {
+  justify-self: start;
+}

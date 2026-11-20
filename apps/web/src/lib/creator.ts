@@ -212,3 +212,59 @@ export function saveCustomLessons(list: LessonSpec[]): boolean {
     return false;
   }
 }
+
+/** Simulations an authored lesson may run on. */
+export const KIND_IDS = KINDS.map((k) => k.kind);
+
+export interface PresetMatch {
+  preset: ConditionPreset;
+  value: number;
+}
+
+/** Recover which preset (and number) built a condition, so the editor can show it as a form. */
+export function presetOf(kind: string, when: Condition): PresetMatch | undefined {
+  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+  const raw = (when as { value?: unknown }).value;
+  const candidates = typeof raw === "number" ? [raw, Math.round(raw * 100 * 1e6) / 1e6] : [1];
+  for (const preset of kindInfo(kind).conditions) {
+    for (const v of preset.value === undefined ? [preset.value ?? 1] : candidates) {
+      if (same(preset.build(v), when)) return { preset, value: v };
+    }
+  }
+  return undefined;
+}
+
+/** Objective text for a preset with its number filled in. */
+export const presetText = (p: ConditionPreset, v: number) => p.label.replace(/\bX\b/, String(v)).replace(/\bN\b/, String(v));
+
+/** Whether a setup preset's actions are part of a step's onEnter list. */
+export function hasSetup(onEnter: unknown[] | undefined, setup: SetupPreset): boolean {
+  const list = (onEnter ?? []).map((a) => JSON.stringify(a));
+  const want = setup.actions.map((a) => JSON.stringify(a));
+  for (let i = 0; i + want.length <= list.length; i++) if (want.every((w, k) => list[i + k] === w)) return true;
+  return false;
+}
+
+export function toggleSetup(onEnter: unknown[] | undefined, setup: SetupPreset): unknown[] {
+  const list = [...(onEnter ?? [])];
+  if (!hasSetup(list, setup)) return [...list, ...setup.actions];
+  const want = setup.actions.map((a) => JSON.stringify(a));
+  for (let i = 0; i + want.length <= list.length; i++) {
+    if (want.every((w, k) => JSON.stringify(list[i + k]) === w)) {
+      list.splice(i, want.length);
+      break;
+    }
+  }
+  return list;
+}
+
+/** A fresh id that is not in `taken`: prefix-1, prefix-2, … */
+export function freshId(prefix: string, taken: string[]): string {
+  for (let i = 1; ; i++) if (!taken.includes(`${prefix}-${i}`)) return `${prefix}-${i}`;
+}
+
+/** Link that opens an authored lesson for a learner, on either build of the site. */
+export function playLink(code: string): string {
+  if (process.env.NEXT_PUBLIC_STANDALONE === "1") return `${window.location.origin}${window.location.pathname}#play=${code}`;
+  return `${window.location.origin}/play#l=${code}`;
+}

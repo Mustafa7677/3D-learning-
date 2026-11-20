@@ -57,3 +57,46 @@ describe("lesson spec", () => {
     expect(lesson.steps[0]!.onEnter).toEqual([{ type: "physics/clear" }]);
   });
 });
+
+describe("quiz and sharing", () => {
+  const withQuiz = (quiz: unknown) => ({
+    format: "inside-tech/lesson@1",
+    id: "my-quiz",
+    labId: "ai",
+    kind: "classifier",
+    title: "Сұрақтар",
+    summary: "",
+    estimatedMinutes: 5,
+    steps: [{ id: "s1", title: "S", body: "Мәтін", objectives: [{ id: "o", text: "t", when: { path: "x", op: ">=", value: 1 } }], quiz }],
+  });
+
+  it("validates quiz questions", async () => {
+    const { validateLessonSpec } = await import("./spec");
+    const good = [{ id: "q1", question: "2+2?", options: ["3", "4"], answer: 1, explain: "Себебі 4." }];
+    expect(validateLessonSpec(withQuiz(good))).toEqual([]);
+    const issues = validateLessonSpec(withQuiz([{ id: "q1", question: "", options: ["бір"], answer: 3, explain: "" }]));
+    expect(issues.map((i) => i.where)).toEqual(["steps[0].quiz[0].question", "steps[0].quiz[0].options", "steps[0].quiz[0].explain"]);
+    expect(validateLessonSpec(withQuiz([{ ...good[0], answer: 2 }])).map((i) => i.where)).toEqual(["steps[0].quiz[0].answer"]);
+  });
+
+  it("compiled quizzes gate the step", async () => {
+    const { compileLesson } = await import("./spec");
+    const { LessonEngine } = await import("./engine");
+    const spec = withQuiz([{ id: "q1", question: "2+2?", options: ["3", "4"], answer: 1, explain: "Себебі 4." }]) as never;
+    const e = new LessonEngine(compileLesson<{ x: number }, never>(spec));
+    e.update({ x: 2 }, { score: 0, metrics: {}, notes: [] });
+    expect(e.isStepComplete()).toBe(false);
+    expect(e.answer("q1", 1).correct).toBe(true);
+    expect(e.isStepComplete()).toBe(true);
+  });
+
+  it("round-trips through a URL-safe string, including Kazakh text", async () => {
+    const { encodeLessonSpec, decodeLessonSpec } = await import("./spec");
+    const spec = withQuiz([{ id: "q1", question: "Әлем қандай? ңғүұқөһі", options: ["а", "ә"], answer: 1, explain: "Ә." }]) as never;
+    const code = encodeLessonSpec(spec);
+    expect(code).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(decodeLessonSpec(code)).toEqual(spec);
+    expect(decodeLessonSpec("%%%")).toBeUndefined();
+    expect(decodeLessonSpec(code.slice(0, 10))).toBeUndefined();
+  });
+});

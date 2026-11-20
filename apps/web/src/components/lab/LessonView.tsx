@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-import type { LessonDefinition } from "@inside-tech/lesson-engine";
+import { useEffect, useMemo, useState } from "react";
+import { compileLesson, type LessonDefinition, type LessonSpec } from "@inside-tech/lesson-engine";
 import type { AiLabAction, AiLabState, LangLabAction, LangLabState } from "@inside-tech/lab-ai";
 import type { WebLabAction, WebLabState } from "@inside-tech/lab-web";
 import type { GameLabAction, GameLabState, Tile } from "@inside-tech/lab-game";
@@ -65,6 +65,38 @@ const GAME_SECTIONS: Record<string, GameSection[]> = {
   "game-9-pset": ["physics", "editor", "play", "rules", "ai"],
 };
 
+/** Authored lessons have no hand-picked sections: show the controls that match the step's focus. */
+const FOCUS_SECTIONS: Record<string, Section[]> = {
+  dataset: ["data"],
+  surface: ["training", "network", "data"],
+  neuron: ["neuron", "data"],
+  network: ["network", "training", "data"],
+  charts: ["training", "network"],
+};
+const LANG_FOCUS_SECTIONS: Record<string, LangSection[]> = {
+  tokens: ["tokens"],
+  embedding: ["embedding", "tokens"],
+  attention: ["attention", "tokens"],
+  llm: ["llm"],
+};
+const WEB_FOCUS_SECTIONS: Record<string, WebSection[]> = {
+  network: ["request", "server", "dns", "routes", "cache"],
+  dom: ["html"],
+  box: ["box", "flex"],
+  flex: ["flex", "box"],
+  loop: ["loop"],
+  db: ["sql", "request"],
+};
+const GAME_FOCUS_SECTIONS: Record<string, GameSection[]> = {
+  scene: ["scene"],
+  camera: ["camera", "scene"],
+  loop: ["loop"],
+  physics: ["physics"],
+  graphics: ["graphics"],
+  game: ["play", "rules", "ai"],
+  editor: ["editor", "play", "rules", "ai"],
+};
+
 const KEYS: Record<string, "up" | "down" | "left" | "right"> = {
   ArrowUp: "up",
   KeyW: "up",
@@ -88,10 +120,12 @@ interface LessonProps<S, A> {
   labId: string;
   lesson: LessonDefinition<S, A>;
   nextLessonId?: string;
+  /** False for previews: progress is neither loaded nor saved. */
+  persist?: boolean;
 }
 
-function ClassifierLesson({ labId, lesson, nextLessonId }: LessonProps<AiLabState, AiLabAction>) {
-  const session = useLabSession(lesson, "classifier");
+function ClassifierLesson({ labId, lesson, nextLessonId, persist }: LessonProps<AiLabState, AiLabAction>) {
+  const session = useLabSession(lesson, "classifier", { persist });
   const [tool, setTool] = useState<Tool>("select");
   const webgl = useWebGL();
   const { state, assessment, step } = session;
@@ -131,7 +165,7 @@ function ClassifierLesson({ labId, lesson, nextLessonId }: LessonProps<AiLabStat
           <ControlPanel
             state={state}
             assessment={assessment}
-            sections={SECTIONS[lesson.id] ?? ["data"]}
+            sections={SECTIONS[lesson.id] ?? FOCUS_SECTIONS[focus] ?? ["data"]}
             tool={tool}
             onTool={setTool}
             dispatch={session.dispatch}
@@ -144,8 +178,8 @@ function ClassifierLesson({ labId, lesson, nextLessonId }: LessonProps<AiLabStat
   );
 }
 
-function LanguageLesson({ labId, lesson, nextLessonId }: LessonProps<LangLabState, LangLabAction>) {
-  const session = useLabSession(lesson, "language");
+function LanguageLesson({ labId, lesson, nextLessonId, persist }: LessonProps<LangLabState, LangLabAction>) {
+  const session = useLabSession(lesson, "language", { persist });
   const webgl = useWebGL();
   const { state, assessment, step } = session;
   const focus = (step?.focus ?? "embedding") as LangFocus;
@@ -172,7 +206,7 @@ function LanguageLesson({ labId, lesson, nextLessonId }: LessonProps<LangLabStat
           <LangControlPanel
             state={state}
             assessment={assessment}
-            sections={LANG_SECTIONS[lesson.id] ?? ["tokens"]}
+            sections={LANG_SECTIONS[lesson.id] ?? LANG_FOCUS_SECTIONS[focus] ?? ["tokens"]}
             dispatch={session.dispatch}
             canUndo={session.canUndo}
             onUndo={session.undo}
@@ -183,8 +217,8 @@ function LanguageLesson({ labId, lesson, nextLessonId }: LessonProps<LangLabStat
   );
 }
 
-function WebLesson({ labId, lesson, nextLessonId }: LessonProps<WebLabState, WebLabAction>) {
-  const session = useLabSession(lesson, "web");
+function WebLesson({ labId, lesson, nextLessonId, persist }: LessonProps<WebLabState, WebLabAction>) {
+  const session = useLabSession(lesson, "web", { persist });
   const webgl = useWebGL();
   const { state, step } = session;
   const focus = (step?.focus ?? "network") as WebFocus;
@@ -209,7 +243,7 @@ function WebLesson({ labId, lesson, nextLessonId }: LessonProps<WebLabState, Web
         state && (
           <WebControlPanel
             state={state}
-            sections={WEB_SECTIONS[lesson.id] ?? ["request"]}
+            sections={WEB_SECTIONS[lesson.id] ?? WEB_FOCUS_SECTIONS[focus] ?? ["request"]}
             focus={focus}
             dispatch={session.dispatch}
             canUndo={session.canUndo}
@@ -221,8 +255,8 @@ function WebLesson({ labId, lesson, nextLessonId }: LessonProps<WebLabState, Web
   );
 }
 
-function GameLesson({ labId, lesson, nextLessonId }: LessonProps<GameLabState, GameLabAction>) {
-  const session = useLabSession(lesson, "game");
+function GameLesson({ labId, lesson, nextLessonId, persist }: LessonProps<GameLabState, GameLabAction>) {
+  const session = useLabSession(lesson, "game", { persist });
   const webgl = useWebGL();
   const [brush, setBrush] = useState<Tile>("#");
   const { state, step, dispatch } = session;
@@ -277,7 +311,7 @@ function GameLesson({ labId, lesson, nextLessonId }: LessonProps<GameLabState, G
         state && (
           <GameControlPanel
             state={state}
-            sections={GAME_SECTIONS[lesson.id] ?? ["scene"]}
+            sections={GAME_SECTIONS[lesson.id] ?? GAME_FOCUS_SECTIONS[step?.focus ?? "scene"] ?? ["scene"]}
             brush={brush}
             onBrush={setBrush}
             dispatch={dispatch}
@@ -299,4 +333,17 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "language") return <LanguageLesson {...props} />;
   if (entry.kind === "web") return <WebLesson {...props} />;
   return <GameLesson {...props} />;
+}
+
+/**
+ * Runs an authored (inside-tech/lesson@1) lesson in its simulation. The spec
+ * must already be validated; it is compiled once per spec object.
+ */
+export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; preview?: boolean }) {
+  const lesson = useMemo(() => compileLesson<never, never>(spec), [spec]);
+  const props = { labId: spec.labId, lesson: lesson as LessonDefinition<never, never>, persist: !preview };
+  if (spec.kind === "classifier") return <ClassifierLesson {...(props as LessonProps<AiLabState, AiLabAction>)} />;
+  if (spec.kind === "language") return <LanguageLesson {...(props as LessonProps<LangLabState, LangLabAction>)} />;
+  if (spec.kind === "web") return <WebLesson {...(props as LessonProps<WebLabState, WebLabAction>)} />;
+  return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
