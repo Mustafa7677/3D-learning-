@@ -29,6 +29,7 @@
     "@inside-tech/lab-arch": "workspace:*",
     "@inside-tech/lab-db": "workspace:*",
     "@inside-tech/lab-game": "workspace:*",
+    "@inside-tech/lab-net": "workspace:*",
     "@inside-tech/lab-sec": "workspace:*"
   },
   "devDependencies": {

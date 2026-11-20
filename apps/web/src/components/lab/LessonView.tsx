@@ -10,6 +10,7 @@ import type { AlgoLabAction, AlgoLabState } from "@inside-tech/lab-algo";
 import type { ArchLabAction, ArchLabState } from "@inside-tech/lab-arch";
 import type { SecLabAction, SecLabState } from "@inside-tech/lab-sec";
 import type { DbLabAction, DbLabState } from "@inside-tech/lab-db";
+import type { NetLabAction, NetLabState } from "@inside-tech/lab-net";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -21,6 +22,7 @@ import type { AlgoFocus } from "../scene/AlgoScene";
 import type { ArchFocus } from "../scene/ArchScene";
 import type { SecFocus } from "../scene/SecScene";
 import type { DbFocus } from "../scene/DbScene";
+import type { NetFocus } from "../scene/NetScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
@@ -31,6 +33,7 @@ import { AlgoControlPanel, type AlgoSection } from "./AlgoControlPanel";
 import { ArchControlPanel } from "./ArchControlPanel";
 import { SecControlPanel } from "./SecControlPanel";
 import { DbControlPanel } from "./DbControlPanel";
+import { NetControlPanel } from "./NetControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
@@ -42,6 +45,7 @@ const AlgoScene = dynamic(() => import("../scene/AlgoScene"), { ssr: false, load
 const ArchScene = dynamic(() => import("../scene/ArchScene"), { ssr: false, loading: sceneLoading });
 const SecScene = dynamic(() => import("../scene/SecScene"), { ssr: false, loading: sceneLoading });
 const DbScene = dynamic(() => import("../scene/DbScene"), { ssr: false, loading: sceneLoading });
+const NetScene = dynamic(() => import("../scene/NetScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -360,6 +364,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "arch") return <ArchLesson {...props} />;
   if (entry.kind === "sec") return <SecLesson {...props} />;
   if (entry.kind === "db") return <DbLesson {...props} />;
+  if (entry.kind === "net") return <NetLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -377,6 +382,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "arch") return <ArchLesson {...(props as LessonProps<ArchLabState, ArchLabAction>)} />;
   if (spec.kind === "sec") return <SecLesson {...(props as LessonProps<SecLabState, SecLabAction>)} />;
   if (spec.kind === "db") return <DbLesson {...(props as LessonProps<DbLabState, DbLabAction>)} />;
+  if (spec.kind === "net") return <NetLesson {...(props as LessonProps<NetLabState, NetLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
 
@@ -472,6 +478,29 @@ function DbLesson({ labId, lesson, nextLessonId, persist }: LessonProps<DbLabSta
         </div>
       }
       controls={state && <DbControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+    />
+  );
+}
+
+const NET_FOCI: NetFocus[] = ["packets", "ip", "routing", "transport", "congestion", "nat"];
+
+function NetLesson({ labId, lesson, nextLessonId, persist }: LessonProps<NetLabState, NetLabAction>) {
+  const session = useLabSession(lesson, "net", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (NET_FOCI.includes(step?.focus as NetFocus) ? step!.focus : "packets") as NetFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <NetScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <NetControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }

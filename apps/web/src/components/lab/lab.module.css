@@ -659,3 +659,19 @@ div.walkSteps {
   max-height: 260px;
   overflow: auto;
 }
+
+/* ---- networks lab ---- */
+.kv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+.kv dt {
+  color: var(--muted);
+}
+.kv dd {
+  margin: 0;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}

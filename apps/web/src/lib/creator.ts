@@ -277,6 +277,34 @@ KINDS.push({
   ],
 });
 
+KINDS.push({
+  kind: "net",
+  labId: "net",
+  title: "Computer Networks",
+  focus: [
+    { id: "packets", label: "Пакеттер" },
+    { id: "ip", label: "IP калькулятор" },
+    { id: "routing", label: "Маршрутизация" },
+    { id: "transport", label: "Сенімді жеткізу" },
+    { id: "congestion", label: "Кептеліс" },
+    { id: "nat", label: "NAT" },
+  ],
+  conditions: [
+    { id: "packets", label: "Пакеттеу тәжірибесі ≥ N", value: 2, build: len("stats.packetRuns") },
+    { id: "ip", label: "IP есептеулері ≥ N", value: 3, build: len("stats.ipQueries") },
+    { id: "routes", label: "Жіберілген пакет ≥ N", value: 2, build: len("stats.routeRuns") },
+    { id: "transfers", label: "Тасымалдау тәжірибесі ≥ N", value: 2, build: len("stats.transfers") },
+    { id: "cc", label: "Кептеліс тәжірибесі ≥ N", value: 1, build: len("stats.congestionRuns") },
+    { id: "nat", label: "NAT жеткізген жауап ≥ N", value: 1, build: n("stats.natDelivered") },
+  ],
+  setups: [
+    { id: "ls", label: "Маршрут: A → F, link state", actions: [{ type: "mode/set", mode: "routing" }, { type: "route/algo", algo: "ls" }, { type: "route/set", from: "A", to: "F" }] },
+    { id: "dv", label: "Маршрут: distance vector", actions: [{ type: "mode/set", mode: "routing" }, { type: "route/algo", algo: "dv" }] },
+    { id: "sw", label: "Тасымалдау: stop-and-wait", actions: [{ type: "mode/set", mode: "transport" }, { type: "tx/set", protocol: "stopwait", loss: 0 }] },
+    { id: "lossy", label: "Тасымалдау: терезе 8, 10% жоғалту", actions: [{ type: "mode/set", mode: "transport" }, { type: "tx/set", protocol: "window", window: 8, loss: 0.1 }] },
+  ],
+});
+
 export const kindInfo = (kind: string) => KINDS.find((k) => k.kind === kind) ?? KINDS[0]!;
 
 export function newSpec(kind: LabKind): LessonSpec {

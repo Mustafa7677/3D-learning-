@@ -6,6 +6,7 @@ import { algoLessons } from "@inside-tech/lab-algo";
 import { archLessons } from "@inside-tech/lab-arch";
 import { secLessons } from "@inside-tech/lab-sec";
 import { dbLessons } from "@inside-tech/lab-db";
+import { netLessons } from "@inside-tech/lab-net";
 import type { LabKind } from "./labPort";
 
 export interface LessonEntry {
@@ -29,6 +30,7 @@ export const lessonEntries: LessonEntry[] = [
   ...archLessons.map((lesson) => ({ labId: "arch", kind: "arch" as const, lesson })).sort(byOrder),
   ...secLessons.map((lesson) => ({ labId: "sec", kind: "sec" as const, lesson })).sort(byOrder),
   ...dbLessons.map((lesson) => ({ labId: "db", kind: "db" as const, lesson })).sort(byOrder),
+  ...netLessons.map((lesson) => ({ labId: "net", kind: "net" as const, lesson })).sort(byOrder),
 ];
 
 export const lessonsForLab = (labId: string) => lessonEntries.filter((e) => e.labId === labId);

@@ -35,7 +35,14 @@ export const labs: LabInfo[] = [
     status: "open",
     href: "/labs/game",
   },
-  { id: "net", title: "Computer Networks", inside: "DNS, TCP және пакеттердің маршруты", status: "soon" },
+  {
+    id: "net",
+    title: "Computer Networks",
+    inside: "DNS, TCP және пакеттердің маршруты",
+    intro: "Интернеттің іші: пакеттер мен қабаттар, IP адрестер мен ішкі желілер, маршрутизаторлардың Дейкстрасы мен Беллман–Фордасы, TCP-нің ACK, терезе мен кептелісті басқаруы, NAT. Әр сызықты үзіп, әр пакетті жоғалтып, желінің қалай «өзін емдейтінін» көресің.",
+    status: "open",
+    href: "/labs/net",
+  },
   {
     id: "db",
     title: "Databases",
