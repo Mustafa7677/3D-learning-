@@ -252,6 +252,31 @@ KINDS.push({
   ],
 });
 
+KINDS.push({
+  kind: "db",
+  labId: "db",
+  title: "Databases",
+  focus: [
+    { id: "sql", label: "SQL" },
+    { id: "race", label: "Параллель клиенттер" },
+    { id: "shard", label: "Шардинг" },
+  ],
+  conditions: [
+    { id: "queries", label: "Орындалған сұраныс ≥ N", value: 3, build: len("stats.queries") },
+    { id: "commits", label: "COMMIT ≥ N", value: 1, build: n("stats.commits") },
+    { id: "rollbacks", label: "ROLLBACK ≥ N", value: 1, build: n("stats.rollbacks") },
+    { id: "explains", label: "EXPLAIN ≥ N", value: 1, build: n("stats.explains") },
+    { id: "pk", label: "PRIMARY KEY шектеуі іске қосылды", build: has("stats.constraintErrors", "PRIMARY KEY") },
+    { id: "races", label: "Параллель жүгіріс ≥ N", value: 1, build: len("stats.raceRuns") },
+  ],
+  setups: [
+    { id: "reset", label: "Дерекқор: бастапқы күй", actions: [{ type: "mode/set", mode: "sql" }, { type: "sql/reset" }] },
+    { id: "join", label: "Сұраныс: JOIN үлгісі", actions: [{ type: "sql/text", text: "SELECT s.name, c.title FROM enrollments e JOIN students s ON e.student_id = s.id JOIN courses c ON e.course_id = c.id" }] },
+    { id: "race", label: "Параллельдік: құлыпсыз", actions: [{ type: "mode/set", mode: "race" }, { type: "race/locking", on: false }] },
+    { id: "shard", label: "Шардинг: mod N, 4 шард", actions: [{ type: "mode/set", mode: "shard" }, { type: "shard/method", method: "mod" }, { type: "shard/n", n: 4 }] },
+  ],
+});
+
 export const kindInfo = (kind: string) => KINDS.find((k) => k.kind === kind) ?? KINDS[0]!;
 
 export function newSpec(kind: LabKind): LessonSpec {

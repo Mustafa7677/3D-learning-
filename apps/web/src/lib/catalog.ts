@@ -36,7 +36,14 @@ export const labs: LabInfo[] = [
     href: "/labs/game",
   },
   { id: "net", title: "Computer Networks", inside: "DNS, TCP және пакеттердің маршруты", status: "soon" },
-  { id: "db", title: "Databases", inside: "Индекстер, транзакциялар, query optimizer", status: "soon" },
+  {
+    id: "db",
+    title: "Databases",
+    inside: "Индекстер, транзакциялар, query optimizer",
+    intro: "Нақты SQL қозғалтқышы браузеріңде: SELECT, JOIN, GROUP BY, индекстер мен EXPLAIN, шектеулер, транзакциялар және құлаған сервер, параллель клиенттер, шардинг. Әр сұраныстың нәтижесін ғана емес, бағасын да — неше жол қаралғанын — көресің.",
+    status: "open",
+    href: "/labs/db",
+  },
   {
     id: "arch",
     title: "Computer Architecture",

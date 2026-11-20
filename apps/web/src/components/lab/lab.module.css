@@ -653,3 +653,9 @@ div.walkSteps {
   max-height: 140px;
   overflow: auto;
 }
+
+/* ---- databases lab ---- */
+.tableScroll {
+  max-height: 260px;
+  overflow: auto;
+}

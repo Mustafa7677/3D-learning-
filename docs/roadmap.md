@@ -32,6 +32,8 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 
 - [x] CYBERSECURITY LAB 1–8 + Problem Set (`lab-sec` plugin): қазақ әліпбиіндегі Цезарь шифры және жиілік талдауы, XOR және one-time pad, нақты SHA-256 (FIPS тест-векторлары) және лавина әсері, құпиясөз сақтау (ашық → хэш → тұз → баяу хэш) мен сөздік шабуылы, энтропия, RSA (кілт, шифрлау, қолтаңба), SQL injection және XSS; есептер: шифрды бұзу, proof of work, RSA-ны факторизациямен бұзу, injection
 
+- [x] DATABASES LAB 1–8 + Problem Set (`lab-db` plugin): өз SQL қозғалтқышы (recursive-descent парсер; JOIN, GROUP BY/HAVING, агрегаттар, индекстер, EXPLAIN, PRIMARY/FOREIGN KEY, NOT NULL, BEGIN/COMMIT/ROLLBACK), сервердің құлауы, жоғалған жаңарту және SELECT … FOR UPDATE, mod N мен consistent hashing шардингі; нәтижелер эталон сұраныспен салыстырылады
+
 ## Келесі кезеңдер
 
 | Кезең | Мазмұны |

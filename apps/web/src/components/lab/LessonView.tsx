@@ -9,6 +9,7 @@ import type { GameLabAction, GameLabState, Tile } from "@inside-tech/lab-game";
 import type { AlgoLabAction, AlgoLabState } from "@inside-tech/lab-algo";
 import type { ArchLabAction, ArchLabState } from "@inside-tech/lab-arch";
 import type { SecLabAction, SecLabState } from "@inside-tech/lab-sec";
+import type { DbLabAction, DbLabState } from "@inside-tech/lab-db";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -19,6 +20,7 @@ import type { GameFocus } from "../scene/GameScene";
 import type { AlgoFocus } from "../scene/AlgoScene";
 import type { ArchFocus } from "../scene/ArchScene";
 import type { SecFocus } from "../scene/SecScene";
+import type { DbFocus } from "../scene/DbScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
@@ -28,6 +30,7 @@ import { GameControlPanel, type GameSection } from "./GameControlPanel";
 import { AlgoControlPanel, type AlgoSection } from "./AlgoControlPanel";
 import { ArchControlPanel } from "./ArchControlPanel";
 import { SecControlPanel } from "./SecControlPanel";
+import { DbControlPanel } from "./DbControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
@@ -38,6 +41,7 @@ const GameScene = dynamic(() => import("../scene/GameScene"), { ssr: false, load
 const AlgoScene = dynamic(() => import("../scene/AlgoScene"), { ssr: false, loading: sceneLoading });
 const ArchScene = dynamic(() => import("../scene/ArchScene"), { ssr: false, loading: sceneLoading });
 const SecScene = dynamic(() => import("../scene/SecScene"), { ssr: false, loading: sceneLoading });
+const DbScene = dynamic(() => import("../scene/DbScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -355,6 +359,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "algo") return <AlgoLesson {...props} />;
   if (entry.kind === "arch") return <ArchLesson {...props} />;
   if (entry.kind === "sec") return <SecLesson {...props} />;
+  if (entry.kind === "db") return <DbLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -371,6 +376,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "algo") return <AlgoLesson {...(props as LessonProps<AlgoLabState, AlgoLabAction>)} />;
   if (spec.kind === "arch") return <ArchLesson {...(props as LessonProps<ArchLabState, ArchLabAction>)} />;
   if (spec.kind === "sec") return <SecLesson {...(props as LessonProps<SecLabState, SecLabAction>)} />;
+  if (spec.kind === "db") return <DbLesson {...(props as LessonProps<DbLabState, DbLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
 
@@ -445,6 +451,27 @@ function SecLesson({ labId, lesson, nextLessonId, persist }: LessonProps<SecLabS
         </div>
       }
       controls={state && <SecControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+    />
+  );
+}
+
+function DbLesson({ labId, lesson, nextLessonId, persist }: LessonProps<DbLabState, DbLabAction>) {
+  const session = useLabSession(lesson, "db", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (["sql", "race", "shard"].includes(step?.focus ?? "") ? step!.focus : "sql") as DbFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <DbScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <DbControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }
