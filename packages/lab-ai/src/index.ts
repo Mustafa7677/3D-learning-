@@ -10,3 +10,4 @@ export * from "./language/attention";
 export * from "./language/ngram";
 export * from "./language/plugin";
 export * from "./language/lessons";
+export * from "./pset";

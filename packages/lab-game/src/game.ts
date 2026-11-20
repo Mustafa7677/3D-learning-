@@ -268,3 +268,57 @@ export const EFFECT_TEXT: Record<Effect, string> = {
   win: "жеңіс",
   lose: "жеңіліс",
 };
+
+export interface LevelReport {
+  coins: number;
+  enemies: number;
+  /** Items the player can walk to (4-neighbour moves over non-wall tiles). */
+  reachableCoins: number;
+  reachableEnemies: number;
+  /** Shortest-path length (in cells) from the spawn to the farthest reachable coin. */
+  farthestCoin: number;
+}
+
+/**
+ * Breadth-first search from the player spawn. BFS visits cells in order of
+ * distance, so the first time it reaches a cell that distance is the shortest.
+ */
+export function analyzeLevel(level: string[]): LevelReport {
+  const dist: number[][] = Array.from({ length: GRID }, () => Array<number>(GRID).fill(-1));
+  const queue: [number, number][] = [];
+  level.forEach((row, j) => [...row].forEach((ch, i) => ch === "p" && queue.push([i, j])));
+  for (const [i, j] of queue) dist[j]![i] = 0;
+  for (let head = 0; head < queue.length; head++) {
+    const [i, j] = queue[head]!;
+    for (const [di, dj] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ] as const) {
+      const ni = i + di;
+      const nj = j + dj;
+      if (tileAt(level, ni, nj) === "#" || dist[nj]![ni] !== -1) continue;
+      dist[nj]![ni] = dist[j]![i]! + 1;
+      queue.push([ni, nj]);
+    }
+  }
+  const r: LevelReport = { coins: 0, enemies: 0, reachableCoins: 0, reachableEnemies: 0, farthestCoin: 0 };
+  level.forEach((row, j) =>
+    [...row].forEach((ch, i) => {
+      const d = dist[j]?.[i] ?? -1;
+      if (ch === "c") {
+        r.coins++;
+        if (d >= 0) {
+          r.reachableCoins++;
+          r.farthestCoin = Math.max(r.farthestCoin, d);
+        }
+      }
+      if (ch === "e") {
+        r.enemies++;
+        if (d >= 0) r.reachableEnemies++;
+      }
+    }),
+  );
+  return r;
+}

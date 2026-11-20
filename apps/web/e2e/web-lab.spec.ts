@@ -14,10 +14,10 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("web lab page lists eight lessons", async ({ page }) => {
+test("web lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/web");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Web Development");
-  await expect(page.locator("ol li")).toHaveCount(8);
+  await expect(page.locator("ol li")).toHaveCount(9);
 });
 
 test("lesson 1: a request travels DNS → TCP → TLS → HTTP and returns 200", async ({ page }) => {

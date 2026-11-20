@@ -9,10 +9,10 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("game lab page lists eight lessons", async ({ page }) => {
+test("game lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/game");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game Development");
-  await expect(page.locator("ol li")).toHaveCount(8);
+  await expect(page.locator("ol li")).toHaveCount(9);
 });
 
 test("lesson 1: selecting and moving a parent object", async ({ page }) => {

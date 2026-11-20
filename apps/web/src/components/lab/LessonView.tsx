@@ -35,6 +35,7 @@ const SECTIONS: Record<string, Section[]> = {
   "ai-4-training": ["training", "network", "data"],
   "ai-5-overfitting": ["training", "network", "data"],
   "ai-8-build": ["training", "network", "data", "export"],
+  "ai-9-pset": ["training", "network"],
 };
 const LANG_SECTIONS: Record<string, LangSection[]> = {
   "ai-6-transformers": ["tokens", "embedding", "attention"],
@@ -49,6 +50,7 @@ const WEB_SECTIONS: Record<string, WebSection[]> = {
   "web-6-db": ["sql", "request"],
   "web-7-debug": ["request", "dns", "routes", "sql"],
   "web-8-deploy": ["html", "deploy", "request", "dns", "cache"],
+  "web-9-pset": ["sql", "request", "routes", "loop"],
 };
 
 const GAME_SECTIONS: Record<string, GameSection[]> = {
@@ -60,6 +62,7 @@ const GAME_SECTIONS: Record<string, GameSection[]> = {
   "game-6-scripting": ["play", "rules"],
   "game-7-logic": ["play", "ai", "rules"],
   "game-8-create": ["editor", "play", "rules", "ai"],
+  "game-9-pset": ["physics", "editor", "play", "rules", "ai"],
 };
 
 const KEYS: Record<string, "up" | "down" | "left" | "right"> = {

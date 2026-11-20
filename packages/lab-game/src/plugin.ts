@@ -69,6 +69,12 @@ export interface GameStats {
   losses: number;
   levelEdits: number;
   movedPlayer: boolean;
+  /** Restitution in effect at the latest real bounce (problem set). */
+  lastBounceE: number | null;
+  /** Fast throws and whether the thin wall stopped them, with the substeps used. */
+  throwLog: { speed: number; substeps: number; result: "blocked" | "tunneled" }[];
+  /** Levels (rows joined by "/") on which the learner has won. */
+  wonLevels: string[];
 }
 
 export interface GameLabState {
@@ -137,6 +143,9 @@ const emptyStats = (): GameStats => ({
   losses: 0,
   levelEdits: 0,
   movedPlayer: false,
+  lastBounceE: null,
+  throwLog: [],
+  wonLevels: [],
 });
 
 function newLoop(useDeltaTime: boolean, speed: number): LoopDemo {
@@ -381,16 +390,21 @@ export const gameLabPlugin: SimulationPlugin<GameLabState, GameLabAction> = {
       let stats = next.stats;
       if (events.collisions) stats = { ...stats, collisions: stats.collisions + events.collisions };
       if (events.tunneled.length) stats = { ...stats, tunneled: true };
+      const log = (result: "blocked" | "tunneled", balls: Ball[]) => {
+        for (const b of balls) stats = { ...stats, throwLog: [...stats.throwLog, { speed: Math.round(b.vel[0]), substeps: s.physics.params.substeps, result }].slice(-20) };
+      };
+      log("tunneled", s.physics.balls.filter((b) => events.tunneled.includes(b.id)));
       // A fast ball stopped by the thin wall: it is left of the wall and moving left after a hit.
       if (events.wallHits && world.walls.length && world.balls.some((b) => b.r === 0.25 && b.pos[0] < THIN_WALL.min[0] && b.vel[0] < 0)) {
         const fast = s.physics.balls.some((b) => b.r === 0.25 && b.vel[0] > 30);
         if (fast) stats = { ...stats, blockedFast: true };
+        log("blocked", s.physics.balls.filter((b) => b.r === 0.25 && b.vel[0] > 30 && world.balls.some((w) => w.id === b.id && w.vel[0] < 0)));
       }
       for (const b of events.bounces) {
         const ball = s.physics.balls.find((x) => x.id === b.id);
         if (ball && b.speed > 2) {
           // Ratio of rebound to impact speed = coefficient of restitution actually observed.
-          stats = { ...stats, maxBounceRatio: Math.max(stats.maxBounceRatio, world.params.restitution) };
+          stats = { ...stats, maxBounceRatio: Math.max(stats.maxBounceRatio, world.params.restitution), lastBounceE: world.params.restitution };
         }
       }
       // Remove balls that tunnelled out of the arena or came to rest long ago — keep the world small.
@@ -403,7 +417,7 @@ export const gameLabPlugin: SimulationPlugin<GameLabState, GameLabAction> = {
       if (events.coins) stats = { ...stats, coinsCollected: stats.coinsCollected + events.coins };
       for (const e of events.states) stats = { ...stats, enemyStates: uniq(stats.enemyStates, e) };
       if (events.moved) stats = { ...stats, movedPlayer: true };
-      if (game.status === "won") stats = { ...stats, wins: stats.wins + 1 };
+      if (game.status === "won") stats = { ...stats, wins: stats.wins + 1, wonLevels: [...stats.wonLevels, game.level.join("/")].slice(-5) };
       if (game.status === "lost") stats = { ...stats, losses: stats.losses + 1 };
       next = { ...next, game, stats };
     }

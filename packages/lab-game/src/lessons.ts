@@ -2,6 +2,7 @@ import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/
 import { gameContent } from "./content";
 import type { GameLabAction, GameLabState } from "./plugin";
 import { gameDeepDives } from "./deep";
+import { lessonPsetGame } from "./pset";
 
 type L = LessonDefinition<GameLabState, GameLabAction>;
 
@@ -329,4 +330,4 @@ export const lessonCreate: L = {
 };
 
 /** Lessons with their lecture text and concept checks merged in. */
-export const gameLessons: L[] = [lessonObjects, lessonCamera, lessonLoop, lessonPhysics, lessonGraphics, lessonScripting, lessonLogic, lessonCreate].map((l) => withDeepDives(withContent(l, gameContent[l.id] ?? {}), gameDeepDives[l.id] ?? {}));
+export const gameLessons: L[] = [lessonObjects, lessonCamera, lessonLoop, lessonPhysics, lessonGraphics, lessonScripting, lessonLogic, lessonCreate, lessonPsetGame].map((l) => withDeepDives(withContent(l, gameContent[l.id] ?? {}), gameDeepDives[l.id] ?? {}));

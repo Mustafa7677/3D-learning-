@@ -88,3 +88,16 @@ test("deep dives are collapsed until opened", async ({ page }) => {
   await deep.locator("summary").click();
   await expect(deep.getByText(/Бір қадамда loss 3 есеге/)).toBeVisible();
 });
+
+test("problem sets open with a spec and an autograder for every lab", async ({ page }) => {
+  for (const [lab, id, title] of [
+    ["ai", "ai-9-pset", "1-есеп: XOR, ≤ 17 параметр"],
+    ["web", "web-9-pset", "1-есеп: SQL"],
+    ["game", "game-9-pset", "1-есеп: параметрлерді есепте"],
+  ]) {
+    await page.goto(`/labs/${lab}/${id}`);
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Спецификация" })).toBeVisible();
+    await expect(page.locator("li[data-done]").first()).toHaveAttribute("data-done", "false");
+  }
+});

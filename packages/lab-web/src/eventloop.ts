@@ -188,4 +188,40 @@ console.log("соңы");`,
       { kind: "log", text: "соңы" },
     ],
   },
+  {
+    id: "nested",
+    title: "Problem Set: кірістірілген кезектер",
+    source: `console.log("1");
+setTimeout(() => {
+  console.log("2");
+  Promise.resolve().then(() => console.log("3"));
+}, 0);
+Promise.resolve().then(() => {
+  console.log("4");
+  setTimeout(() => console.log("5"), 0);
+});
+console.log("6");`,
+    ops: [
+      { kind: "log", text: "1" },
+      { kind: "timeout", delay: 0, body: [{ kind: "log", text: "2" }, { kind: "promise", body: [{ kind: "log", text: "3" }] }] },
+      { kind: "promise", body: [{ kind: "log", text: "4" }, { kind: "timeout", delay: 0, body: [{ kind: "log", text: "5" }] }] },
+      { kind: "log", text: "6" },
+    ],
+  },
+  {
+    id: "race",
+    title: "Problem Set: жарыс",
+    source: `setTimeout(() => console.log("A"), 50);
+fetch("/api/fast").then(() => console.log("B"));
+setTimeout(() => console.log("C"), 0);
+Promise.resolve().then(() => console.log("D"));
+console.log("E");`,
+    ops: [
+      { kind: "timeout", delay: 50, body: [{ kind: "log", text: "A" }] },
+      { kind: "fetch", url: "/api/fast", latency: 20, body: [{ kind: "log", text: "B" }] },
+      { kind: "timeout", delay: 0, body: [{ kind: "log", text: "C" }] },
+      { kind: "promise", body: [{ kind: "log", text: "D" }] },
+      { kind: "log", text: "E" },
+    ],
+  },
 ];

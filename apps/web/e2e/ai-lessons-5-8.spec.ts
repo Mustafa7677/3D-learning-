@@ -9,9 +9,9 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("lab page lists all eight AI lessons", async ({ page }) => {
+test("lab page lists eight AI lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/ai");
-  await expect(page.locator("ol li")).toHaveCount(8);
+  await expect(page.locator("ol li")).toHaveCount(9);
   await expect(page.getByRole("heading", { name: "Transformers" })).toBeVisible();
 });
 

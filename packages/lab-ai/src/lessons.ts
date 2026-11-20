@@ -2,6 +2,7 @@ import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/
 import { classifierContent } from "./content/classifier";
 import type { AiLabAction, AiLabState } from "./plugin";
 import { aiDeepDives } from "./content/deep";
+import { lessonPsetAi } from "./pset";
 
 type L = LessonDefinition<AiLabState, AiLabAction>;
 
@@ -357,4 +358,4 @@ export const lessonBuild: L = {
 };
 
 /** Lessons with their lecture text and concept checks merged in. */
-export const aiLessons: L[] = [lessonData, lessonNeuron, lessonNetwork, lessonTraining, lessonOverfitting, lessonBuild].map((l) => withDeepDives(withContent(l, classifierContent[l.id] ?? {}), aiDeepDives[l.id] ?? {}));
+export const aiLessons: L[] = [lessonData, lessonNeuron, lessonNetwork, lessonTraining, lessonOverfitting, lessonBuild, lessonPsetAi].map((l) => withDeepDives(withContent(l, classifierContent[l.id] ?? {}), aiDeepDives[l.id] ?? {}));

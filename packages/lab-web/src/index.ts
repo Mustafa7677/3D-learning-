@@ -6,3 +6,4 @@ export * from "./scenarios";
 export * from "./plugin";
 export * from "./layout";
 export * from "./lessons";
+export * from "./pset";

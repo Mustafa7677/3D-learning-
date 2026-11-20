@@ -256,6 +256,33 @@ const scripts: Record<string, Record<string, (b: Bot) => void>> = {
       d({ type: "game/ai", patch: { chaseRadius: 4, giveUpRadius: 6, enemySpeed: 1.5 } });
     },
   },
+  "game-9-pset": {
+    physics: (b) => {
+      b.d({ type: "physics/set", patch: { restitution: 0.6 } });
+      b.d({ type: "physics/drop" });
+      b.tick(90);
+      b.d({ type: "physics/throw", speed: 75 });
+      b.tick(30);
+      b.d({ type: "physics/set", patch: { substeps: 2 } });
+      b.d({ type: "physics/throw", speed: 75 });
+      b.tick(30);
+    },
+    level: ({ d }) =>
+      d({
+        type: "game/level",
+        level: ["###########", "#p.c.c.c.c#", "#########.#", "#c........#", "#.#########", "#.........#", "#.........#", "#....e....#", "#.........#", "#e........#", "###########"],
+      }),
+    win: (b) => {
+      allRules.forEach((r) => b.d(r));
+      b.d({ type: "game/start" });
+      walk(b, [
+        [9, 1],
+        [9, 3],
+        [1, 3],
+      ]);
+      b.tick(5);
+    },
+  },
   "game-8-create": {
     level: ({ d }) => {
       const empty = Array.from({ length: GRID }, (_, j) => (j === 0 || j === GRID - 1 ? "#".repeat(GRID) : "#" + ".".repeat(GRID - 2) + "#"));

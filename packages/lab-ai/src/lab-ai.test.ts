@@ -258,6 +258,29 @@ const scripts: Record<string, Record<string, (d: (a: AiLabAction) => void, s: ()
     },
     export: (d) => d({ type: "model/export" }),
   },
+  "ai-9-pset": {
+    xor: (d, _s, tick) => {
+      d({ type: "network/setActivation", activation: "tanh" });
+      d({ type: "network/setHidden", hidden: [4] });
+      d({ type: "hyper/set", params: { learningRate: 0.3, batchSize: 16, epochLimit: 300, epochsPerTick: 10 } });
+      d({ type: "train/start" });
+      tick(32);
+    },
+    circles: (d, _s, tick) => {
+      d({ type: "network/setActivation", activation: "tanh" });
+      d({ type: "network/setHidden", hidden: [3] });
+      d({ type: "hyper/set", params: { learningRate: 0.3, batchSize: 16, epochLimit: 400, epochsPerTick: 10 } });
+      d({ type: "train/start" });
+      tick(42);
+    },
+    spiral: (d, _s, tick) => {
+      d({ type: "network/setActivation", activation: "relu" });
+      d({ type: "network/setHidden", hidden: [16, 16, 16] });
+      d({ type: "hyper/set", params: { learningRate: 0.05, batchSize: 16, epochLimit: 2000, epochsPerTick: 10 } });
+      d({ type: "train/start" });
+      tick(202);
+    },
+  },
 };
 
 describe("lessons are completable", () => {

@@ -187,6 +187,32 @@ const scripts: Record<string, Record<string, (d: D, s: () => WebLabState, tick: 
       ["бастау", "соңы", "таймер", "жауап келді", "өңделді"].forEach((token) => d({ type: "loop/predict", token }));
     },
   },
+  "web-9-pset": {
+    sql: (d) => {
+      for (const text of [
+        "SELECT * FROM users WHERE city != 'Алматы' AND city != 'Астана' ORDER BY name",
+        "SELECT item, price FROM orders WHERE user_id = 3 ORDER BY price DESC LIMIT 5",
+        "CREATE INDEX ON orders (user_id)",
+        "SELECT * FROM orders WHERE user_id = 5",
+      ]) {
+        d({ type: "sql/set", text });
+        d({ type: "sql/run" });
+      }
+    },
+    api: (d, _s, t) => {
+      d({ type: "route/add", ip: API, route: { method: "GET", path: "/api/users/:id/orders", kind: "sql", body: "SELECT * FROM orders WHERE user_id = :id ORDER BY price DESC LIMIT 5", requiresAuth: false } });
+      send(d, t);
+      const route = _s().world.servers.find((x) => x.ip === API)!.routes.find((r) => r.path === "/api/users/:id/orders")!;
+      d({ type: "route/update", ip: API, id: route.id, patch: { requiresAuth: true } });
+      send(d, t);
+      send(d, t, { token: "secret-123" });
+    },
+    loop: (d) => {
+      ["1", "6", "4", "2", "3", "5"].forEach((token) => d({ type: "loop/predict", token }));
+      d({ type: "loop/select", programId: "race" });
+      ["E", "D", "C", "B", "A"].forEach((token) => d({ type: "loop/predict", token }));
+    },
+  },
   "web-5-backend": {
     routes: (d, _s, t) => {
       send(d, t);
