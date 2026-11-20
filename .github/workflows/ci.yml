@@ -15,7 +15,19 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -26,6 +38,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
+        env:
+          # Runs the Store contract against PostgreSQL as well as in memory.
+          PGTEST_PORT: "5432"
+          PGTEST_USER: postgres
+          PGTEST_PASSWORD: postgres
       - run: pnpm --filter @inside-tech/web build
       - run: pnpm --filter @inside-tech/web exec playwright install --with-deps chromium
       - run: pnpm --filter @inside-tech/web e2e
