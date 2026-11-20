@@ -16,12 +16,13 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 - [x] Статикалық нұсқа және GitHub Pages деплойы
 - [x] WEB LAB 1–8 (`lab-web` plugin): желі (DNS, TCP, TLS, HTTP, кэш), HTML парсер және 3D DOM, box model мен flexbox, event loop, backend маршруттары мен авторизация, шағын SQL қозғалтқышы мен индекстер, debugging сценарийі, deploy және кэш
 
+- [x] GAME LAB 1–8 (`lab-game` plugin): scene graph және attach, ойын камерасы (perspective/ortho/follow), delta time, детерминді физика (серпімділік, импульс, tunneling/substeps), жарық пен PBR материал, «ҚАШАН → ОНДА» ережелері, жау state machine-і, деңгей редакторы
+
 ## Келесі кезеңдер
 
 | Кезең | Мазмұны |
 |---|---|
 | Платформа | PostgreSQL репозиторийі (Drizzle), OAuth/OIDC, анонимді прогресті аккаунтқа қосу, сессия recording-тарын серверге жүктеу |
-| GAME LAB | `lab-game` plugin: Rapier WASM, scene graph, game loop, ойын экспорттау |
 | Learning Platform | Мұғалім панелі, тапсырма тағайындау, аналитика (replay арқылы қай жерде қателескенін көру) |
 | Lesson Creator | `LessonDefinition`-ды JSON ретінде сақтау, мақсаттарды DSL арқылы сипаттау, редактор |
 | Commercial | Premium/Classroom, төлем, лицензиялар, әкімші панелі |

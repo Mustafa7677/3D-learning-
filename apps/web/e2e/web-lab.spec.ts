@@ -30,11 +30,10 @@ test("lesson 1: a request travels DNS → TCP → TLS → HTTP and returns 200",
 
 test("lesson 4: predicting the event loop order", async ({ page }) => {
   await page.goto("/labs/web/web-4-js");
-  for (let i = 0; i < 20; i++) {
-    const next = page.getByRole("button", { name: "Келесі қадам" });
-    if (await next.isDisabled()) break;
-    await next.click();
-  }
+  const next = page.getByRole("button", { name: "Келесі қадам" });
+  // Click until the last frame; the button disables itself there.
+  for (let i = 0; i < 20 && (await next.isEnabled()); i++) await next.click({ timeout: 2000 }).catch(() => {});
+  await expect(next).toBeDisabled();
   await expect(objective(page, "соңына дейін орында")).toHaveAttribute("data-done", "true");
   await page.getByRole("button", { name: "Келесі кезең" }).click();
   for (const t of ["A", "D", "C", "B"]) await page.getByRole("button", { name: t, exact: true }).click();

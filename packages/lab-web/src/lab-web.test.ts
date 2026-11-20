@@ -116,6 +116,20 @@ describe("network", () => {
 });
 
 describe("web-lab plugin", () => {
+  it("keeps edits made while a request is still playing", () => {
+    const rt = new SimulationRuntime(webLabPlugin, 1);
+    rt.dispatch({ type: "scenario/load", id: "debug" });
+    rt.dispatch({ type: "req/set", params: { url: "https://shop.kz/" } });
+    rt.dispatch({ type: "req/send" });
+    rt.stepTicks(2);
+    rt.dispatch({ type: "dns/set", name: "shop.kz", ip: "93.184.10.5" });
+    rt.dispatch({ type: "req/send" }); // finishes the first trace, starts the second
+    rt.stepTicks(400);
+    const s = rt.getState();
+    expect(s.world.dns.some((r) => r.name === "shop.kz")).toBe(true);
+    expect(s.history[0]!.status).toBe(404);
+  });
+
   it("plays requests back over fixed steps and replays deterministically", () => {
     const rt = new SimulationRuntime(webLabPlugin, 1);
     rt.dispatch({ type: "req/send" });

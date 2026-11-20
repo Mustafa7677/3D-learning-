@@ -56,7 +56,7 @@ export default function Home() {
         <section className={styles.labsSection} aria-labelledby="labs-title">
           <div className={styles.labsInner}>
             <h2 id="labs-title">Он зертхана</h2>
-            <p>AI және Web зертханалары ашық. Қалғандары дәл сол симуляция қозғалтқышының үстіне кезекпен қосылады.</p>
+            <p>AI, Web және Game зертханалары ашық. Қалғандары дәл сол симуляция қозғалтқышының үстіне кезекпен қосылады.</p>
             <ul className={styles.labs}>
               {labs.map((lab) => (
                 <li key={lab.id}>

@@ -208,7 +208,16 @@ function finishTrace(s: WebLabState): WebLabState {
   if (!tr || tr.done) return s;
   const url = parseUrl(tr.spec.url);
   const res = tr.response;
-  const world: World = { ...tr.nextWorld, clock: s.world.clock + res.ms };
+  // Commit only what the request itself changed (caches, and the database for writes).
+  // Everything else comes from the current world, so edits made during playback survive.
+  const wrote = !!tr.query?.ok && tr.query.kind !== "select";
+  const world: World = {
+    ...s.world,
+    cache: tr.nextWorld.cache,
+    dnsCache: { ...s.world.dnsCache, ...tr.nextWorld.dnsCache },
+    db: wrote ? tr.nextWorld.db : s.world.db,
+    clock: s.world.clock + res.ms,
+  };
   const serving = world.servers.find((sv) => sv.host === url?.host);
   const deployedRoute = serving?.routes.find((r) => r.method === "GET" && r.path === (url?.path ?? "/"));
   const stale = res.fromCache && !!deployedRoute && deployedRoute.body !== res.body;

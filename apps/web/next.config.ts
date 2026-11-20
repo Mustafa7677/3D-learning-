@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@inside-tech/sim-core", "@inside-tech/lesson-engine", "@inside-tech/lab-ai", "@inside-tech/lab-web"],
+  transpilePackages: ["@inside-tech/sim-core", "@inside-tech/lesson-engine", "@inside-tech/lab-ai", "@inside-tech/lab-web", "@inside-tech/lab-game"],
   poweredByHeader: false,
   async headers() {
     return [

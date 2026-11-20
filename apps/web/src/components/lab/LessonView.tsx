@@ -1,27 +1,31 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { LessonDefinition } from "@inside-tech/lesson-engine";
 import type { AiLabAction, AiLabState, LangLabAction, LangLabState } from "@inside-tech/lab-ai";
 import type { WebLabAction, WebLabState } from "@inside-tech/lab-web";
+import type { GameLabAction, GameLabState, Tile } from "@inside-tech/lab-game";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
 import type { SceneFocus } from "../scene/AiScene";
 import type { LangFocus } from "../scene/LangScene";
 import type { WebFocus } from "../scene/WebScene";
+import type { GameFocus } from "../scene/GameScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
 import { PointInspector } from "./PointInspector";
 import { WebControlPanel, type WebSection } from "./WebControlPanel";
+import { GameControlPanel, type GameSection } from "./GameControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
 const AiScene = dynamic(() => import("../scene/AiScene"), { ssr: false, loading: sceneLoading });
 const LangScene = dynamic(() => import("../scene/LangScene"), { ssr: false, loading: sceneLoading });
 const WebScene = dynamic(() => import("../scene/WebScene"), { ssr: false, loading: sceneLoading });
+const GameScene = dynamic(() => import("../scene/GameScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -45,6 +49,28 @@ const WEB_SECTIONS: Record<string, WebSection[]> = {
   "web-6-db": ["sql", "request"],
   "web-7-debug": ["request", "dns", "routes", "sql"],
   "web-8-deploy": ["html", "deploy", "request", "dns", "cache"],
+};
+
+const GAME_SECTIONS: Record<string, GameSection[]> = {
+  "game-1-objects": ["scene"],
+  "game-2-camera": ["camera", "scene"],
+  "game-3-loop": ["loop"],
+  "game-4-physics": ["physics"],
+  "game-5-graphics": ["graphics"],
+  "game-6-scripting": ["play", "rules"],
+  "game-7-logic": ["play", "ai", "rules"],
+  "game-8-create": ["editor", "play", "rules", "ai"],
+};
+
+const KEYS: Record<string, "up" | "down" | "left" | "right"> = {
+  ArrowUp: "up",
+  KeyW: "up",
+  ArrowDown: "down",
+  KeyS: "down",
+  ArrowLeft: "left",
+  KeyA: "left",
+  ArrowRight: "right",
+  KeyD: "right",
 };
 
 function Unsupported() {
@@ -192,6 +218,75 @@ function WebLesson({ labId, lesson, nextLessonId }: LessonProps<WebLabState, Web
   );
 }
 
+function GameLesson({ labId, lesson, nextLessonId }: LessonProps<GameLabState, GameLabAction>) {
+  const session = useLabSession(lesson, "game");
+  const webgl = useWebGL();
+  const [brush, setBrush] = useState<Tile>("#");
+  const { state, step, dispatch } = session;
+  const focus = (step?.focus ?? "scene") as GameFocus;
+  const playing = state?.game.status === "playing";
+
+  // Arrow keys / WASD drive the player while a game is running (ignored while typing in a field).
+  useEffect(() => {
+    if (!playing) return;
+    const handler = (down: boolean) => (e: KeyboardEvent) => {
+      const key = KEYS[e.code];
+      const t = e.target as HTMLElement | null;
+      if (!key || (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT"))) return;
+      e.preventDefault();
+      if (!e.repeat) dispatch({ type: "game/input", key, down });
+    };
+    const kd = handler(true);
+    const ku = handler(false);
+    window.addEventListener("keydown", kd);
+    window.addEventListener("keyup", ku);
+    return () => {
+      window.removeEventListener("keydown", kd);
+      window.removeEventListener("keyup", ku);
+    };
+  }, [playing, dispatch]);
+
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson as LessonDefinition<unknown, unknown>}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? (
+            <GameScene
+              state={state}
+              focus={focus}
+              brush={brush}
+              onSelect={(id) => dispatch({ type: "scene/select", id })}
+              onTile={(i, j) => dispatch({ type: "game/tile", i, j, tile: brush })}
+              onDrop={(x, z) => dispatch({ type: "physics/drop", x, z })}
+            />
+          ) : webgl === false ? (
+            <Unsupported />
+          ) : (
+            <div className={styles.sceneLoading}>Ойын қозғалтқышы іске қосылуда…</div>
+          )}
+        </div>
+      }
+      controls={
+        state && (
+          <GameControlPanel
+            state={state}
+            sections={GAME_SECTIONS[lesson.id] ?? ["scene"]}
+            brush={brush}
+            onBrush={setBrush}
+            dispatch={dispatch}
+            canUndo={session.canUndo}
+            onUndo={session.undo}
+          />
+        )
+      }
+    />
+  );
+}
+
 export function LessonView({ lessonId }: { lessonId: string }) {
   const found = findLesson(lessonId);
   if (!found) return null;
@@ -199,5 +294,6 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   const props = { labId: entry.labId, lesson: entry.lesson, nextLessonId: next?.lesson.id };
   if (entry.kind === "classifier") return <ClassifierLesson {...props} />;
   if (entry.kind === "language") return <LanguageLesson {...props} />;
-  return <WebLesson {...props} />;
+  if (entry.kind === "web") return <WebLesson {...props} />;
+  return <GameLesson {...props} />;
 }
