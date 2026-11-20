@@ -1,0 +1,55 @@
+// Builds a static, single-page version of the web app (hash routing, no server)
+// into dist-artifact/: index.html + app.js + app.css + ai-lab-worker.js.
+import { build } from "esbuild";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const root = resolve(here, "..");
+const out = resolve(root, "dist-artifact");
+
+const shims = {
+  name: "next-shims",
+  setup(b) {
+    b.onResolve({ filter: /^next\/link$/ }, () => ({ path: resolve(here, "shims/link.tsx") }));
+    b.onResolve({ filter: /^next\/dynamic$/ }, () => ({ path: resolve(here, "shims/dynamic.tsx") }));
+    b.onResolve({ filter: /\/spawnWorker$/ }, () => ({ path: resolve(here, "shims/spawnWorker.ts") }));
+    b.onResolve({ filter: /^@\// }, (a) => b.resolve("./" + a.path.slice(2), { resolveDir: resolve(root, "src"), kind: a.kind }));
+    // Fonts come from Google Fonts in the standalone page.
+    b.onResolve({ filter: /^@fontsource\// }, (a) => ({ path: a.path, namespace: "empty" }));
+    b.onLoad({ filter: /.*/, namespace: "empty" }, () => ({ contents: "", loader: "css" }));
+  },
+};
+
+const common = {
+  bundle: true,
+  minify: true,
+  format: "esm",
+  target: "es2022",
+  jsx: "automatic",
+  define: { "process.env.NODE_ENV": '"production"' },
+  logLevel: "warning",
+  plugins: [shims],
+  legalComments: "none",
+};
+
+await rm(out, { recursive: true, force: true });
+await mkdir(out, { recursive: true });
+
+await build({ ...common, entryPoints: { app: resolve(here, "main.tsx") }, outdir: out });
+await build({ ...common, entryPoints: { "ai-lab-worker": resolve(root, "src/workers/ai-lab.worker.ts") }, outdir: out });
+
+const css = await readFile(resolve(out, "app.css"), "utf8");
+const html = `<title>INSIDE TECH</title>
+<meta name="description" content="IT технологияларын 3D симуляциялар арқылы зерттеуге арналған платформа: AI LAB.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
+<style>${css}</style>
+<div id="root"></div>
+<script type="module" src="app.js"></script>
+`;
+await writeFile(resolve(out, "index.html"), html);
+await rm(resolve(out, "app.css"));
+console.log("built", out);

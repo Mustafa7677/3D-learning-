@@ -26,6 +26,14 @@ pnpm --filter @inside-tech/web build
 pnpm --filter @inside-tech/web e2e          # Playwright
 ```
 
+## Статикалық нұсқа (сервер қажет емес)
+
+```bash
+pnpm --filter @inside-tech/web build:artifact   # apps/web/dist-artifact/
+```
+
+Бір беттік нұсқа шығады: маршрутизация hash арқылы жүреді (`#ai`, `#ai-1-data`), ал worker бөлек файлда тұрады. Worker қолжетімсіз болса, симуляция негізгі ағында жұмыс істейді. Мұны кез келген статикалық хостингке жариялауға болады.
+
 ## Құрылым
 
 ```

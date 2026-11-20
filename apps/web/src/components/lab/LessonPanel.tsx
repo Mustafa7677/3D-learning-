@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { StepView } from "@inside-tech/lesson-engine";
 import styles from "./lab.module.css";
@@ -77,13 +78,13 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
           <>
             <p className={styles.done}>Сабақ аяқталды.</p>
             {nextLessonHref ? (
-              <a className="btn btn-primary" href={nextLessonHref}>
+              <Link className="btn btn-primary" href={nextLessonHref}>
                 Келесі сабаққа өту
-              </a>
+              </Link>
             ) : (
-              <a className="btn btn-primary" href="/labs/ai">
+              <Link className="btn btn-primary" href="/labs/ai">
                 Зертханаға оралу
-              </a>
+              </Link>
             )}
           </>
         ) : (

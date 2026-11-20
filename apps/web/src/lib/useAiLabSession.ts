@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RemoteRuntime, type AssessmentResult, type MessagePortLike } from "@inside-tech/sim-core";
+import { RemoteRuntime, type AssessmentResult } from "@inside-tech/sim-core";
 import { LessonEngine, type LessonDefinition, type StepView } from "@inside-tech/lesson-engine";
 import type { AiLabAction, AiLabState } from "@inside-tech/lab-ai";
+import { createLabPort } from "./labPort";
 import { progressStore } from "./progress";
 
 export interface AiLabSession {
@@ -35,8 +36,8 @@ export function useAiLabSession(lesson: LessonDefinition<AiLabState, AiLabAction
 
   useEffect(() => {
     let disposed = false;
-    const worker = new Worker(new URL("../workers/ai-lab.worker.ts", import.meta.url), { type: "module" });
-    const rt = new RemoteRuntime<AiLabState, AiLabAction>(worker as unknown as MessagePortLike);
+    const lab = createLabPort();
+    const rt = new RemoteRuntime<AiLabState, AiLabAction>(lab.port);
     remote.current = rt;
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
     // Objectives are graded only on states that already include the step's setup actions.
@@ -69,7 +70,7 @@ export function useAiLabSession(lesson: LessonDefinition<AiLabState, AiLabAction
       clearTimeout(saveTimer);
       if (engine.current) void progressStore().save(engine.current.getProgress());
       rt.dispose();
-      worker.terminate();
+      lab.dispose();
       remote.current = null;
       engine.current = null;
     };
