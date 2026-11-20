@@ -48,6 +48,9 @@ importers:
       '@inside-tech/lab-algo':
         specifier: workspace:*
         version: link:../../packages/lab-algo
+      '@inside-tech/lab-arch':
+        specifier: workspace:*
+        version: link:../../packages/lab-arch
       '@inside-tech/lab-game':
         specifier: workspace:*
         version: link:../../packages/lab-game
@@ -108,6 +111,15 @@ importers:
         version: link:../sim-core
 
   packages/lab-algo:
+    dependencies:
+      '@inside-tech/lesson-engine':
+        specifier: workspace:*
+        version: link:../lesson-engine
+      '@inside-tech/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+
+  packages/lab-arch:
     dependencies:
       '@inside-tech/lesson-engine':
         specifier: workspace:*

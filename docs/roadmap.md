@@ -28,6 +28,8 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 
 - [x] ALGORITHMS LAB 1–8 + Problem Set (`lab-algo` plugin): сызықтық/екілік іздеу, bubble/selection/insertion, Big O тәжірибесі (n екі есе өскенде), merge sort, quicksort және pivot таңдау, BFS/DFS, Дейкстра; әр салыстыру мен ауыстыру 3D-де, санауыштар оқулықтағы формулалармен тексерілген
 
+- [x] COMPUTER ARCHITECTURE LAB 1–8 + Problem Set (`lab-arch` plugin): 8 бит және hex, тасымалмен қосу, толып кету, two's complement, логикалық элементтер, жарты және толық қосындылағышты өзің құрастыру, ripple carry, fetch–decode–execute процессоры мен ассемблері, LOAD/STORE және жадтың бағасы, direct-mapped кэш және локальдық; ассемблер есептері check50 сияқты жасырын тесттермен (әрі нұсқау бюджетімен) тексеріледі
+
 ## Келесі кезеңдер
 
 | Кезең | Мазмұны |

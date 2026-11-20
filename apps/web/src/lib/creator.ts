@@ -195,6 +195,34 @@ KINDS.push({
   ],
 });
 
+KINDS.push({
+  kind: "arch",
+  labId: "arch",
+  title: "Computer Architecture",
+  focus: [
+    { id: "bits", label: "Биттер" },
+    { id: "gates", label: "Логикалық схема" },
+    { id: "cpu", label: "Процессор" },
+    { id: "cache", label: "Кэш" },
+  ],
+  conditions: [
+    { id: "toggles", label: "Бит ауыстыру ≥ N", value: 5, build: n("stats.bitToggles") },
+    { id: "adds", label: "Екілік қосу ≥ N", value: 2, build: len("stats.additions") },
+    { id: "solved", label: "Шешілген схема ≥ N", value: 1, build: len("stats.solved") },
+    { id: "stages", label: "Қолмен жүргізілген CPU кезеңі ≥ N", value: 6, build: n("stats.manualStages") },
+    { id: "runs", label: "HALT-қа жеткен бағдарлама ≥ N", value: 1, build: len("stats.cpuRuns") },
+    { id: "cache", label: "Кэш тәжірибесі ≥ N", value: 2, build: len("stats.cacheRuns") },
+  ],
+  setups: [
+    { id: "zero", label: "Биттер: 0", actions: [{ type: "mode/set", mode: "bits" }, { type: "bits/set", value: 0 }] },
+    { id: "signed", label: "Биттер: таңбалы көрініс", actions: [{ type: "bits/signed", on: true }] },
+    { id: "half", label: "Схема: жарты қосындылағыш", actions: [{ type: "mode/set", mode: "gates" }, { type: "gates/circuit", circuit: "half" }] },
+    { id: "full", label: "Схема: толық қосындылағыш", actions: [{ type: "mode/set", mode: "gates" }, { type: "gates/circuit", circuit: "full" }] },
+    { id: "sum", label: "CPU: 1..10 қосындысы", actions: [{ type: "mode/set", mode: "cpu" }, { type: "cpu/source", source: "      LI R0, 0\n      LI R1, 10\nloop: ADD R0, R1\n      DEC R1\n      JNZ loop\n      OUT R0\n      HALT" }] },
+    { id: "column", label: "Кэш: баған бойымен, 4 × 16", actions: [{ type: "mode/set", mode: "cache" }, { type: "cache/config", pattern: "column", lines: 4, lineSize: 16 }] },
+  ],
+});
+
 export const kindInfo = (kind: string) => KINDS.find((k) => k.kind === kind) ?? KINDS[0]!;
 
 export function newSpec(kind: LabKind): LessonSpec {

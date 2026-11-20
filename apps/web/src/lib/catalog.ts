@@ -37,7 +37,15 @@ export const labs: LabInfo[] = [
   },
   { id: "net", title: "Computer Networks", inside: "DNS, TCP және пакеттердің маршруты", status: "soon" },
   { id: "db", title: "Databases", inside: "Индекстер, транзакциялар, query optimizer", status: "soon" },
-  { id: "arch", title: "Computer Architecture", inside: "CPU, жады және екілік сандар", status: "soon" },
+  {
+    id: "arch",
+    title: "Computer Architecture",
+    inside: "CPU, жады және екілік сандар",
+    intro: "Биттен бағдарламаға дейін: екілік сандар, логикалық элементтерден құрастырылған қосындылағыш, fetch–decode–execute циклімен жұмыс істейтін процессор, ассемблер және кэш. Соңында өз бағдарламаңды жазасың — оны автотексеруші жасырын тесттермен тексереді."
+    ,
+    status: "open",
+    href: "/labs/arch",
+  },
   { id: "cloud", title: "Cloud & DevOps", inside: "Контейнерлер, Kubernetes, CI/CD", status: "soon" },
   { id: "sec", title: "Cybersecurity", inside: "Шифрлау мен аутентификацияны қорғау зертханасында", status: "soon" },
   {

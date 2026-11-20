@@ -3,11 +3,12 @@ import { aiLabPlugin, langLabPlugin } from "@inside-tech/lab-ai";
 import { webLabPlugin } from "@inside-tech/lab-web";
 import { gameLabPlugin } from "@inside-tech/lab-game";
 import { algoLabPlugin } from "@inside-tech/lab-algo";
+import { archLabPlugin } from "@inside-tech/lab-arch";
 import { spawnWorker } from "./spawnWorker";
 
 export const LAB_SEED = 20261120;
 
-export type LabKind = "classifier" | "language" | "web" | "game" | "algo";
+export type LabKind = "classifier" | "language" | "web" | "game" | "algo" | "arch";
 
 export interface LabPort {
   port: MessagePortLike;
@@ -43,6 +44,7 @@ export function createLabPort(kind: LabKind): LabPort {
   if (kind === "web") return inThread(webLabPlugin);
   if (kind === "game") return inThread(gameLabPlugin);
   if (kind === "algo") return inThread(algoLabPlugin);
+  if (kind === "arch") return inThread(archLabPlugin);
   try {
     const worker = spawnWorker();
     return { port: worker as unknown as MessagePortLike, dispose: () => worker.terminate() };

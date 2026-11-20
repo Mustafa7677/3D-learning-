@@ -619,3 +619,24 @@ div.walkSteps {
 .benchTable td:first-child {
   text-align: left;
 }
+
+/* ---- architecture lab ---- */
+.code {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  background: var(--panel);
+  resize: vertical;
+  tab-size: 6;
+}
+.textInput {
+  flex: 1;
+  min-width: 120px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  background: var(--panel);
+  font: 13px ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}

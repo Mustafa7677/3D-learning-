@@ -7,6 +7,7 @@ import type { AiLabAction, AiLabState, LangLabAction, LangLabState } from "@insi
 import type { WebLabAction, WebLabState } from "@inside-tech/lab-web";
 import type { GameLabAction, GameLabState, Tile } from "@inside-tech/lab-game";
 import type { AlgoLabAction, AlgoLabState } from "@inside-tech/lab-algo";
+import type { ArchLabAction, ArchLabState } from "@inside-tech/lab-arch";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -15,6 +16,7 @@ import type { LangFocus } from "../scene/LangScene";
 import type { WebFocus } from "../scene/WebScene";
 import type { GameFocus } from "../scene/GameScene";
 import type { AlgoFocus } from "../scene/AlgoScene";
+import type { ArchFocus } from "../scene/ArchScene";
 import { ControlPanel, type Section, type Tool } from "./ControlPanel";
 import { LabShell } from "./LabShell";
 import { LangControlPanel, type LangSection } from "./LangControlPanel";
@@ -22,6 +24,7 @@ import { PointInspector } from "./PointInspector";
 import { WebControlPanel, type WebSection } from "./WebControlPanel";
 import { GameControlPanel, type GameSection } from "./GameControlPanel";
 import { AlgoControlPanel, type AlgoSection } from "./AlgoControlPanel";
+import { ArchControlPanel } from "./ArchControlPanel";
 import styles from "./lab.module.css";
 
 const sceneLoading = () => <div className={styles.sceneLoading}>3D сахна жүктелуде…</div>;
@@ -30,6 +33,7 @@ const LangScene = dynamic(() => import("../scene/LangScene"), { ssr: false, load
 const WebScene = dynamic(() => import("../scene/WebScene"), { ssr: false, loading: sceneLoading });
 const GameScene = dynamic(() => import("../scene/GameScene"), { ssr: false, loading: sceneLoading });
 const AlgoScene = dynamic(() => import("../scene/AlgoScene"), { ssr: false, loading: sceneLoading });
+const ArchScene = dynamic(() => import("../scene/ArchScene"), { ssr: false, loading: sceneLoading });
 
 /** Which control groups each lesson exposes. Keeps the UI focused on what the lesson teaches. */
 const SECTIONS: Record<string, Section[]> = {
@@ -345,6 +349,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "language") return <LanguageLesson {...props} />;
   if (entry.kind === "web") return <WebLesson {...props} />;
   if (entry.kind === "algo") return <AlgoLesson {...props} />;
+  if (entry.kind === "arch") return <ArchLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -359,6 +364,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "language") return <LanguageLesson {...(props as LessonProps<LangLabState, LangLabAction>)} />;
   if (spec.kind === "web") return <WebLesson {...(props as LessonProps<WebLabState, WebLabAction>)} />;
   if (spec.kind === "algo") return <AlgoLesson {...(props as LessonProps<AlgoLabState, AlgoLabAction>)} />;
+  if (spec.kind === "arch") return <ArchLesson {...(props as LessonProps<ArchLabState, ArchLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
 
@@ -389,6 +395,27 @@ function AlgoLesson({ labId, lesson, nextLessonId, persist }: LessonProps<AlgoLa
           />
         )
       }
+    />
+  );
+}
+
+function ArchLesson({ labId, lesson, nextLessonId, persist }: LessonProps<ArchLabState, ArchLabAction>) {
+  const session = useLabSession(lesson, "arch", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (["bits", "gates", "cpu", "cache"].includes(step?.focus ?? "") ? step!.focus : "bits") as ArchFocus;
+  return (
+    <LabShell
+      labId={labId}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <ArchScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <ArchControlPanel state={state} sections={[focus]} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }
