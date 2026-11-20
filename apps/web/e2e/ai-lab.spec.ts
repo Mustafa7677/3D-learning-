@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { answerQuiz, nextStep } from "./helpers";
 
 const objective = (page: Page, text: string) => page.locator("li[data-done]", { hasText: text });
 
@@ -22,6 +23,7 @@ test("objectives are not pre-completed by the default world", async ({ page }) =
   await expect(objective(page, "жасырын қабат қос")).toHaveAttribute("data-done", "false");
   await page.getByRole("button", { name: "Қабат қосу" }).click();
   await expect(objective(page, "жасырын қабат қос")).toHaveAttribute("data-done", "true");
+  await answerQuiz(page);
   await expect(page.getByRole("button", { name: "Келесі кезең" })).toBeEnabled();
 });
 
@@ -31,7 +33,7 @@ test("lesson 2: tuning a neuron by hand reaches the boundary objective", async (
   await w1.fill("2");
   await page.getByLabel("w₂").fill("2");
   await expect(objective(page, "w₁, w₂ немесе b")).toHaveAttribute("data-done", "true");
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   await expect(page.getByRole("heading", { name: "Шешім шекарасы" })).toBeVisible();
   await page.getByLabel("w₁").fill("3");
   await page.getByLabel("w₂").fill("3");
@@ -51,7 +53,7 @@ test("lesson 4: real training in the worker drives loss down", async ({ page }) 
 test("progress survives a reload", async ({ page }) => {
   await page.goto("/labs/ai/ai-3-network");
   await page.getByRole("button", { name: "Қабат қосу" }).click();
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   await expect(page.getByRole("heading", { name: "Forward propagation" })).toBeVisible();
   await page.waitForTimeout(700); // progress save is debounced
   await page.reload();

@@ -26,7 +26,7 @@ function inline(text: string, key: string): ReactNode[] {
 type Block =
   | { kind: "h"; text: string }
   | { kind: "p"; text: string }
-  | { kind: "ul" | "ol"; items: string[] }
+  | { kind: "ul" | "ol"; items: string[]; start: number }
   | { kind: "code"; text: string }
   | { kind: "note"; text: string; tone: "warn" | "idea" | "info" };
 
@@ -51,10 +51,12 @@ function parse(src: string): Block[] {
     } else if (/^[-•] /.test(line) || /^\d+\. /.test(line)) {
       flush();
       const ordered = /^\d+\. /.test(line);
+      // Keep authored numbering when a list continues after a code block.
+      const start = ordered ? Number(/^(\d+)\./.exec(line)![1]) : 1;
       const items: string[] = [];
       while (i < lines.length && (ordered ? /^\d+\. /.test(lines[i]!) : /^[-•] /.test(lines[i]!))) items.push(lines[i++]!.replace(/^([-•]|\d+\.) /, ""));
       i--;
-      blocks.push({ kind: ordered ? "ol" : "ul", items });
+      blocks.push({ kind: ordered ? "ol" : "ul", items, start });
     } else if (line.startsWith("> ")) {
       flush();
       const parts: string[] = [];
@@ -93,7 +95,7 @@ export function Prose({ text }: { text: string }) {
             );
           case "ol":
             return (
-              <ol key={k}>
+              <ol key={k} start={b.start}>
                 {b.items.map((it, j) => (
                   <li key={j}>{inline(it, `${k}-${j}`)}</li>
                 ))}

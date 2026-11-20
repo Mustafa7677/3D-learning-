@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { answerQuiz, nextStep } from "./helpers";
 
 const objective = (page: Page, text: string) => page.locator("li[data-done]", { hasText: text });
 const send = async (page: Page) => {
@@ -35,7 +36,7 @@ test("lesson 4: predicting the event loop order", async ({ page }) => {
   for (let i = 0; i < 20 && (await next.isEnabled()); i++) await next.click({ timeout: 2000 }).catch(() => {});
   await expect(next).toBeDisabled();
   await expect(objective(page, "соңына дейін орында")).toHaveAttribute("data-done", "true");
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   for (const t of ["A", "D", "C", "B"]) await page.getByRole("button", { name: t, exact: true }).click();
   await expect(page.getByText("Дұрыс!")).toBeVisible();
 });
@@ -68,7 +69,7 @@ test("lesson 8: deploy your page and open it", async ({ page }) => {
   await code.fill("<h1>Менің жобам</h1><p>Сәлем, әлем!</p>");
   await code.blur();
   await expect(objective(page, "Өз тақырыбың")).toHaveAttribute("data-done", "true");
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   await page.getByLabel("Домен").fill("mysite.kz");
   await page.getByLabel("IP адрес").fill("93.184.10.9");
   await page.getByRole("button", { name: "Жазба қосу" }).click();

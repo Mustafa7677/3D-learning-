@@ -1,4 +1,5 @@
-import type { LessonDefinition } from "@inside-tech/lesson-engine";
+import { withContent, type LessonDefinition } from "@inside-tech/lesson-engine";
+import { gameContent } from "./content";
 import type { GameLabAction, GameLabState } from "./plugin";
 
 type L = LessonDefinition<GameLabState, GameLabAction>;
@@ -326,4 +327,5 @@ export const lessonCreate: L = {
   ],
 };
 
-export const gameLessons: L[] = [lessonObjects, lessonCamera, lessonLoop, lessonPhysics, lessonGraphics, lessonScripting, lessonLogic, lessonCreate];
+/** Lessons with their lecture text and concept checks merged in. */
+export const gameLessons: L[] = [lessonObjects, lessonCamera, lessonLoop, lessonPhysics, lessonGraphics, lessonScripting, lessonLogic, lessonCreate].map((l) => withContent(l, gameContent[l.id] ?? {}));

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { answerQuiz, nextStep } from "./helpers";
 
 const objective = (page: Page, text: string) => page.locator("li[data-done]", { hasText: text });
 
@@ -35,11 +36,11 @@ test("lesson 6: tokenizer and attention respond to the learner", async ({ page }
   await expect(objective(page, "Өз сөйлеміңді жаз")).toHaveAttribute("data-done", "true");
   await page.getByLabel("Merge саны").fill("120");
   await expect(objective(page, "3 түрлі мәнін")).toHaveAttribute("data-done", "true");
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   for (const w of ["мысық", "компьютер", "аспан"]) await page.getByRole("button", { name: w, exact: true }).click();
   await expect(page.getByText("сөзінің ең жақын көршілері")).toBeVisible();
   await expect(objective(page, "3 сөзді таңдап")).toHaveAttribute("data-done", "true");
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   await page.locator("table").getByRole("button", { name: "сүт" }).click();
   await expect(page.getByText("назарының энтропиясы")).toBeVisible();
 });
@@ -51,7 +52,7 @@ test("lesson 7: the language model generates tokens", async ({ page }) => {
   await expect(page.locator("[aria-live=polite]").last()).toHaveText(/^бала/);
   await page.getByLabel("Prompt (бастама)").fill("компьютер");
   await expect(objective(page, "Prompt")).toHaveAttribute("data-done", "true");
-  await page.getByRole("button", { name: "Келесі кезең" }).click();
+  await nextStep(page);
   for (let i = 0; i < 5; i++) {
     await page.getByRole("button", { name: "Тазалау" }).click();
     await page.getByRole("button", { name: "Келесі токен", exact: true }).click();

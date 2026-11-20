@@ -17,6 +17,9 @@ Master Plan v1.0-ге негізделген. Таңдалған жол: **A** �
 - [x] WEB LAB 1–8 (`lab-web` plugin): желі (DNS, TCP, TLS, HTTP, кэш), HTML парсер және 3D DOM, box model мен flexbox, event loop, backend маршруттары мен авторизация, шағын SQL қозғалтқышы мен индекстер, debugging сценарийі, deploy және кэш
 
 - [x] GAME LAB 1–8 (`lab-game` plugin): scene graph және attach, ойын камерасы (perspective/ortho/follow), delta time, детерминді физика (серпімділік, импульс, tunneling/substeps), жарық пен PBR материал, «ҚАШАН → ОНДА» ережелері, жау state machine-і, деңгей редакторы
+- [x] Платформа: аккаунттар (OIDC + PKCE), PostgreSQL store (нақты Postgres 16-да тексерілген), сыныптар мен мұғалім есебі, Stripe Checkout және webhook, әкімші, CSRF/rate limit; веб-те аккаунт және мұғалім беттері
+- [x] CS50 деңгейіндегі мазмұн: 3 зертхананың 85 кезеңі — лекция (идея, түйсік, есептелген мысал, жиі қате) + әр кезеңде 2 сұрақ; сұрақтарға жауап бермей кезең аяқталмайды
+- [x] Декларативті сабақ форматы (inside-tech/lesson@1) — Lesson Creator интерфейсінің негізі
 
 ## Келесі кезеңдер
 

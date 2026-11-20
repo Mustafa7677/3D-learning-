@@ -302,6 +302,7 @@ describe("game lessons are completable", () => {
         script!(bot);
         sync();
         expect(engine.view().objectives.filter((o) => !o.done).map((o) => o.text), `${lesson.id}/${step.id}`).toEqual([]);
+        for (const q of step.quiz ?? []) expect(engine.answer(q.id, q.answer).correct).toBe(true);
         if (!engine.isLastStep()) {
           engine.advance();
           enter();
