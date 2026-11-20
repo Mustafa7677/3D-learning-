@@ -219,7 +219,7 @@ function MqttSection({ state, dispatch }: { state: IotLabState; dispatch: D }) {
           Жазылу
         </button>
       </form>
-      <p className={styles.small}>«+» — бір деңгей, «#» — қалғанның бәрі (тек соңында).</p>
+      <p className={styles.small}>«+»: бір деңгей, «#»: қалғанның бәрі (тек соңында).</p>
       {state.mqtt.error ? (
         <p className={styles.small} role="status">
           {state.mqtt.error}

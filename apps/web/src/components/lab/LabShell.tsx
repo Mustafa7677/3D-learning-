@@ -15,10 +15,12 @@ interface Props {
   session: LabSession<unknown, unknown>;
   stage: ReactNode;
   controls: ReactNode;
+  /** A test run (e.g. from the Lesson Creator): no rewards. */
+  preview?: boolean;
 }
 
 /** Shared lesson page frame: top bar, lesson steps on the left, stage, controls on the right. */
-export function LabShell({ labId, lesson, nextLessonId, session, stage, controls }: Props) {
+export function LabShell({ labId, lesson, nextLessonId, session, stage, controls, preview = false }: Props) {
   const { step } = session;
   return (
     <div className={styles.shell}>
@@ -52,6 +54,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
               nextLessonHref={nextLessonId ? `/labs/${labId}/${nextLessonId}` : undefined}
               labHref={`/labs/${labId}`}
               labId={labId}
+              celebrate={!preview}
             />
           ) : (
             <p className={styles.small}>Сабақ жүктелуде…</p>

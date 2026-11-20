@@ -28,7 +28,7 @@ export const lessonSearch: L = {
       onEnter: [{ type: "mode/set", mode: "search" }, { type: "search/config", kind: "linear", n: 32, sorted: true, target: 47 }],
       objectives: [
         { id: "found", text: "Сызықтық іздеумен 47-ні тап", check: (s) => s.stats.searches.some((x) => x.kind === "linear" && x.found && x.target === 47) },
-        { id: "missing", text: "Жоқ санды ізде (мысалы 48) — неше қадам кетеді?", check: (s) => s.stats.searches.some((x) => x.kind === "linear" && !x.present && x.probes === x.n) },
+        { id: "missing", text: "Жоқ санды ізде (мысалы 48): неше қадам кетеді?", check: (s) => s.stats.searches.some((x) => x.kind === "linear" && !x.present && x.probes === x.n) },
       ],
     },
     {
@@ -126,7 +126,7 @@ export const lessonQuadratic: L = {
       onEnter: [{ type: "sort/config", alg: "insertion", preset: "nearly", n: 32 }],
       objectives: [
         { id: "ins", text: "Insertion sort: дерлік сұрыпталған 32 элемент", check: (s) => ran(s, "insertion", (r) => r.preset === "nearly" && r.n >= 32) },
-        { id: "sel", text: "Selection sort: сол дерек — салыстыруларды салыстыр", check: (s) => ran(s, "selection", (r) => r.preset === "nearly" && r.n >= 32) },
+        { id: "sel", text: "Selection sort: сол дерек: салыстыруларды салыстыр", check: (s) => ran(s, "selection", (r) => r.preset === "nearly" && r.n >= 32) },
       ],
     },
   ],
@@ -137,7 +137,7 @@ export const lessonBigO: L = {
   labId: "algo",
   order: 4,
   title: "Big O",
-  summary: "Уақытты емес, қадамдарды өлшейміз. n екі есе өскенде не болады — тәжірибемен.",
+  summary: "Уақытты емес, қадамдарды өлшейміз. n екі есе өскенде не болады: тәжірибемен.",
   estimatedMinutes: 25,
   steps: [
     {

@@ -53,3 +53,17 @@ test("lesson: the lecture opens as 3D pages and closes back to the task", async 
   await dialog.getByRole("button", { name: "Жабу" }).click();
   await expect(dialog).toHaveCount(0);
 });
+
+test("finishing a lesson pays XP and lights a star on the course card", async ({ page }) => {
+  await page.goto("/labs/cloud/cloud-8-incident");
+  await page.locator("fieldset").filter({ hasText: "CPU төмен" }).getByRole("button", { name: /күтіп тұр/ }).click();
+  await page.locator("fieldset").filter({ hasText: "бірінші не істеу" }).getByRole("button", { name: /Зиянды азайту/ }).click();
+  await page.getByRole("button", { name: "Себеп: payments" }).click();
+  const reward = page.getByRole("dialog", { name: "Сабақ аяқталды" });
+  await expect(reward.getByText("+100 XP")).toBeVisible();
+  await reward.getByRole("button", { name: "Жабу" }).click();
+  await expect(reward).toHaveCount(0);
+  await page.goto("/");
+  await expect(page.getByRole("group", { name: /Деңгей 1, 1\d0 XP/ })).toBeAttached();
+  await expect(page.getByLabel(/1 жұлдыз, 1 сабақ аяқталды/)).toBeAttached();
+});

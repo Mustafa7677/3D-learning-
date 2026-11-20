@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { canRun, assign, loads, type ClientId, type DbLabAction, type DbLabState, type Op } from "@inside-tech/lab-db";
 import type { DbFocus } from "../scene/DbScene";
 import styles from "./lab.module.css";
@@ -9,7 +9,17 @@ type D = (a: DbLabAction) => void;
 
 function SqlSection({ state, dispatch }: { state: DbLabState; dispatch: D }) {
   const [text, setText] = useState(state.sql.text);
-  useEffect(() => setText(state.sql.text), [state.sql.text]);
+  // The runtime echoes back what we sent a moment later; only adopt text that came from elsewhere
+  // (a step's setup, a reset), so a slow echo never overwrites what the learner is typing.
+  const sent = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.sql.text !== sent.current) setText(state.sql.text);
+  }, [state.sql.text]);
+  const run = () => {
+    sent.current = text;
+    dispatch({ type: "sql/text", text });
+    dispatch({ type: "sql/run" });
+  };
   const r = state.sql.last;
   return (
     <fieldset className={styles.group}>
@@ -25,20 +35,14 @@ function SqlSection({ state, dispatch }: { state: DbLabState; dispatch: D }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
-          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-            dispatch({ type: "sql/text", text });
-            dispatch({ type: "sql/run" });
-          }
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") run();
         }}
       />
       <div className={styles.row}>
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() => {
-            dispatch({ type: "sql/text", text });
-            dispatch({ type: "sql/run" });
-          }}
+          onClick={run}
         >
           Орындау
         </button>
@@ -49,7 +53,7 @@ function SqlSection({ state, dispatch }: { state: DbLabState; dispatch: D }) {
           Сервер құлады
         </button>
       </div>
-      {state.sql.session.snapshot && <p className={styles.small}>Транзакция ашық — COMMIT не ROLLBACK күтуде.</p>}
+      {state.sql.session.snapshot && <p className={styles.small}>Транзакция ашық: COMMIT не ROLLBACK күтуде.</p>}
       {r && !r.ok && (
         <p className={styles.small} role="alert">
           Қате: {r.error}
@@ -163,7 +167,7 @@ function ShardSection({ state, dispatch }: { state: DbLabState; dispatch: D }) {
       <p className={styles.small}>Жүктеме: {l.join(" · ")}</p>
       {last && (
         <p className={styles.small} role="status">
-          {last.method === "mod" ? "mod N" : "consistent"}: {last.from} → {last.to} шард — {Math.round(last.moved * 100)}% кілт көшті
+          {last.method === "mod" ? "mod N" : "consistent"}: {last.from} → {last.to} шард: {Math.round(last.moved * 100)}% кілт көшті
         </p>
       )}
     </fieldset>

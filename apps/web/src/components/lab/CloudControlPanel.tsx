@@ -327,12 +327,12 @@ function IncidentSection({ state, dispatch }: { state: CloudLabState; dispatch: 
             {SERVICES.map((s) => (
               <tr key={s.id}>
                 <td>{s.id}</td>
-                <td>{s.calls.join(" ") || "—"}</td>
+                <td>{s.calls.join(" ") || "-"}</td>
                 <td>{m[s.id].p50}</td>
                 <td>{m[s.id].p99}</td>
                 <td>{(m[s.id].errors * 100).toFixed(1)}%</td>
                 <td>{(m[s.id].cpu * 100).toFixed(0)}%</td>
-                <td>{m[s.id].dbMs || "—"}</td>
+                <td>{m[s.id].dbMs || "-"}</td>
               </tr>
             ))}
           </tbody>

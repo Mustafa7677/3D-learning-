@@ -140,7 +140,7 @@ function SamplingView({ state }: { state: IotLabState }) {
         );
       })}
       <Label text={`сигнал ${f} Гц · өлшеу ${fs} Гц · көрінеді: ${fa} Гц ${fa === f ? "✓" : "(алиасинг!)"}`} position={[0, 4.2, 0]} size={0.68} />
-      <Label text="сұр — шын сигнал, сары — өлшемдер, қызыл — өлшемдерден «көрінетін» сигнал" position={[0, -0.2, 0]} size={0.48} />
+      <Label text="сұр: шын сигнал, сары: өлшемдер, қызыл: өлшемдерден «көрінетін» сигнал" position={[0, -0.2, 0]} size={0.48} />
     </group>
   );
 }
@@ -160,7 +160,7 @@ function FilterView({ state }: { state: IotLabState }) {
       ))}
       <Curve pts={raw.map((_, t) => [X(t), Y(trueSignal(t)), 0] as P3)} color={C0} r={0.03} />
       {state.filter.ran && <Curve pts={ys.map((v, t) => [X(t), Y(v), 0.1] as P3)} color={C1} r={0.045} />}
-      <Label text={`α = ${state.filter.alpha.toFixed(2)} · сұр — өлшемдер, көк — шын, сары — сүзгі`} position={[0, 7, 0]} size={0.63} />
+      <Label text={`α = ${state.filter.alpha.toFixed(2)} · сұр: өлшемдер, көк: шын, сары: сүзгі`} position={[0, 7, 0]} size={0.63} />
     </group>
   );
 }
@@ -193,7 +193,7 @@ function ThermoView({ state }: { state: IotLabState }) {
       <HLine y={Y(SETPOINT)} color={OK} r={0.025} />
       {h > 0 && <HLine y={Y(SETPOINT + h / 2)} color={C1} r={0.015} />}
       {h > 0 && <HLine y={Y(SETPOINT - h / 2)} color={C1} r={0.015} />}
-      <Label text={`21 °C ± ${(h / 2).toFixed(2)} · қызыл — қыздырғыш қосулы`} position={[0, 7, 0]} size={0.63} />
+      <Label text={`21 °C ± ${(h / 2).toFixed(2)} · қызыл: қыздырғыш қосулы`} position={[0, 7, 0]} size={0.63} />
       {state.thermo.ran && <Label text={`${run.switches} қосылу · ауытқу ≤ ${run.maxDev.toFixed(2)} °C`} position={[0, 6.3, 0]} size={0.63} />}
     </group>
   );
@@ -304,7 +304,7 @@ function KalmanView({ state }: { state: IotLabState }) {
       ))}
       <Curve pts={err(run.odo)} color={C1} r={0.04} />
       {kq.ran && <Curve pts={err(run.fused)} color={C0} r={0.05} />}
-      <Label text="қате (баға − шындық): сұр — GPS, сары — одометрия, көк — Калман" position={[0, 6.4, 0]} size={0.57} />
+      <Label text="қате (баға − шындық): сұр: GPS, сары: одометрия, көк: Калман" position={[0, 6.4, 0]} size={0.57} />
       <Label
         text={`RMSE: GPS ${run.rmse.gps.toFixed(2)} м · одометрия ${run.rmse.odo.toFixed(2)} м${kq.ran ? ` · Калман ${run.rmse.fused.toFixed(2)} м` : ""}`}
         position={[0, 5.8, 0]}

@@ -2,7 +2,7 @@ import { Fragment, type ReactNode } from "react";
 import styles from "./prose.module.css";
 
 /**
- * Renders lesson text in a small Markdown subset — headings ("## "),
+ * Renders lesson text in a small Markdown subset: headings ("## "),
  * bullet and numbered lists, ``` code blocks, "> " callouts, **bold** and
  * `code`. Builds React elements only (never raw HTML), so authored or
  * imported lessons cannot inject markup.

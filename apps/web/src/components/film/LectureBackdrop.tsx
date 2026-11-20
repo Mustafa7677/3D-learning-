@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Group } from "three";
 import { prefersReducedMotion } from "@/lib/nav";
 import { Emblem, FILM } from "./Emblems";
+import { Dust, FilmFx } from "./Fx";
 
 function Field({ index, count }: { index: number; count: number }) {
   const g = useRef<Group>(null);
@@ -44,6 +45,8 @@ export default function LectureBackdrop({ labId, index, count }: { labId: string
         <group position={[5.2, -1.6, -3]}>
           <Emblem labId={labId} scale={2.2} spin={!still} />
         </group>
+        <Dust still={still} count={400} />
+        <FilmFx strength={0.8} />
       </Canvas>
     </div>
   );

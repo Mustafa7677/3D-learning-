@@ -90,7 +90,7 @@ function IpSection({ state, dispatch }: { state: NetLabState; dispatch: D }) {
             {c.first} … {c.last} ({c.hosts.toLocaleString("ru-RU")})
           </dd>
           <dt>Екінші адрес</dt>
-          <dd>{okOther ? (sameSubnet(state.ip.addr, state.ip.other, state.ip.prefix) ? "бір желіде ✓" : "басқа желіде") : "—"}</dd>
+          <dd>{okOther ? (sameSubnet(state.ip.addr, state.ip.other, state.ip.prefix) ? "бір желіде ✓" : "басқа желіде") : "-"}</dd>
         </dl>
       ) : (
         <p className={styles.small} role="alert">
@@ -136,13 +136,13 @@ function RoutingSection({ state, dispatch }: { state: NetLabState; dispatch: D }
       </div>
       <div className={styles.row} role="group" aria-label="Сызықтар">
         {LINKS.map((l) => (
-          <button key={l.id} type="button" className="btn" aria-pressed={r.failed.includes(l.id)} onClick={() => dispatch({ type: "route/toggle", link: l.id })} aria-label={`${l.id} сызығы (құны ${l.cost})${r.failed.includes(l.id) ? " — үзілген" : ""}`}>
+          <button key={l.id} type="button" className="btn" aria-pressed={r.failed.includes(l.id)} onClick={() => dispatch({ type: "route/toggle", link: l.id })} aria-label={`${l.id} сызығы (құны ${l.cost})${r.failed.includes(l.id) ? ": үзілген" : ""}`}>
             {l.id}
             {r.failed.includes(l.id) ? " ✕" : ""}
           </button>
         ))}
       </div>
-      <p className={styles.small}>Басылған сызық — үзілген.</p>
+      <p className={styles.small}>Басылған сызық: үзілген.</p>
       {r.algo === "ls" ? (
         <>
           <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "route/send" })}>
@@ -244,7 +244,7 @@ function CongestionSection({ state, dispatch }: { state: NetLabState; dispatch: 
       <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "cc/run" })}>
         Іске қосу
       </button>
-      {c.ran && <p className={styles.small}>Қызыл бағандар — жоғалту болған RTT-лар.</p>}
+      {c.ran && <p className={styles.small}>Қызыл бағандар: жоғалту болған RTT-лар.</p>}
     </fieldset>
   );
 }

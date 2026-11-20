@@ -121,7 +121,7 @@ export function shortestPath(from: string, to: string, failed: string[] = []): {
 }
 
 /**
- * Distance vector (Bellman–Ford): each round, every router learns its
+ * Distance vector (Bellman-Ford): each round, every router learns its
  * neighbours' tables. Returns each router's best cost to `dest` after k rounds.
  */
 export function distanceVector(dest: string, rounds: number, failed: string[] = []): Record<string, number> {
@@ -275,6 +275,6 @@ export function natOut(n: Nat, host: string, port: number): Nat {
 /** A packet arrives from the internet to a public port: forwarded only if a mapping exists. */
 export function natIn(n: Nat, publicPort: number): { nat: Nat; delivered: string | null } {
   const e = n.table.find((x) => x.publicPort === publicPort);
-  const msg = e ? `${PUBLIC_IP}:${publicPort} → ${e.inside}:${e.insidePort} (жауап жеткізілді)` : `${PUBLIC_IP}:${publicPort} → ? (жазба жоқ — тасталды)`;
+  const msg = e ? `${PUBLIC_IP}:${publicPort} → ${e.inside}:${e.insidePort} (жауап жеткізілді)` : `${PUBLIC_IP}:${publicPort} → ? (жазба жоқ: тасталды)`;
   return { nat: { ...n, log: [...n.log, msg].slice(-12) }, delivered: e ? e.inside : null };
 }

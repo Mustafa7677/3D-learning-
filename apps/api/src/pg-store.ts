@@ -102,7 +102,7 @@ export class PgStore implements Store {
     // Upsert that never lets an older client snapshot overwrite newer progress.
     await this.db.query(
       `insert into lesson_progress (learner_id, lesson_id, step_index, completed, started_at, updated_at, completed_at)
-       values ($1, $2, $3, $4::jsonb, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0), to_timestamp($7 / 1000.0))
+       values ($1, $2, $3, $4:jsonb, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0), to_timestamp($7 / 1000.0))
        on conflict (learner_id, lesson_id) do update set
          step_index = excluded.step_index, completed = excluded.completed,
          updated_at = excluded.updated_at, completed_at = excluded.completed_at
@@ -164,7 +164,7 @@ export class PgStore implements Store {
   async putSession(x: LessonSession) {
     await this.db.query(
       `insert into lesson_sessions (learner_id, lesson_id, kind, events, recording, updated_at)
-       values ($1, $2, $3, $4::jsonb, $5::jsonb, to_timestamp($6 / 1000.0))
+       values ($1, $2, $3, $4:jsonb, $5:jsonb, to_timestamp($6 / 1000.0))
        on conflict (learner_id, lesson_id) do update set
          kind = excluded.kind, events = excluded.events, recording = excluded.recording, updated_at = excluded.updated_at
        where lesson_sessions.updated_at <= excluded.updated_at`,
@@ -183,7 +183,7 @@ export class PgStore implements Store {
   async putAuthoredLesson(l: AuthoredLesson) {
     await this.db.query(
       `insert into authored_lessons (id, author_id, title, spec, created_at, updated_at)
-       values ($1, $2, $3, $4::jsonb, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0))
+       values ($1, $2, $3, $4:jsonb, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0))
        on conflict (id) do update set title = excluded.title, spec = excluded.spec, updated_at = excluded.updated_at`,
       [l.id, l.authorId, l.title, JSON.stringify(l.spec), l.createdAt, l.updatedAt],
     );

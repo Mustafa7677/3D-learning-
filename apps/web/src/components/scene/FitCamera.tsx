@@ -16,7 +16,7 @@ interface Props {
 
 /**
  * Places the camera so a width × height region around `target` fits the
- * viewport at any aspect ratio — portrait phones as well as wide desktops.
+ * viewport at any aspect ratio: portrait phones as well as wide desktops.
  * Re-fits on resize; OrbitControls (makeDefault) is retargeted too.
  */
 export function FitCamera({ width, height, target, dir, margin = 1.1 }: Props) {

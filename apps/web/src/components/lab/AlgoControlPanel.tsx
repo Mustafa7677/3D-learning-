@@ -162,7 +162,7 @@ function SortSection({ state, dispatch }: { state: AlgoLabState; dispatch: D }) 
         </button>
       </div>
       <p className={styles.small}>
-        Сарғыш — салыстыру, қызыл — ауыстыру, күлгін — pivot, жасыл — орнында. n(n−1)/2 = {(v.n * (v.n - 1)) / 2}, n·log₂n ≈ {Math.round(v.n * Math.log2(v.n))}
+        Сарғыш: салыстыру, қызыл: ауыстыру, күлгін: pivot, жасыл: орнында. n(n−1)/2 = {(v.n * (v.n - 1)) / 2}, n·log₂n ≈ {Math.round(v.n * Math.log2(v.n))}
       </p>
     </fieldset>
   );
@@ -267,7 +267,7 @@ function GraphSection({ state, dispatch }: { state: AlgoLabState; dispatch: D })
         </select>
       </div>
       <p className={styles.small}>
-        Бекітілген ретпен: {v.visited.join(" → ") || "—"}
+        Бекітілген ретпен: {v.visited.join(" → ") || "-"}
       </p>
       {done && (
         <p className={styles.small} role="status">
@@ -283,7 +283,7 @@ function GraphSection({ state, dispatch }: { state: AlgoLabState; dispatch: D })
         onFinish={() => dispatch({ type: "graph/finish" })}
         onReset={() => dispatch({ type: "graph/reset" })}
       />
-      <p className={styles.small}>Жасыл — бекітілген, сарғыш — кезекте (frontier), көк — табылған жол. Сан — қашықтық.</p>
+      <p className={styles.small}>Жасыл: бекітілген, сарғыш: кезекте (frontier), көк: табылған жол. Сан: қашықтық.</p>
     </fieldset>
   );
 }

@@ -2,7 +2,7 @@ import { sha256, slowHash } from "./crypto";
 
 // ---------------- passwords ----------------
 
-/** The most common passwords — every attacker's first dictionary. */
+/** The most common passwords: every attacker's first dictionary. */
 export const DICTIONARY = [
   "123456", "password", "123456789", "12345678", "qwerty", "111111", "123123", "1234567", "qwerty123", "000000",
   "1q2w3e", "abc123", "password1", "iloveyou", "admin", "welcome", "monkey", "dragon", "sunshine", "princess",
@@ -149,7 +149,7 @@ export interface LoginResult {
 }
 
 /**
- * Evaluate a login the way a vulnerable app builds SQL by concatenation — or
+ * Evaluate a login the way a vulnerable app builds SQL by concatenation: or
  * safely with parameters. The tiny evaluator understands the WHERE clauses
  * such an app produces, which is enough to show why `' OR '1'='1` works.
  */

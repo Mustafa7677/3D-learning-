@@ -32,7 +32,7 @@ function App() {
   const lesson = lessonEntries.find((e) => e.lesson.id === route)?.lesson;
   useEffect(() => {
     const lab = openLabs.find((l) => l.id === route);
-    document.title = lesson ? `${lesson.title} — INSIDE TECH` : lab ? `${lab.title} — INSIDE TECH` : "INSIDE TECH";
+    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : "INSIDE TECH";
   }, [route, lesson]);
 
   if (lesson) return <LessonView key={lesson.id} lessonId={lesson.id} />;

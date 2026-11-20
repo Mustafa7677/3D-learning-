@@ -179,6 +179,7 @@ function ClassifierLesson({ labId, lesson, nextLessonId, persist }: LessonProps<
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson as LessonDefinition<unknown, unknown>}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -222,6 +223,7 @@ function LanguageLesson({ labId, lesson, nextLessonId, persist }: LessonProps<La
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson as LessonDefinition<unknown, unknown>}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -261,6 +263,7 @@ function WebLesson({ labId, lesson, nextLessonId, persist }: LessonProps<WebLabS
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson as LessonDefinition<unknown, unknown>}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -322,6 +325,7 @@ function GameLesson({ labId, lesson, nextLessonId, persist }: LessonProps<GameLa
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson as LessonDefinition<unknown, unknown>}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -406,6 +410,7 @@ function AlgoLesson({ labId, lesson, nextLessonId, persist }: LessonProps<AlgoLa
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -437,6 +442,7 @@ function ArchLesson({ labId, lesson, nextLessonId, persist }: LessonProps<ArchLa
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -460,6 +466,7 @@ function SecLesson({ labId, lesson, nextLessonId, persist }: LessonProps<SecLabS
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -481,6 +488,7 @@ function DbLesson({ labId, lesson, nextLessonId, persist }: LessonProps<DbLabSta
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -504,6 +512,7 @@ function NetLesson({ labId, lesson, nextLessonId, persist }: LessonProps<NetLabS
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -527,6 +536,7 @@ function CloudLesson({ labId, lesson, nextLessonId, persist }: LessonProps<Cloud
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}
@@ -550,6 +560,7 @@ function IotLesson({ labId, lesson, nextLessonId, persist }: LessonProps<IotLabS
   return (
     <LabShell
       labId={labId}
+      preview={persist === false}
       lesson={lesson}
       nextLessonId={nextLessonId}
       session={session as LabSession<unknown, unknown>}

@@ -121,7 +121,7 @@ export function validateLessonSpec(spec: unknown, knownKinds?: string[]): SpecIs
   if (typeof s.title !== "string" || !s.title.trim() || s.title.length > 80) out.push({ where: "title", message: "Тақырып керек (80 таңбаға дейін)" });
   if (typeof s.kind !== "string" || (knownKinds && !knownKinds.includes(s.kind))) out.push({ where: "kind", message: `Симуляция түрі: ${knownKinds?.join(", ") ?? "?"}` });
   if (typeof s.labId !== "string" || !ID.test(s.labId)) out.push({ where: "labId", message: "labId керек" });
-  if (!Array.isArray(s.steps) || s.steps.length === 0 || s.steps.length > 12) out.push({ where: "steps", message: "1–12 кезең болуы керек" });
+  if (!Array.isArray(s.steps) || s.steps.length === 0 || s.steps.length > 12) out.push({ where: "steps", message: "1-12 кезең болуы керек" });
   const stepIds = new Set<string>();
   (Array.isArray(s.steps) ? s.steps : []).forEach((st, i) => {
     const w = `steps[${i}]`;
@@ -133,7 +133,7 @@ export function validateLessonSpec(spec: unknown, knownKinds?: string[]): SpecIs
     if (typeof st.body !== "string" || st.body.length > 4000) out.push({ where: `${w}.body`, message: "Мәтін керек (4000 таңбаға дейін)" });
     if (st.onEnter !== undefined && (!Array.isArray(st.onEnter) || st.onEnter.length > 20 || st.onEnter.some((a) => !a || typeof a !== "object" || typeof (a as { type?: unknown }).type !== "string")))
       out.push({ where: `${w}.onEnter`, message: "onEnter: { type: ... } әрекеттерінің тізімі" });
-    if (!Array.isArray(st.objectives) || st.objectives.length === 0 || st.objectives.length > 8) out.push({ where: `${w}.objectives`, message: "1–8 тапсырма болуы керек" });
+    if (!Array.isArray(st.objectives) || st.objectives.length === 0 || st.objectives.length > 8) out.push({ where: `${w}.objectives`, message: "1-8 тапсырма болуы керек" });
     if (st.quiz !== undefined) {
       if (!Array.isArray(st.quiz) || st.quiz.length > 6) out.push({ where: `${w}.quiz`, message: "Сұрақтар тізімі (6-ға дейін)" });
       const qIds = new Set<string>();
@@ -144,7 +144,7 @@ export function validateLessonSpec(spec: unknown, knownKinds?: string[]): SpecIs
         if (typeof q?.question !== "string" || !q.question.trim() || q.question.length > 300) out.push({ where: `${qw}.question`, message: "Сұрақ мәтіні керек (300 таңбаға дейін)" });
         const opts = q?.options as unknown;
         if (!Array.isArray(opts) || opts.length < 2 || opts.length > 6 || opts.some((o) => typeof o !== "string" || !o.trim()))
-          out.push({ where: `${qw}.options`, message: "2–6 бос емес жауап нұсқасы керек" });
+          out.push({ where: `${qw}.options`, message: "2-6 бос емес жауап нұсқасы керек" });
         else if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= opts.length) out.push({ where: `${qw}.answer`, message: "Дұрыс жауап нұсқалардың бірі болуы керек" });
         if (typeof q?.explain !== "string" || !q.explain.trim()) out.push({ where: `${qw}.explain`, message: "Түсіндірме керек: неге бұл жауап дұрыс" });
       });

@@ -39,7 +39,7 @@ function ClassReport({ cls, mine }: { cls: ClassInfo; mine: AuthoredInfo[] }) {
     <section className={panel.card} aria-labelledby={`class-${cls.id}`}>
       <h2 id={`class-${cls.id}`}>{cls.name}</h2>
       <p>
-        Қосылу коды: <strong className={panel.code}>{cls.code}</strong> — оқушылар оны «Аккаунт» бетінде енгізеді.
+        Қосылу коды: <strong className={panel.code}>{cls.code}</strong>: оқушылар оны «Аккаунт» бетінде енгізеді.
       </p>
       <form className={panel.row} onSubmit={assign}>
         <label htmlFor={`assign-${cls.id}`} className="visually-hidden">
@@ -97,7 +97,7 @@ function ClassReport({ cls, mine }: { cls: ClassInfo; mine: AuthoredInfo[] }) {
                     const p = s.lessons[a.lessonId];
                     return (
                       <td key={a.id} data-state={p?.completed ? "done" : p?.started ? "started" : "none"}>
-                        {p?.completed ? "Аяқтады" : p?.started ? `${p.objectivesDone} тапсырма` : "—"}
+                        {p?.completed ? "Аяқтады" : p?.started ? `${p.objectivesDone} тапсырма` : "-"}
                       </td>
                     );
                   })}

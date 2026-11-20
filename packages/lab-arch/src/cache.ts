@@ -1,7 +1,7 @@
 /**
  * A direct-mapped cache in front of an 8×8 matrix of 4-byte integers.
  * Summing the matrix row by row or column by column touches the same data in
- * a different order — and the hit rate shows why order matters.
+ * a different order: and the hit rate shows why order matters.
  */
 export const ROWS = 8;
 export const COLS = 8;

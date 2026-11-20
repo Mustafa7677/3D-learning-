@@ -73,7 +73,7 @@ export const lessonXor: L = {
   labId: "sec",
   order: 3,
   title: "XOR & One-Time Pad",
-  summary: "Теориялық тұрғыдан бұзылмайтын шифр — және оны бұзатын бір қате.",
+  summary: "Теориялық тұрғыдан бұзылмайтын шифр: және оны бұзатын бір қате.",
   estimatedMinutes: 15,
   steps: [
     {
@@ -138,7 +138,7 @@ export const lessonPasswords: L = {
   labId: "sec",
   order: 5,
   title: "Storing Passwords",
-  summary: "Дерекқор ұрланды. Құпиясөздер қалай сақталғанына қарай — не болады?",
+  summary: "Дерекқор ұрланды. Құпиясөздер қалай сақталғанына қарай: не болады?",
   estimatedMinutes: 20,
   steps: [
     {
@@ -165,7 +165,7 @@ export const lessonPasswords: L = {
       onEnter: [{ type: "pw/storage", storage: "salted" }],
       objectives: [
         { id: "salted", text: "Тұзды хэшке шабуыл", check: (s) => s.stats.crackRuns.some((r) => r.storage === "salted") },
-        { id: "slow", text: "Баяу хэшке (1000 раунд) шабуыл — жұмыс көлемін салыстыр", check: (s) => s.stats.crackRuns.some((r) => r.storage === "slow") },
+        { id: "slow", text: "Баяу хэшке (1000 раунд) шабуыл: жұмыс көлемін салыстыр", check: (s) => s.stats.crackRuns.some((r) => r.storage === "slow") },
       ],
     },
   ],
@@ -176,7 +176,7 @@ export const lessonStrength: L = {
   labId: "sec",
   order: 6,
   title: "Password Strength",
-  summary: "Энтропия: құпиясөздің күші — оның ұзындығы мен әліпбиінің логарифмі.",
+  summary: "Энтропия: құпиясөздің күші: оның ұзындығы мен әліпбиінің логарифмі.",
   estimatedMinutes: 15,
   steps: [
     {
@@ -209,7 +209,7 @@ export const lessonRsa: L = {
   labId: "sec",
   order: 7,
   title: "Public-Key Cryptography",
-  summary: "RSA: екі кілт — біреуі бәріне ашық, екіншісі тек сенде.",
+  summary: "RSA: екі кілт: біреуі бәріне ашық, екіншісі тек сенде.",
   estimatedMinutes: 25,
   steps: [
     {
@@ -258,7 +258,7 @@ export const lessonInjection: L = {
       title: "Параметрлер",
       body: "",
       focus: "attack",
-      objectives: [{ id: "blocked", text: "Параметрлерді қос да, сол шабуылды қайтала — кіре алмауың керек", check: (s) => s.stats.logins.some((l) => l.parameterized && !l.ok && l.quote) }],
+      objectives: [{ id: "blocked", text: "Параметрлерді қос да, сол шабуылды қайтала: кіре алмауың керек", check: (s) => s.stats.logins.some((l) => l.parameterized && !l.ok && l.quote) }],
     },
     {
       id: "xss",

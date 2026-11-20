@@ -24,7 +24,7 @@ export interface QuizQuestion {
   options: string[];
   /** Index of the correct option. */
   answer: number;
-  /** Why the answer is right — shown after a correct answer. */
+  /** Why the answer is right: shown after a correct answer. */
   explain: string;
   /** Nudge shown after a wrong answer (without giving the answer away). */
   wrongHint?: string;

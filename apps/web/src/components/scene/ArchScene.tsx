@@ -143,7 +143,7 @@ function CpuView({ state }: { state: ArchLabState }) {
   return (
     <group>
       <Block position={[-4.2, 0, -2]} size={[1.6, 0.6, 1]} color={PANEL} label={`PC = ${cpu.pc}`} hot={stage === "decode"} />
-      <Block position={[-4.2, 0, 0.4]} size={[1.6, 0.6, 1]} color={PANEL} label={`IR: ${ir?.text ?? "—"}`} hot={stage === "decode" || stage === "execute"} />
+      <Block position={[-4.2, 0, 0.4]} size={[1.6, 0.6, 1]} color={PANEL} label={`IR: ${ir?.text ?? "-"}`} hot={stage === "decode" || stage === "execute"} />
       <Block position={[-1.6, 0, -1]} size={[1.6, 0.9, 1.4]} color={new Color("#7c4ddb")} label="Басқару" hot={stage === "execute"} />
       <Block position={[1, 0, -2]} size={[1.6, 0.9, 1.2]} color={C0} label={`ALU · Z=${cpu.z ? 1 : 0} C=${cpu.c ? 1 : 0}`} hot={executing && cpu.touched.regs.length > 0} />
       {cpu.regs.map((r, i) => (
@@ -160,7 +160,7 @@ function CpuView({ state }: { state: ArchLabState }) {
           hot={executing && cpu.touched.mem.includes(i)}
         />
       ))}
-      <Label text={`Шығыс: ${cpu.out.join(", ") || "—"}`} position={[0, 2.6, 2.6]} size={0.42} />
+      <Label text={`Шығыс: ${cpu.out.join(", ") || "-"}`} position={[0, 2.6, 2.6]} size={0.42} />
       <Label
         text={cpu.error ? `Қате: ${cpu.error}` : cpu.halted ? "HALT" : `Келесі кезең: ${stage === "fetch" ? "fetch" : stage === "decode" ? "decode" : "execute"}`}
         position={[0, 3.3, 2.6]}

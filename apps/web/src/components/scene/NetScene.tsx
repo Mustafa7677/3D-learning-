@@ -45,7 +45,7 @@ function PacketsView({ state }: { state: NetLabState }) {
         </group>
       ))}
       <Label text={`${p.packets.toLocaleString("ru-RU")} пакет${p.packets > shown ? ` (көрсетілгені ${shown})` : ""} · тиімділік ${(p.efficiency * 100).toFixed(1)}%`} position={[0, 3, 0]} size={0.42} />
-      <Label text="көк — тақырыптар (Ethernet + IP + TCP), жасыл — деректер" position={[0, 2.4, 0]} size={0.3} />
+      <Label text="көк: тақырыптар (Ethernet + IP + TCP), жасыл: деректер" position={[0, 2.4, 0]} size={0.3} />
     </group>
   );
 }
@@ -67,7 +67,7 @@ function IpView({ state }: { state: NetLabState }) {
       {[0, 1, 2, 3].map((o) => (
         <Label key={o} text={state.ip.addr.split(".")[o] ?? "?"} position={[-6 + o * 4.2, 1.3, 0]} size={0.38} />
       ))}
-      <Label text={n === null ? "Адрес дұрыс емес" : `/${state.ip.prefix}: көк — желі (${state.ip.prefix} бит), сарғыш — хост (${32 - state.ip.prefix} бит)`} position={[0, 2.3, 0]} size={0.36} />
+      <Label text={n === null ? "Адрес дұрыс емес" : `/${state.ip.prefix}: көк: желі (${state.ip.prefix} бит), сарғыш: хост (${32 - state.ip.prefix} бит)`} position={[0, 2.3, 0]} size={0.36} />
     </group>
   );
 }

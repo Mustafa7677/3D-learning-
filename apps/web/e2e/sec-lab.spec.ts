@@ -47,6 +47,6 @@ test("lesson 8: SQL injection gets in; parameters stop it", async ({ page }) => 
   await page.getByLabel("Логин").fill("' OR '1'='1");
   await page.getByLabel("Құпиясөз").fill("' OR '1'='1");
   await page.getByRole("button", { name: "Кіру", exact: true }).click();
-  await expect(page.getByText("Кірді: admin — құпиясөзсіз (injection)!")).toBeVisible();
+  await expect(page.getByText("Кірді: admin: құпиясөзсіз (injection)!")).toBeVisible();
   await expect(objective(page, "admin болып кір")).toHaveAttribute("data-done", "true");
 });

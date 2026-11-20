@@ -11,7 +11,7 @@ import panel from "./platform.module.css";
 
 type AnyLesson = LessonDefinition<unknown, unknown>;
 
-const minutes = (ms?: number) => (ms == null ? "—" : ms < 60_000 ? `${Math.round(ms / 1000)} с` : `${(ms / 60_000).toFixed(1)} мин`);
+const minutes = (ms?: number) => (ms == null ? "-" : ms < 60_000 ? `${Math.round(ms / 1000)} с` : `${(ms / 60_000).toFixed(1)} мин`);
 
 /** The lesson definition for a built-in or a teacher-made lesson. */
 function useLessonDef(lessonId: string): AnyLesson | undefined {
@@ -78,7 +78,7 @@ function Replay({ classId, lessonId, learnerId, name, lesson, onClose }: { class
         </button>
       </div>
       {error && <p className={panel.status}>{error}</p>}
-      {detail && frames.length === 0 && <p className={panel.muted}>Бұл сессияда симуляция журналы жоқ — тек оқиғалар бар.</p>}
+      {detail && frames.length === 0 && <p className={panel.muted}>Бұл сессияда симуляция журналы жоқ: тек оқиғалар бар.</p>}
       {frames.length > 0 && f && (
         <>
           <label htmlFor="replay-at">
@@ -115,7 +115,7 @@ function Replay({ classId, lessonId, learnerId, name, lesson, onClose }: { class
               const q = step?.quiz?.find((x) => x.id === e.q);
               return (
                 <li key={i}>
-                  {minutes(e.t)} — {step?.title ?? e.step}:{" "}
+                  {minutes(e.t)}: {step?.title ?? e.step}:{" "}
                   {e.type === "wrong" ? `қате жауап «${q?.options[e.o ?? -1] ?? e.o}» (${q?.question ?? e.q})` : e.type === "undo" ? "әрекетті болдырмады" : "кезеңді қайта бастады"}
                 </li>
               );
@@ -157,7 +157,7 @@ export function AnalyticsPanel({ classId, lessonId, title, onClose }: { classId:
               <ol className={panel.list}>
                 {data.hardest.map((h) => (
                   <li key={h.key}>
-                    {questionText(lesson, h.key)} — {h.wrong} қате, {h.learners} оқушы
+                    {questionText(lesson, h.key)}: {h.wrong} қате, {h.learners} оқушы
                   </li>
                 ))}
               </ol>
@@ -184,18 +184,18 @@ export function AnalyticsPanel({ classId, lessonId, title, onClose }: { classId:
                     <th scope="row">{s.name}</th>
                     {steps.map((st) => (
                       <td key={st.id} data-state={s.stepsDone?.includes(st.id) ? "done" : s.stepMs?.[st.id] ? "started" : "none"}>
-                        {s.stepMs?.[st.id] ? minutes(s.stepMs[st.id]) : "—"}
+                        {s.stepMs?.[st.id] ? minutes(s.stepMs[st.id]) : "-"}
                       </td>
                     ))}
-                    <td>{s.started ? Object.values(s.wrong ?? {}).reduce((a, b) => a + b, 0) : "—"}</td>
-                    <td>{s.started ? `${s.undos ?? 0} / ${s.restarts ?? 0}` : "—"}</td>
+                    <td>{s.started ? Object.values(s.wrong ?? {}).reduce((a, b) => a + b, 0) : "-"}</td>
+                    <td>{s.started ? `${s.undos ?? 0} / ${s.restarts ?? 0}` : "-"}</td>
                     <td>
                       {s.started ? (
                         <button type="button" className="btn" onClick={() => setReplay({ id: s.learnerId, name: s.name })}>
                           Көру
                         </button>
                       ) : (
-                        "—"
+                        "-"
                       )}
                     </td>
                   </tr>
@@ -203,7 +203,7 @@ export function AnalyticsPanel({ classId, lessonId, title, onClose }: { classId:
               </tbody>
             </table>
           </div>
-          <p className={panel.muted}>Ұяшықтарда — кезеңде өткізген уақыт; жасыл — кезең аяқталған.</p>
+          <p className={panel.muted}>Ұяшықтарда: кезеңде өткізген уақыт; жасыл: кезең аяқталған.</p>
         </>
       )}
       {replay && lesson && <Replay classId={classId} lessonId={lessonId} learnerId={replay.id} name={replay.name} lesson={lesson} onClose={() => setReplay(undefined)} />}

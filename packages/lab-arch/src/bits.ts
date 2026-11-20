@@ -27,7 +27,7 @@ export interface AddTrace {
   overflow: boolean;
 }
 
-/** Ripple-carry addition bit by bit — exactly what a chain of full adders computes. */
+/** Ripple-carry addition bit by bit: exactly what a chain of full adders computes. */
 export function addTrace(a: number, b: number): AddTrace {
   const sum: number[] = [];
   const carries = [0];

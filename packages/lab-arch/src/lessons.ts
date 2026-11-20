@@ -34,7 +34,7 @@ export const MAX_TESTS = [
 ];
 
 const ADD_TEMPLATE = `; mem[0] + mem[1] қосындысын шығар (OUT)
-; Мысалы: LOAD R0, [0] — mem[0]-ді R0-ге жүктейді
+; Мысалы: LOAD R0, [0]: mem[0]-ді R0-ге жүктейді
 
 HALT`;
 const COUNTDOWN_TEMPLATE = `; mem[0] = N. N, N−1, …, 1 сандарын шығар
@@ -42,8 +42,8 @@ LOAD R0, [0]
 
 HALT`;
 const MAX_TEMPLATE = `; mem[0..4] ішіндегі ең үлкен санды шығар
-; CMP R0, R3 — R0 < R3 болса, C жалауы = 1
-; JC / JNC — C жалауы бойынша секіру
+; CMP R0, R3: R0 < R3 болса, C жалауы = 1
+; JC / JNC: C жалауы бойынша секіру
 
 HALT`;
 
@@ -253,7 +253,7 @@ export const lessonMemory: L = {
   steps: [
     {
       id: "array",
-      title: "Массив — жадтағы қатар",
+      title: "Массив: жадтағы қатар",
       body: "",
       focus: "cpu",
       onEnter: [{ type: "mode/set", mode: "cpu" }, { type: "cpu/memory", mem: PROGRAMS.array!.mem! }, { type: "cpu/source", source: PROGRAMS.array!.source }],

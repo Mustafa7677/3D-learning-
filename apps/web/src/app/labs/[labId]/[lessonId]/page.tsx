@@ -13,7 +13,7 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ labId: string; lessonId: string }> }): Promise<Metadata> {
   const { labId, lessonId } = await params;
   const lesson = lessonEntries.find((e) => e.lesson.id === lessonId)?.lesson;
-  return { title: lesson ? `${lesson.title} — ${findLab(labId)?.title ?? ""} — INSIDE TECH` : "INSIDE TECH" };
+  return { title: lesson ? `${lesson.title}: ${findLab(labId)?.title ?? ""} | INSIDE TECH` : "INSIDE TECH" };
 }
 
 export default async function LessonPage({ params }: { params: Promise<{ labId: string; lessonId: string }> }) {

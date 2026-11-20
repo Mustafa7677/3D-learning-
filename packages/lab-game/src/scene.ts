@@ -1,6 +1,6 @@
 /**
  * Scene graph: every object has a local transform relative to its parent.
- * World transforms are the product of the chain up to the root — move a
+ * World transforms are the product of the chain up to the root: move a
  * parent and all of its children move with it.
  */
 export type V3 = [number, number, number];

@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { Label } from "../scene/Label";
 import { Emblem, FILM } from "./Emblems";
+import { Dust, FilmFx, usePointerSway } from "./Fx";
 
 export interface ChipBlock {
   id: string;
@@ -61,6 +62,7 @@ function Rig({ progress, blocks, still }: { progress: MutableRefObject<number>; 
   const path = useMemo(() => shots(blocks), [blocks]);
   const look = useRef(new Vector3());
   const { camera, size } = useThree();
+  const sway = usePointerSway(still);
   useFrame(({ clock }, dt) => {
     const s = sample(path, progress.current);
     // Narrow screens see less of the die: pull the camera back a little.
@@ -75,6 +77,8 @@ function Rig({ progress, blocks, still }: { progress: MutableRefObject<number>; 
       s.look.y -= 1.3;
     }
     if (!still && progress.current < 0.1) s.pos.x += Math.sin(clock.elapsedTime * 0.25) * 1.2;
+    s.pos.x += sway.current.x * 0.8;
+    s.pos.y += sway.current.y * 0.5;
     const k = still ? 1 : 1 - Math.exp(-dt * 4);
     camera.position.lerp(s.pos, k);
     look.current.lerp(s.look, k);
@@ -97,7 +101,7 @@ function Traces({ blocks, still }: { blocks: ChipBlock[]; still: boolean }) {
     <group position={[0, 0.27, 0]}>
       <mesh>
         <boxGeometry args={[6.2, 0.02, 0.07]} />
-        <meshStandardMaterial color={FILM.copper} metalness={0.7} roughness={0.3} />
+        <meshStandardMaterial color={FILM.copper} metalness={0.7} roughness={0.3} emissive={FILM.copper} emissiveIntensity={1.6} toneMapped={false} />
       </mesh>
       {blocks.map((_, i) => {
         const [x, , z] = blockPos(i);
@@ -109,10 +113,10 @@ function Traces({ blocks, still }: { blocks: ChipBlock[]; still: boolean }) {
         );
       })}
       <group ref={pulses}>
-        {[0, 1, 2].map((i) => (
-          <mesh key={i} position={[-3 + i * 2, 0.04, 0]}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <mesh key={i} position={[-3 + i * 1.2, 0.04, 0]}>
             <sphereGeometry args={[0.06, 12, 8]} />
-            <meshStandardMaterial color={FILM.copper} emissive={FILM.copper} emissiveIntensity={1.4} />
+            <meshStandardMaterial color={FILM.copper} emissive={FILM.copper} emissiveIntensity={5} toneMapped={false} />
           </mesh>
         ))}
       </group>
@@ -168,7 +172,7 @@ function Package({ progress }: { progress: MutableRefObject<number> }) {
         ))}
         <mesh position={[-2.6, 0.56, 1.35]}>
           <cylinderGeometry args={[0.16, 0.16, 0.02, 24]} />
-          <meshStandardMaterial color={FILM.copper} emissive={FILM.copper} emissiveIntensity={0.6} />
+          <meshStandardMaterial color={FILM.copper} emissive={FILM.copper} emissiveIntensity={1.6} toneMapped={false} />
         </mesh>
       </mesh>
     </group>
@@ -204,7 +208,7 @@ function Blocks({ blocks, interactive, onOpen, still }: { blocks: ChipBlock[]; i
           >
             <mesh position={[0, lit ? 0.08 : 0, 0]}>
               <boxGeometry args={[1.12, 0.1, 1.5]} />
-              <meshStandardMaterial color={lit ? FILM.cobalt : FILM.dieEdge} metalness={0.3} roughness={0.5} emissive={lit ? FILM.cobalt : FILM.night} emissiveIntensity={lit ? 0.4 : 0} />
+              <meshStandardMaterial color={lit ? FILM.cobalt : FILM.dieEdge} metalness={0.3} roughness={0.5} emissive={lit ? FILM.glow : FILM.night} emissiveIntensity={lit ? 1.6 : 0} />
             </mesh>
             <group position={[0, lit ? 0.14 : 0.06, 0]}>
               <Emblem labId={b.id} scale={0.5} spin={lit && !still} />
@@ -226,7 +230,9 @@ export default function ChipScene({ progress, blocks, interactive, onOpen, still
       <Package progress={progress} />
       <Traces blocks={blocks} still={still} />
       <Blocks blocks={blocks} interactive={interactive} onOpen={onOpen} still={still} />
+      <Dust still={still} />
       <Rig progress={progress} blocks={blocks} still={still} />
+      <FilmFx />
     </Canvas>
   );
 }

@@ -105,7 +105,7 @@ export function LangControlPanel({ state, assessment, sections, dispatch, canUnd
             </div>
             <div>
               <span>Энтропия</span>
-              <strong>{(m.entropy ?? -1) < 0 ? "—" : (m.entropy ?? 0).toFixed(2)}</strong>
+              <strong>{(m.entropy ?? -1) < 0 ? "-" : (m.entropy ?? 0).toFixed(2)}</strong>
             </div>
           </>
         )}
@@ -127,7 +127,7 @@ export function LangControlPanel({ state, assessment, sections, dispatch, canUnd
               </span>
             ))}
           </div>
-          <p className={styles.small}>«▁» — сөздің соңы. Корпуста жоқ сөздер ұсақ бөліктерге бөлінеді.</p>
+          <p className={styles.small}>«▁»: сөздің соңы. Корпуста жоқ сөздер ұсақ бөліктерге бөлінеді.</p>
         </fieldset>
       )}
 

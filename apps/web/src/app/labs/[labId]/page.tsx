@@ -12,7 +12,7 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ labId: string }> }): Promise<Metadata> {
   const { labId } = await params;
   const lab = findLab(labId);
-  return { title: lab ? `${lab.title} — INSIDE TECH` : "INSIDE TECH" };
+  return { title: lab ? `${lab.title} | INSIDE TECH` : "INSIDE TECH" };
 }
 
 export default async function Page({ params }: { params: Promise<{ labId: string }> }) {

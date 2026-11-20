@@ -93,7 +93,7 @@ function SceneSection({ state, dispatch }: { state: GameLabState; dispatch: D })
             Ата-анасы (attach)
           </label>
           <select id="parent" className={web.select} value={e.parent ?? ""} onChange={(ev) => dispatch({ type: "scene/reparent", id: e.id, parent: ev.target.value === "" ? null : Number(ev.target.value) })}>
-            <option value="">— жоқ (әлем) —</option>
+            <option value="">- жоқ (әлем) -</option>
             {entities
               .filter((x) => x.id !== e.id && x.id !== 1)
               .map((x) => (
@@ -189,7 +189,7 @@ function PhysicsSection({ state, dispatch }: { state: GameLabState; dispatch: D 
   return (
     <fieldset className={styles.group}>
       <legend>Физика</legend>
-      <p className={styles.small}>Жерді бас — сол жерге доп түседі.</p>
+      <p className={styles.small}>Жерді бас: сол жерге доп түседі.</p>
       <div className={styles.row}>
         <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "physics/drop" })}>
           Доп тастау
@@ -262,7 +262,7 @@ function RulesSection({ state, dispatch }: { state: GameLabState; dispatch: D })
     <fieldset className={styles.group}>
       <legend>Ережелер (скрипт)</legend>
       {state.game.rules.length === 0 ? (
-        <p className={styles.small}>Ереже жоқ — ойында ештеңе болмайды.</p>
+        <p className={styles.small}>Ереже жоқ: ойында ештеңе болмайды.</p>
       ) : (
         <ul className={web.list}>
           {state.game.rules.map((r) => (
@@ -315,7 +315,7 @@ function AiSection({ state, dispatch }: { state: GameLabState; dispatch: D }) {
       <Range id="giveup" label="Бас тарту радиусы" value={ai.giveUpRadius} min={0} max={12} step={0.5} fmt={f1} onChange={(v) => set({ giveUpRadius: v })} />
       <Range id="espeed" label="Жау жылдамдығы" value={ai.enemySpeed} min={0} max={5} step={0.1} fmt={f1} onChange={(v) => set({ enemySpeed: v })} />
       <Range id="pspeed" label="Ойыншы жылдамдығы" value={state.game.playerSpeed} min={0.5} max={6} step={0.1} fmt={f1} onChange={(v) => dispatch({ type: "game/speed", player: v })} />
-      <p className={styles.small}>Көрген күйлер: {state.stats.enemyStates.join(", ") || "—"}</p>
+      <p className={styles.small}>Көрген күйлер: {state.stats.enemyStates.join(", ") || "-"}</p>
     </fieldset>
   );
 }

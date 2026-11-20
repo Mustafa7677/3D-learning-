@@ -1,0 +1,324 @@
+/* Game layer: player HUD, boot sequence, world cards, rewards. */
+
+/* ---- player HUD ---- */
+.player {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.hex {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 38px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: #121831;
+  background: linear-gradient(160deg, #ffd08a, #e3a04f 55%, #b8722a);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  filter: drop-shadow(0 0 10px rgb(227 160 79 / 0.6));
+}
+.xpWrap {
+  display: grid;
+  gap: 4px;
+  min-width: 110px;
+}
+.xpText {
+  font-size: 12px;
+  color: #aab3cc;
+}
+.xpBar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: rgb(233 237 243 / 0.12);
+  overflow: hidden;
+}
+.xpBar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6d8cff, #e3a04f);
+  box-shadow: 0 0 10px #e3a04f;
+}
+
+/* ---- boot sequence (once per visit) ---- */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 22px;
+  background: radial-gradient(80% 70% at 50% 45%, #1d2550 0%, #0b1024 70%);
+  color: #e9edf3;
+  pointer-events: none;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+.boot[data-done="true"] {
+  opacity: 0;
+  visibility: hidden;
+}
+.bootLogo {
+  display: flex;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(34px, 7vw, 86px);
+  letter-spacing: 0.04em;
+}
+.bootLogo span {
+  opacity: 0;
+  transform: translateY(18px) scale(0.9);
+  filter: blur(6px);
+  animation: letterIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: calc(var(--k) * 45ms);
+}
+.bootLogo span:nth-child(n + 8) {
+  color: #e3a04f;
+  text-shadow: 0 0 22px rgb(227 160 79 / 0.7);
+}
+@keyframes letterIn {
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.bootBar {
+  width: min(360px, 70vw);
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(233 237 243 / 0.12);
+  overflow: hidden;
+}
+.bootBar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6d8cff, #e3a04f);
+  box-shadow: 0 0 14px #e3a04f;
+}
+.bootText {
+  font-size: 14px;
+  color: #aab3cc;
+  font-variant-numeric: tabular-nums;
+}
+.bootSkip {
+  pointer-events: auto;
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  font: inherit;
+  font-size: 14px;
+  color: #aab3cc;
+  background: none;
+  border: 1px solid rgb(233 237 243 / 0.25);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* ---- world cards (the course list as a level select) ---- */
+.world {
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 10px;
+  height: 100%;
+  padding: 20px 20px 22px;
+  color: #e9edf3;
+  text-decoration: none;
+  border-radius: 18px;
+  background:
+    radial-gradient(240px circle at var(--mx) var(--my), rgb(109 140 255 / 0.22), transparent 60%),
+    linear-gradient(160deg, #2a3358, #1a2142);
+  border: 1px solid #3a4470;
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out, border-color 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+.world:hover,
+.world:focus-visible {
+  border-color: #e3a04f;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(227 160 79 / 0.4), 0 0 30px rgb(227 160 79 / 0.25);
+}
+.world[data-done="true"] {
+  border-color: rgb(227 160 79 / 0.7);
+}
+.worldTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.worldNum {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: #e3a04f;
+}
+.ring {
+  width: 46px;
+  height: 46px;
+  transform: rotate(-90deg);
+}
+.ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+.ringText {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.world h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  transform: translateZ(30px);
+}
+.world p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #aab3cc;
+  transform: translateZ(18px);
+}
+.stars {
+  display: flex;
+  gap: 4px;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: rgb(233 237 243 / 0.2);
+}
+.stars [data-on="true"] {
+  color: #ffd08a;
+  text-shadow: 0 0 8px #e3a04f;
+}
+
+/* ---- reward after a lesson ---- */
+.reward {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  background: rgb(11 16 36 / 0.72);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+.rewardCard {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 36px 40px 30px;
+  min-width: min(420px, 90vw);
+  border-radius: 24px;
+  color: #e9edf3;
+  text-align: center;
+  background: linear-gradient(160deg, #2a3358, #141a33);
+  border: 1px solid #e3a04f;
+  box-shadow: 0 0 60px rgb(227 160 79 / 0.35), 0 30px 80px rgb(0 0 0 / 0.5);
+  animation: pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes pop {
+  from {
+    transform: scale(0.6) rotateX(30deg);
+    opacity: 0;
+  }
+}
+.rewardCard h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  margin: 0;
+}
+.rewardXp {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1;
+  color: #ffd08a;
+  text-shadow: 0 0 24px rgb(227 160 79 / 0.8);
+  font-variant-numeric: tabular-nums;
+}
+.rewardActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.rewardActions > * {
+  font: inherit;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.rewardPrimary {
+  color: #121831;
+  background: #e3a04f;
+  border: 0;
+}
+.rewardGhost {
+  color: #e9edf3;
+  background: transparent;
+  border: 1px solid rgb(233 237 243 / 0.35);
+}
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: burst 1.1s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+}
+@keyframes burst {
+  from {
+    transform: translate(-50%, -50%) rotate(0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bootLogo span,
+  .rewardCard,
+  .reward {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .spark {
+    display: none;
+  }
+  .world {
+    transform: none;
+    transition: none;
+  }
+}

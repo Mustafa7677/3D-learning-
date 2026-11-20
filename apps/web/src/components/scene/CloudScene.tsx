@@ -49,7 +49,7 @@ function ImageView({ state }: { state: CloudLabState }) {
         );
       })}
       <Label
-        text={!last ? "Образды жина" : last.error ? `Қате: ${last.error}` : `Жинау: ${last.seconds.toFixed(1)} с · қызыл — қайта жиналды, жасыл — кэштен`}
+        text={!last ? "Образды жина" : last.error ? `Қате: ${last.error}` : `Жинау: ${last.seconds.toFixed(1)} с · қызыл: қайта жиналды, жасыл: кэштен`}
         position={[0, state.image.order.length * 0.75 + 0.6, 0]}
         size={0.61}
       />
@@ -134,7 +134,7 @@ function AutoscaleView({ state }: { state: CloudLabState }) {
           {h.h % 6 === 0 && <Label text={`${h.h}:00`} position={[0, -0.35, 0.6]} size={0.42} />}
         </group>
       ))}
-      <Label text="көк — серверлер, сары — трафик/80 (SLO-ға керегі), қызыл — бұзылу" position={[0, 4.6, 0]} size={0.51} />
+      <Label text="көк: серверлер, сары: трафик/80 (SLO-ға керегі), қызыл: бұзылу" position={[0, 4.6, 0]} size={0.51} />
       {state.autoscale.ran && <Label text={`SLO бұзылуы: ${day.violations} сағат · ${day.instanceHours} сервер·сағат`} position={[0, 5.2, 0]} size={0.64} />}
     </group>
   );
@@ -182,7 +182,7 @@ function ReleaseView({ state }: { state: CloudLabState }) {
         );
       })}
       <Label text={`v2 трафикте: ${(r.share * 100).toFixed(0)}% · қате үлесі ${(r.share * BUG_RATE * 100).toFixed(1)}%${r.rolledBack ? " · кері қайтарылды" : ""}`} position={[0, 2, -5.5]} size={0.64} />
-      <Label text="көк — v1, сары — v2, қызыл — қатеге тап болғандар" position={[0, 1.4, -5.5]} size={0.48} />
+      <Label text="көк: v1, сары: v2, қызыл: қатеге тап болғандар" position={[0, 1.4, -5.5]} size={0.48} />
     </group>
   );
 }
@@ -199,7 +199,7 @@ function AvailabilityView({ state }: { state: CloudLabState }) {
             <boxGeometry args={[3.8, 0.1, 3]} />
             <meshStandardMaterial color={zoneDown && z === 0 ? BAD : OFF} />
           </mesh>
-          <Label text={`зона ${String.fromCharCode(97 + z)}${zoneDown && z === 0 ? " — ҚҰЛАДЫ" : ""}`} position={[0, 0.2, 1.9]} size={0.48} />
+          <Label text={`зона ${String.fromCharCode(97 + z)}${zoneDown && z === 0 ? ": ҚҰЛАДЫ" : ""}`} position={[0, 0.2, 1.9]} size={0.48} />
           {Array.from({ length: replicas }, (_, i) => i)
             .filter((i) => i % zones === z)
             .map((i, j) => (
@@ -251,7 +251,7 @@ function IncidentView({ state }: { state: CloudLabState }) {
           </group>
         );
       })}
-      <Label text={sel ? (sel === ROOT_CAUSE ? "Түпкі себеп табылды ✓" : `${sel} — симптом, себеп емес`) : "Бағандар — p99 кешігу. Түпкі себеп қайда?"} position={[0, 4.4, 0]} size={0.64} />
+      <Label text={sel ? (sel === ROOT_CAUSE ? "Түпкі себеп табылды ✓" : `${sel}: симптом, себеп емес`) : "Бағандар: p99 кешігу. Түпкі себеп қайда?"} position={[0, 4.4, 0]} size={0.64} />
     </group>
   );
 }

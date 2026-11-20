@@ -176,7 +176,7 @@ function CpuSection({ state, dispatch }: { state: ArchLabState; dispatch: D }) {
       <div className={styles.row}>
         <label htmlFor="cpu-preset">Мысал</label>
         <select id="cpu-preset" value="" onChange={(e) => e.target.value && dispatch({ type: "cpu/source", source: PROGRAMS[e.target.value]!.source })}>
-          <option value="">— таңда —</option>
+          <option value="">- таңда -</option>
           {Object.entries(PROGRAMS).map(([id, p]) => (
             <option key={id} value={id}>
               {p.title}
@@ -185,7 +185,7 @@ function CpuSection({ state, dispatch }: { state: ArchLabState; dispatch: D }) {
         </select>
       </div>
       <label className={styles.slider} htmlFor="cpu-src">
-        <span>Ассемблер (жол {current?.line ?? "—"} орындалуда)</span>
+        <span>Ассемблер (жол {current?.line ?? "-"} орындалуда)</span>
       </label>
       <textarea id="cpu-src" className={styles.code} spellCheck={false} rows={Math.min(16, Math.max(6, text.split("\n").length + 1))} value={text} onChange={(e) => setText(e.target.value)} />
       <div className={styles.row}>
@@ -231,7 +231,7 @@ function CpuSection({ state, dispatch }: { state: ArchLabState; dispatch: D }) {
         </div>
         <div>
           <span>Шығыс</span>
-          <strong>{st.out.join(",") || "—"}</strong>
+          <strong>{st.out.join(",") || "-"}</strong>
         </div>
       </div>
       <p className={styles.small}>
@@ -339,7 +339,7 @@ function CacheSection({ state, dispatch }: { state: ArchLabState; dispatch: D })
           Басынан
         </button>
       </div>
-      <p className={styles.small}>Hit = 1 такт, miss = 100 такт. Жасыл — hit, қызыл — miss.</p>
+      <p className={styles.small}>Hit = 1 такт, miss = 100 такт. Жасыл: hit, қызыл: miss.</p>
     </fieldset>
   );
 }

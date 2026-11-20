@@ -27,7 +27,7 @@ export class Rng {
   int(maxExclusive: number): number {
     return Math.floor(this.next() * maxExclusive);
   }
-  /** Standard normal via Box–Muller. */
+  /** Standard normal via Box-Muller. */
   normal(): number {
     const u = Math.max(this.next(), 1e-12);
     const v = this.next();

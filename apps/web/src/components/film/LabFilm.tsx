@@ -86,7 +86,7 @@ export function LabFilm({ lab }: { lab: LabInfo }) {
               </button>
             </div>
             <p className={styles.scrollHint} aria-hidden>
-              {lessons.length} сабақ · төмен айналдыр — жол бойымен жүреміз
+              {lessons.length} сабақ · төмен айналдыр: жол бойымен жүреміз
             </p>
           </section>
 
@@ -115,7 +115,7 @@ export function LabFilm({ lab }: { lab: LabInfo }) {
           </ol>
         </div>
       </div>
-      <footer className={styles.footer}>INSIDE TECH — технологияны ішінен үйрену</footer>
+      <footer className={styles.footer}>INSIDE TECH: технологияны ішінен үйрену</footer>
     </div>
   );
 }

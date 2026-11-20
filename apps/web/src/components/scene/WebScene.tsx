@@ -277,7 +277,7 @@ function LoopView({ state }: { state: WebLabState }) {
       <Column x={-1.2} title="Web APIs" items={f.webApis} color={MUTED} />
       <Column x={1.2} title="Microtasks" items={f.microtasks} color={GREEN} />
       <Column x={3.6} title="Tasks" items={f.tasks} color={C1} />
-      <Label text={`console: ${f.output.join("  ") || "—"}`} position={[0, 4.4, 0]} size={0.3} />
+      <Label text={`console: ${f.output.join("  ") || "-"}`} position={[0, 4.4, 0]} size={0.3} />
       <Label text={f.note} position={[0, 3.8, 0]} size={0.24} />
     </group>
   );

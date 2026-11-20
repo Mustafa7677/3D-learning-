@@ -73,7 +73,7 @@ function SearchView({ state }: { state: AlgoLabState }) {
   return (
     <group>
       <Bars values={v.arr} colors={colors} labels={labels} />
-      <Label text={`Мақсат: ${v.target}${v.found === null ? "" : v.found >= 0 ? " — табылды" : " — жоқ"}`} position={[0, HEIGHT + 1.3, 0]} size={0.45} />
+      <Label text={`Мақсат: ${v.target}${v.found === null ? "" : v.found >= 0 ? ": табылды" : ": жоқ"}`} position={[0, HEIGHT + 1.3, 0]} size={0.45} />
     </group>
   );
 }

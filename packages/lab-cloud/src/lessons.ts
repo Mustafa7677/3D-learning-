@@ -21,7 +21,7 @@ export const lessonContainers: L = {
       body: "",
       focus: "image",
       onEnter: [{ type: "mode/set", mode: "image" }, { type: "image/order", order: BAD_ORDER }],
-      objectives: [{ id: "slow", text: "Кодты өзгертіп, образды қайта жина — неше секунд?", check: (s) => s.stats.imageBuilds.some((b) => b.change === "src" && b.valid && b.seconds > 60) }],
+      objectives: [{ id: "slow", text: "Кодты өзгертіп, образды қайта жина: неше секунд?", check: (s) => s.stats.imageBuilds.some((b) => b.change === "src" && b.valid && b.seconds > 60) }],
     },
     {
       id: "reorder",
@@ -47,7 +47,7 @@ export const lessonOrchestration: L = {
       body: "",
       focus: "cluster",
       onEnter: [{ type: "mode/set", mode: "cluster" }, { type: "cluster/desired", n: 3 }],
-      objectives: [{ id: "heal", text: "Pod-ты «құлат» — контроллер жаңасын жасасын", check: (s) => s.stats.podsKilled > 0 && s.stats.podsCreated > 0 }],
+      objectives: [{ id: "heal", text: "Pod-ты «құлат»: контроллер жаңасын жасасын", check: (s) => s.stats.podsKilled > 0 && s.stats.podsCreated > 0 }],
     },
     {
       id: "scale",
@@ -90,7 +90,7 @@ export const lessonAutoscale: L = {
   labId: "cloud",
   order: 4,
   title: "Autoscaling",
-  summary: "Тәулік бойы жүктеме өзгереді. Автомасштабтау — SLO мен шығын арасындағы тепе-теңдік.",
+  summary: "Тәулік бойы жүктеме өзгереді. Автомасштабтау: SLO мен шығын арасындағы тепе-теңдік.",
   estimatedMinutes: 20,
   steps: [
     {
@@ -116,16 +116,16 @@ export const lessonCicd: L = {
   labId: "cloud",
   order: 5,
   title: "CI/CD",
-  summary: "Әр өзгеріс автоматты түрде тексеріліп, жиналып, шығарылады — тест құласа, ештеңе шықпайды.",
+  summary: "Әр өзгеріс автоматты түрде тексеріліп, жиналып, шығарылады: тест құласа, ештеңе шықпайды.",
   estimatedMinutes: 15,
   steps: [
     {
       id: "gate",
-      title: "Тест — қақпа",
+      title: "Тест: қақпа",
       body: "",
       focus: "pipeline",
       onEnter: [{ type: "mode/set", mode: "pipeline" }, { type: "pipeline/set", parallel: false, cache: false, failingTest: true }],
-      objectives: [{ id: "blocked", text: "Құлаған тестпен конвейерді іске қос — deploy болмауы керек", check: (s) => s.stats.pipelines.some((p) => p.failingTest && !p.deployed) }],
+      objectives: [{ id: "blocked", text: "Құлаған тестпен конвейерді іске қос: deploy болмауы керек", check: (s) => s.stats.pipelines.some((p) => p.failingTest && !p.deployed) }],
     },
     {
       id: "fast",
@@ -142,7 +142,7 @@ export const lessonRelease: L = {
   labId: "cloud",
   order: 6,
   title: "Release Strategies",
-  summary: "Жаңа нұсқада қате бар. Оны неше пайдаланушы көреді — стратегияға байланысты.",
+  summary: "Жаңа нұсқада қате бар. Оны неше пайдаланушы көреді: стратегияға байланысты.",
   estimatedMinutes: 20,
   steps: [
     {
@@ -168,7 +168,7 @@ export const lessonAvailability: L = {
   labId: "cloud",
   order: 7,
   title: "Availability",
-  summary: "«Тоғыздар»: 99.9% мен 99.99%-дың арасы — жылына 8 сағат пен 52 минут.",
+  summary: "«Тоғыздар»: 99.9% мен 99.99%-дың арасы: жылына 8 сағат пен 52 минут.",
   estimatedMinutes: 20,
   steps: [
     {

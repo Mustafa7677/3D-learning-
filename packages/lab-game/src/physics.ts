@@ -3,7 +3,7 @@ import type { V3 } from "./scene";
 /**
  * A small deterministic rigid-body solver: spheres, a ground plane and static
  * axis-aligned boxes. Semi-implicit Euler integration with `substeps` per
- * fixed step — few substeps let fast objects tunnel through thin walls, which
+ * fixed step: few substeps let fast objects tunnel through thin walls, which
  * is exactly what the lesson shows.
  */
 export interface Ball {
@@ -121,7 +121,7 @@ export function stepPhysics(w: PhysicsWorld, dt: number): { world: PhysicsWorld;
         }
       }
     }
-    // Ball–ball impulses
+    // Ball-ball impulses
     for (let i = 0; i < balls.length; i++) {
       for (let j = i + 1; j < balls.length; j++) {
         const a = balls[i]!;

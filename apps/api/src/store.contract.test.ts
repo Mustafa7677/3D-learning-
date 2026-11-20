@@ -111,7 +111,7 @@ if (PORT) {
   const viaPsql = (db: string): Queryable => ({
     async query<R>(text: string, params: unknown[] = []) {
       const isSelect = /^\s*select/i.test(text);
-      const body = isSelect ? `select coalesce(json_agg(q), '[]'::json) from (${text}) q` : text;
+      const body = isSelect ? `select coalesce(json_agg(q), '[]':json) from (${text}) q` : text;
       const args = params.length ? `(${params.map(literal).join(", ")})` : "";
       const out = psql(db, `PREPARE s AS ${body};\nEXECUTE s${args};\n`);
       return { rows: isSelect ? (JSON.parse(out.trim().split("\n").pop() || "[]") as R[]) : [] };

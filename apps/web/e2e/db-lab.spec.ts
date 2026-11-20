@@ -2,6 +2,10 @@ import { expect, test, type Page } from "@playwright/test";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 const run = async (page: Page, sql: string) => {
+  // Wait until the lesson's runtime is up (the scene renders from its first state),
+  // so the step's setup text cannot replace what we type.
+  await page.locator("canvas").waitFor();
+  await page.waitForFunction(() => (document.querySelector("#sql-src") as HTMLTextAreaElement | null)?.value !== undefined);
   await page.getByLabel(/Сұраныс/).fill(sql);
   await page.getByRole("button", { name: "Орындау" }).click();
 };
@@ -39,7 +43,7 @@ test("lesson 4: an index cuts 5000 examined rows to a handful", async ({ page })
 test("lesson 6: a crash in the middle of a transaction loses nothing", async ({ page }) => {
   await page.goto("/labs/db/db-6-transactions");
   await run(page, "BEGIN; UPDATE accounts SET balance = balance - 300 WHERE id = 1");
-  await expect(page.getByText("Транзакция ашық — COMMIT не ROLLBACK күтуде.")).toBeVisible();
+  await expect(page.getByText("Транзакция ашық: COMMIT не ROLLBACK күтуде.")).toBeVisible();
   await page.getByRole("button", { name: "Сервер құлады", exact: true }).click();
   await run(page, "SELECT SUM(balance) AS total FROM accounts");
   await expect(page.getByRole("cell", { name: "1700" })).toBeVisible();

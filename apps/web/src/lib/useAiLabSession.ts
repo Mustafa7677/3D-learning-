@@ -25,7 +25,7 @@ export interface LabSession<S, A> {
 
 /**
  * Wires one lesson to its simulation runtime (Web Worker or main-thread
- * channel — same protocol). The main thread renders snapshots and grades
+ * channel: same protocol). The main thread renders snapshots and grades
  * objectives with the LessonEngine, only on states that already include the
  * step's setup actions (`ack` ≥ the last setup command).
  */

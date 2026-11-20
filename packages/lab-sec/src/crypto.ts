@@ -20,7 +20,7 @@ export function caesar(text: string, k: number): string {
     .join("");
 }
 
-/** Letter counts (alphabet order) — the fingerprint frequency analysis reads. */
+/** Letter counts (alphabet order): the fingerprint frequency analysis reads. */
 export function frequencies(text: string): number[] {
   const f = Array<number>(N).fill(0);
   for (const ch of text.toLowerCase()) {

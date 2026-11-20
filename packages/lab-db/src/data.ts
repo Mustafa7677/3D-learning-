@@ -23,7 +23,7 @@ export function seedDb(): Db {
   const enrollments: Row[] = [];
   for (const s of students)
     for (const c of courses) {
-      // Most students take 2–3 courses; grades 60–100.
+      // Most students take 2-3 courses; grades 60-100.
       if ((Number(s.id) + Number(c.id) * 3) % 5 < 3) enrollments.push({ student_id: s.id ?? null, course_id: c.id ?? null, grade: 60 + r(41) });
     }
   const events: Row[] = Array.from({ length: EVENT_ROWS }, (_, i) => ({ id: i + 1, user_id: 1 + r(EVENT_USERS), kind: ["view", "view", "view", "click", "buy"][r(5)]!, amount: r(50) * 100 }));

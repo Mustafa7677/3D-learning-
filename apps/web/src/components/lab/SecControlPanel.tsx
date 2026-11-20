@@ -92,7 +92,7 @@ function XorSection({ state, dispatch }: { state: SecLabState; dispatch: D }) {
       </div>
       <p className={styles.small}>
         Хабар {utf8(x.message).length} байт, кілт {utf8(x.key).length} байт
-        {utf8(x.key).length < utf8(x.message).length ? " — кілт қайталанады, бұл one-time pad емес!" : " — one-time pad шарты орындалды"}
+        {utf8(x.key).length < utf8(x.message).length ? ": кілт қайталанады, бұл one-time pad емес!" : ": one-time pad шарты орындалды"}
       </p>
       <p className={styles.small}>Шифр (hex):</p>
       <pre className={styles.cipherBox}>{toHex(c)}</pre>
@@ -175,7 +175,7 @@ function PasswordsSection({ state, dispatch }: { state: SecLabState; dispatch: D
               <strong>{p.lastCrack.work.toLocaleString("ru-RU")}</strong>
             </div>
           </div>
-          {p.lastCrack.same.length > 0 && <p className={styles.small}>Бірдей хэш: {p.lastCrack.same.map((g) => g.join(" = ")).join("; ")} — құпиясөздері бірдей!</p>}
+          {p.lastCrack.same.length > 0 && <p className={styles.small}>Бірдей хэш: {p.lastCrack.same.map((g) => g.join(" = ")).join("; ")}: құпиясөздері бірдей!</p>}
         </div>
       )}
     </fieldset>
@@ -222,7 +222,7 @@ function StrengthSection({ state, dispatch }: { state: SecLabState; dispatch: D 
         </div>
       )}
       {s?.inDictionary && <p className={styles.small}>Бұл құпиясөз шабуылшының сөздігінде бар!</p>}
-      <p className={styles.small}>Бағалау: L · log₂(әліпби), секундына 10¹⁰ болжам. Құпиясөз сақталмайды — тек оның биті.</p>
+      <p className={styles.small}>Бағалау: L · log₂(әліпби), секундына 10¹⁰ болжам. Құпиясөз сақталмайды: тек оның биті.</p>
     </fieldset>
   );
 }
@@ -320,7 +320,7 @@ function AttackSection({ state, dispatch }: { state: SecLabState; dispatch: D })
         {a.last && (
           <div role="status">
             <pre className={styles.cipherBox}>{a.last.query}</pre>
-            <p className={styles.small}>{a.last.ok ? `Кірді: ${a.last.as}${a.last.injected ? " — құпиясөзсіз (injection)!" : ""}` : "Кіру сәтсіз."}</p>
+            <p className={styles.small}>{a.last.ok ? `Кірді: ${a.last.as}${a.last.injected ? ": құпиясөзсіз (injection)!" : ""}` : "Кіру сәтсіз."}</p>
           </div>
         )}
       </fieldset>
@@ -340,7 +340,7 @@ function AttackSection({ state, dispatch }: { state: SecLabState; dispatch: D })
           <ul className={styles.notes}>
             {a.posted.map((p, i) => (
               <li key={i}>
-                <code>{p.escaped ? escapeHtml(p.text) : p.text}</code> — {p.escaped ? "мәтін ретінде көрсетілді" : "HTML ретінде қосылды"}
+                <code>{p.escaped ? escapeHtml(p.text) : p.text}</code>: {p.escaped ? "мәтін ретінде көрсетілді" : "HTML ретінде қосылды"}
               </li>
             ))}
           </ul>

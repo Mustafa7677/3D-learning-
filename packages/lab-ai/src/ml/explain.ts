@@ -54,7 +54,7 @@ export function walkthrough(net: Network, x: number[], y: number, learningRate: 
 }
 
 /**
- * Central finite-difference estimate of ∂L/∂(parameter) — the slow, obvious
+ * Central finite-difference estimate of ∂L/∂(parameter): the slow, obvious
  * way backprop must agree with (a "gradient check").
  */
 export function numericGradient(net: Network, x: number[], y: number, layer: number, j: number, i: number | "b", h = 1e-5): number {

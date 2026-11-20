@@ -41,7 +41,7 @@ export const lessonIp: L = {
   labId: "net",
   order: 2,
   title: "IP Addresses & Subnets",
-  summary: "32 бит, маска және CIDR: адрестің қай бөлігі — желі, қайсысы — құрылғы.",
+  summary: "32 бит, маска және CIDR: адрестің қай бөлігі: желі, қайсысы: құрылғы.",
   estimatedMinutes: 20,
   steps: [
     {
@@ -73,7 +73,7 @@ export const lessonRouting: L = {
   labId: "net",
   order: 3,
   title: "Routing",
-  summary: "Маршрутизаторлар пакетті ең арзан жолмен жібереді — және сызық үзілсе, айналып өтеді.",
+  summary: "Маршрутизаторлар пакетті ең арзан жолмен жібереді: және сызық үзілсе, айналып өтеді.",
   estimatedMinutes: 20,
   steps: [
     {
@@ -89,7 +89,7 @@ export const lessonRouting: L = {
       title: "Сызық үзілді",
       body: "",
       focus: "routing",
-      objectives: [{ id: "reroute", text: "Жолдағы бір сызықты үз де, қайта жібер — пакет айналып өтсін", check: (s) => s.stats.routeRuns.some((r) => r.from === "A" && r.to === "F" && r.failed.includes("BD") && r.cost > 0) }],
+      objectives: [{ id: "reroute", text: "Жолдағы бір сызықты үз де, қайта жібер: пакет айналып өтсін", check: (s) => s.stats.routeRuns.some((r) => r.from === "A" && r.to === "F" && r.failed.includes("BD") && r.cost > 0) }],
     },
     {
       id: "partition",
@@ -148,7 +148,7 @@ export const lessonReliable: L = {
       title: "Жоғалған пакеттер",
       body: "",
       focus: "transport",
-      objectives: [{ id: "retx", text: "Кемінде 10% жоғалтумен жібер — қайта жіберулерді бақыла", check: (s) => s.stats.transfers.some((t) => t.loss >= 0.1 && t.retransmits > 0) }],
+      objectives: [{ id: "retx", text: "Кемінде 10% жоғалтумен жібер: қайта жіберулерді бақыла", check: (s) => s.stats.transfers.some((t) => t.loss >= 0.1 && t.retransmits > 0) }],
     },
   ],
 };

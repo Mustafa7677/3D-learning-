@@ -34,12 +34,12 @@ export function LossChart({ history }: Props) {
     <figure className={styles.chart} aria-label="Loss және accuracy графигі">
       <div className={styles.chartLegend}>
         <span>
-          <i className={styles.swLoss} /> Loss {last ? last.trainLoss.toFixed(3) : "—"}
+          <i className={styles.swLoss} /> Loss {last ? last.trainLoss.toFixed(3) : "-"}
         </span>
         <span>
-          <i className={styles.swAcc} /> Accuracy {last ? `${(last.testAcc * 100).toFixed(0)}%` : "—"} test
+          <i className={styles.swAcc} /> Accuracy {last ? `${(last.testAcc * 100).toFixed(0)}%` : "-"} test
         </span>
-        <span className={styles.chartMuted}>— train · - - test</span>
+        <span className={styles.chartMuted}>- train · - - test</span>
       </div>
       <svg viewBox={`0 0 ${W} ${Hh}`} preserveAspectRatio="none" role="img" aria-hidden={history.length === 0}>
         <line x1={PAD} x2={W - PAD} y1={Hh - PAD} y2={Hh - PAD} className={styles.axis} />

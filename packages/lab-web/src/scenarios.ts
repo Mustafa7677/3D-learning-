@@ -108,7 +108,7 @@ export function scenario(id: ScenarioId): World {
 }
 
 export const STARTER_HTML = `<h1>Менің бетім</h1>
-<p>Сәлем! Бұл — <b>HTML</b>.</p>
+<p>Сәлем! Бұл: <b>HTML</b>.</p>
 <ul>
   <li>Бірінші</li>
 </ul>`;

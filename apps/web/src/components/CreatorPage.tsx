@@ -64,7 +64,7 @@ export function CreatorPage() {
   }, []);
 
   useEffect(() => {
-    if (loaded.current && !saveCustomLessons(lessons)) setStatus("Браузер сақтауға рұқсат бермеді — JSON-ды жүктеп ал.");
+    if (loaded.current && !saveCustomLessons(lessons)) setStatus("Браузер сақтауға рұқсат бермеді: JSON-ды жүктеп ал.");
   }, [lessons]);
 
   const spec = lessons[current];
@@ -84,7 +84,7 @@ export function CreatorPage() {
     try {
       const data: unknown = JSON.parse(await file.text());
       const found = validateLessonSpec(data, KIND_IDS);
-      if (found.length) return setStatus(`Файлда ${found.length} қате: ${found[0]!.where} — ${found[0]!.message}`);
+      if (found.length) return setStatus(`Файлда ${found.length} қате: ${found[0]!.where}: ${found[0]!.message}`);
       setLessons((l) => [...l, data as LessonSpec]);
       setCurrent(lessons.length);
       setStatus(`«${(data as LessonSpec).title}» импортталды.`);
@@ -98,7 +98,7 @@ export function CreatorPage() {
       <>
         <div className={css.playBar} role="region" aria-label="Сынақ режимі">
           <span>
-            Сынақ режимі: <strong>{spec.title}</strong> — оқушы осылай көреді.
+            Сынақ режимі: <strong>{spec.title}</strong>: оқушы осылай көреді.
           </span>
           <button type="button" className="btn btn-primary" onClick={() => setPlaying(false)}>
             Редакторға қайту
@@ -115,7 +115,7 @@ export function CreatorPage() {
       <main className={panel.main}>
         <h1>Сабақ жасау</h1>
         <p className={panel.lead}>
-          Кез келген зертханаға өз сабағыңды құр: мәтін, тапсырмалар, тексеру сұрақтары. Код керек емес — тапсырмалар симуляцияның өзінде автоматты тексеріледі.
+          Кез келген зертханаға өз сабағыңды құр: мәтін, тапсырмалар, тексеру сұрақтары. Код керек емес: тапсырмалар симуляцияның өзінде автоматты тексеріледі.
         </p>
         {status && (
           <p className={panel.status} role="status">
@@ -321,14 +321,14 @@ function LessonEditor(props: {
 
       <div className={css.issues} aria-live="polite">
         {issues.length === 0 ? (
-          <p className={css.ok}>✓ Сабақ дұрыс құрылған — оны сынап көруге және бөлісуге болады.</p>
+          <p className={css.ok}>✓ Сабақ дұрыс құрылған: оны сынап көруге және бөлісуге болады.</p>
         ) : (
           <>
             <p>Түзету керек ({issues.length}):</p>
             <ul>
               {issues.slice(0, 8).map((i, k) => (
                 <li key={k}>
-                  <code>{i.where}</code> — {i.message}
+                  <code>{i.where}</code>: {i.message}
                 </li>
               ))}
             </ul>

@@ -10,7 +10,7 @@ export interface AssessmentResult {
 
 /**
  * Contract every lab implements. A plugin is a pure state machine:
- * no I/O, no wall clock, no Math.random — all randomness comes from the
+ * no I/O, no wall clock, no Math.random: all randomness comes from the
  * seed stored in state. This makes snapshots, replay and grading exact.
  */
 export interface SimulationPlugin<State, Action> {

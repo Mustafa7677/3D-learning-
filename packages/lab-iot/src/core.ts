@@ -9,7 +9,7 @@ export function rng(seed: number): () => number {
   };
 }
 
-/** Standard normal samples (Box–Muller) from a seeded PRNG. */
+/** Standard normal samples (Box-Muller) from a seeded PRNG. */
 export function gauss(seed: number): () => number {
   const r = rng(seed);
   return () => {

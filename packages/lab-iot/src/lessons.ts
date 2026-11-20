@@ -24,7 +24,7 @@ export const lessonAdc: L = {
       body: "",
       focus: "adc",
       onEnter: [{ type: "mode/set", mode: "adc" }, { type: "adc/set", bits: 8, tempC: 23.47 }],
-      objectives: [{ id: "read8", text: "8-разрядты АЦП-мен температураны оқы — қате қанша?", check: (s) => s.stats.adcReads.some((r) => r.bits === 8) }],
+      objectives: [{ id: "read8", text: "8-разрядты АЦП-мен температураны оқы: қате қанша?", check: (s) => s.stats.adcReads.some((r) => r.bits === 8) }],
     },
     {
       id: "bits",
@@ -67,7 +67,7 @@ export const lessonFilter: L = {
   labId: "iot",
   order: 3,
   title: "Noise & Filtering",
-  summary: "Шуды сүзу — әрдайым кешігу бағасымен. Экспоненциалды орташа және оның α параметрі.",
+  summary: "Шуды сүзу: әрдайым кешігу бағасымен. Экспоненциалды орташа және оның α параметрі.",
   estimatedMinutes: 15,
   steps: [
     {
@@ -102,7 +102,7 @@ export const lessonThermo: L = {
       body: "",
       focus: "thermo",
       onEnter: [{ type: "mode/set", mode: "thermo" }, { type: "thermo/set", hysteresis: 0 }],
-      objectives: [{ id: "chatter", text: "Гистерезиссіз жүргіз — реле неше рет қосылды?", check: (s) => s.stats.thermoRuns.some((r) => r.hysteresis === 0) }],
+      objectives: [{ id: "chatter", text: "Гистерезиссіз жүргіз: реле неше рет қосылды?", check: (s) => s.stats.thermoRuns.some((r) => r.hysteresis === 0) }],
     },
     {
       id: "hysteresis",
@@ -151,7 +151,7 @@ export const lessonArm: L = {
   labId: "iot",
   order: 6,
   title: "Robot Arm Kinematics",
-  summary: "Тура кинематика: бұрыштардан нүктеге. Кері кинематика: нүктеден бұрыштарға — және оның екі шешімі.",
+  summary: "Тура кинематика: бұрыштардан нүктеге. Кері кинематика: нүктеден бұрыштарға: және оның екі шешімі.",
   estimatedMinutes: 20,
   steps: [
     {
@@ -200,7 +200,7 @@ export const lessonKalman: L = {
       title: "Біріктіру",
       body: "",
       focus: "kalman",
-      objectives: [{ id: "fuse", text: "Біріккен бағаның қатесі (RMSE) ≤ 1.0 м — екі сенсордан да 2 есе дәл", check: (s) => s.stats.kalmanRuns.some((k) => k.gpsNoise === 3 && k.fused <= 1) }],
+      objectives: [{ id: "fuse", text: "Біріккен бағаның қатесі (RMSE) ≤ 1.0 м: екі сенсордан да 2 есе дәл", check: (s) => s.stats.kalmanRuns.some((k) => k.gpsNoise === 3 && k.fused <= 1) }],
     },
   ],
 };
@@ -210,7 +210,7 @@ export const lessonMqtt: L = {
   labId: "iot",
   order: 8,
   title: "MQTT & Power",
-  summary: "Құрылғылар хабарды тақырыптарға жариялайды. Әр хабар — батареядан алынған заряд.",
+  summary: "Құрылғылар хабарды тақырыптарға жариялайды. Әр хабар: батареядан алынған заряд.",
   estimatedMinutes: 20,
   steps: [
     {

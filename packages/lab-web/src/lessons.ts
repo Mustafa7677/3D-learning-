@@ -18,7 +18,7 @@ export const lessonInternet: L = {
   labId: "web",
   order: 1,
   title: "How Internet Works",
-  summary: "URL енгізгеннен бет ашылғанға дейін: DNS, TCP, TLS, HTTP — әр қадам уақытымен.",
+  summary: "URL енгізгеннен бет ашылғанға дейін: DNS, TCP, TLS, HTTP: әр қадам уақытымен.",
   estimatedMinutes: 12,
   steps: [
     {
@@ -37,7 +37,7 @@ export const lessonInternet: L = {
       id: "dns-cache",
       title: "DNS кэші",
       body:
-        "Браузер IP адресті есінде сақтайды. Сол бетті тағы сұрасаң, DNS серверіне бармайды — сұрау жылдамырақ.\n\nТағы бір рет жібер де, уақытты салыстыр.",
+        "Браузер IP адресті есінде сақтайды. Сол бетті тағы сұрасаң, DNS серверіне бармайды: сұрау жылдамырақ.\n\nТағы бір рет жібер де, уақытты салыстыр.",
       focus: "network",
       objectives: [{ id: "cached", text: "DNS кэшінен IP алынған сұрау жібер", check: (s) => s.stats.dnsCacheHits >= 1 }],
     },
@@ -68,14 +68,14 @@ export const lessonHtml: L = {
   labId: "web",
   order: 2,
   title: "HTML & DOM",
-  summary: "HTML мәтінінен браузер DOM ағашын құрады. Кодты өзгерт — 3D ағаш бірден өзгереді.",
+  summary: "HTML мәтінінен браузер DOM ағашын құрады. Кодты өзгерт: 3D ағаш бірден өзгереді.",
   estimatedMinutes: 12,
   steps: [
     {
       id: "tree",
       title: "DOM ағашы",
       body:
-        "Браузер HTML мәтінін оқып, одан ағаш құрады: әр тег — түйін, ішіндегі тегтер — оның балалары. JavaScript те, CSS те осы ағашпен жұмыс істейді, мәтінмен емес.\n\n3D ағаштағы кез келген түйінді бас.",
+        "Браузер HTML мәтінін оқып, одан ағаш құрады: әр тег: түйін, ішіндегі тегтер: оның балалары. JavaScript те, CSS те осы ағашпен жұмыс істейді, мәтінмен емес.\n\n3D ағаштағы кез келген түйінді бас.",
       focus: "dom",
       onEnter: [{ type: "html/set", html: STARTER_HTML }],
       objectives: [{ id: "select", text: "DOM түйінін таңда", check: (s) => s.stats.domSelected >= 1 }],
@@ -94,18 +94,18 @@ export const lessonHtml: L = {
       id: "fix",
       title: "Қатені тап",
       body:
-        "Бұл кодта тегтер дұрыс жабылмаған. Браузер мұндай қателерді үнсіз «түзейді» — бірақ әрдайым сен ойлағандай емес, сондықтан бет күтпеген түрде көрінеді.\n\nПарсердің ескертулерін оқып, барлық қатені түзет.",
+        "Бұл кодта тегтер дұрыс жабылмаған. Браузер мұндай қателерді үнсіз «түзейді»: бірақ әрдайым сен ойлағандай емес, сондықтан бет күтпеген түрде көрінеді.\n\nПарсердің ескертулерін оқып, барлық қатені түзет.",
       focus: "dom",
       onEnter: [{ type: "html/set", html: BROKEN_HTML }],
       objectives: [
         { id: "clean", text: "Барлық ескерту жойылсын", check: (s) => s.stats.htmlEdits >= 2 && dom(s).issues.length === 0 && findAll(dom(s).root, "li").length >= 2, sticky: false },
       ],
-      hints: ["<b> мен <li> жабылмаған, ал </span> артық — оның орнында </div> болуы керек."],
+      hints: ["<b> мен <li> жабылмаған, ал </span> артық: оның орнында </div> болуы керек."],
     },
     {
       id: "attrs",
       title: "Атрибуттар",
-      body: "Тегтің атрибуттары оған қосымша ақпарат береді: <a href=\"...\"> сілтеменің адресі, <img src=\"...\" alt=\"...\"> суреттің көзі мен сипаттамасы. alt — көзі көрмейтін адамдарға және сурет жүктелмегенде керек.",
+      body: "Тегтің атрибуттары оған қосымша ақпарат береді: <a href=\"...\"> сілтеменің адресі, <img src=\"...\" alt=\"...\"> суреттің көзі мен сипаттамасы. alt: көзі көрмейтін адамдарға және сурет жүктелмегенде керек.",
       focus: "dom",
       objectives: [
         { id: "link", text: "href атрибуты бар <a> сілтемесін қос", check: (s) => findAll(dom(s).root, "a").some((a) => !!a.attrs.href) },
@@ -127,7 +127,7 @@ export const lessonCss: L = {
       id: "box",
       title: "Box model",
       body:
-        "Әр элемент — қораптар матрешкасы: мазмұн (content), ішкі шегініс (padding), жиек (border), сыртқы шегініс (margin). 3D-де олар бөлек қабаттар.\n\ncontent-box режимінде width тек мазмұнның ені. Элемент алатын толық орын 300px болсын.",
+        "Әр элемент: қораптар матрешкасы: мазмұн (content), ішкі шегініс (padding), жиек (border), сыртқы шегініс (margin). 3D-де олар бөлек қабаттар.\n\ncontent-box режимінде width тек мазмұнның ені. Элемент алатын толық орын 300px болсын.",
       focus: "box",
       onEnter: [{ type: "box/set", patch: { width: 200, padding: 20, border: 4, margin: 16, boxSizing: "content-box" } }],
       objectives: [
@@ -139,17 +139,17 @@ export const lessonCss: L = {
       id: "border-box",
       title: "box-sizing: border-box",
       body:
-        "content-box-та padding қосқан сайын элемент кеңейеді — бұл шатастырады. border-box режимінде width жиекке дейінгі бүкіл ені: padding көбейсе, мазмұн кішірейеді. Көп сайттар осы режимді қолданады.",
+        "content-box-та padding қосқан сайын элемент кеңейеді: бұл шатастырады. border-box режимінде width жиекке дейінгі бүкіл ені: padding көбейсе, мазмұн кішірейеді. Көп сайттар осы режимді қолданады.",
       focus: "box",
       objectives: [
-        { id: "bb", text: "border-box, width = 300px, padding ≥ 20 — элемент 300px болып қалсын", check: (s) => s.box.boxSizing === "border-box" && s.box.width === 300 && s.box.padding >= 20 && boxSizes(s.box).borderBox === 300, sticky: false },
+        { id: "bb", text: "border-box, width = 300px, padding ≥ 20: элемент 300px болып қалсын", check: (s) => s.box.boxSizing === "border-box" && s.box.width === 300 && s.box.padding >= 20 && boxSizes(s.box).borderBox === 300, sticky: false },
       ],
     },
     {
       id: "flex",
       title: "Flexbox",
       body:
-        "Flexbox элементтерді бір қатарға (немесе бағанға) тізеді. justify-content — негізгі осьтегі орналасу, align-items — көлденең осьтегі тураланым.\n\nЭлементтерді шеттерге тарат (space-between) және ортаға турала (center).",
+        "Flexbox элементтерді бір қатарға (немесе бағанға) тізеді. justify-content: негізгі осьтегі орналасу, align-items: көлденең осьтегі тураланым.\n\nЭлементтерді шеттерге тарат (space-between) және ортаға турала (center).",
       focus: "flex",
       onEnter: [{ type: "flex/set", patch: { direction: "row", justify: "flex-start", align: "stretch", wrap: false, containerWidth: 560, items: 4 } }],
       objectives: [
@@ -203,7 +203,7 @@ export const lessonJs: L = {
     {
       id: "fetch",
       title: "fetch және Promise",
-      body: "Желі сұрауы 120 мс алады. Оның callback-і ішінде тағы Promise бар. Алдымен қадамдап орында, сосын болжа — немесе керісінше.",
+      body: "Желі сұрауы 120 мс алады. Оның callback-і ішінде тағы Promise бар. Алдымен қадамдап орында, сосын болжа: немесе керісінше.",
       focus: "loop",
       onEnter: [{ type: "loop/select", programId: "fetch" }],
       objectives: [
@@ -228,7 +228,7 @@ export const lessonBackend: L = {
       id: "routes",
       title: "Маршрут және статус код",
       body:
-        "Сервер әр сұраудың әдісі (GET, POST) мен жолына (/api/hello) қарап, қай кодты орындау керегін таңдайды — бұл маршрутизация. Маршрут табылмаса, сервер 404 қайтарады.\n\n/api/hello сұрауын жібер, сосын жоқ жолды сұрап көр.",
+        "Сервер әр сұраудың әдісі (GET, POST) мен жолына (/api/hello) қарап, қай кодты орындау керегін таңдайды: бұл маршрутизация. Маршрут табылмаса, сервер 404 қайтарады.\n\n/api/hello сұрауын жібер, сосын жоқ жолды сұрап көр.",
       focus: "network",
       onEnter: [{ type: "scenario/load", id: "api" }, { type: "req/set", params: { method: "GET", url: "https://api.inside.kz/api/hello", token: "" } }],
       objectives: [
@@ -290,7 +290,7 @@ export const lessonDb: L = {
     {
       id: "select",
       title: "SELECT",
-      body: "Дерекқор — кестелер жиыны. SELECT кестеден жолдарды оқиды, WHERE оларды сүзеді.\n\nМысалы: SELECT name, city FROM users WHERE city = 'Алматы'",
+      body: "Дерекқор: кестелер жиыны. SELECT кестеден жолдарды оқиды, WHERE оларды сүзеді.\n\nМысалы: SELECT name, city FROM users WHERE city = 'Алматы'",
       focus: "db",
       onEnter: [{ type: "scenario/load", id: "api" }, { type: "sql/set", text: "SELECT * FROM users" }],
       objectives: [{ id: "where", text: "WHERE шарты бар SELECT орында", check: (s) => s.stats.sqlWhere }],
@@ -298,7 +298,7 @@ export const lessonDb: L = {
     {
       id: "crud",
       title: "INSERT, UPDATE, DELETE",
-      body: "Деректермен жұмыстың төрт әрекеті — CRUD: Create (INSERT), Read (SELECT), Update (UPDATE), Delete (DELETE). WHERE-сіз UPDATE не DELETE бүкіл кестені өзгертеді — абай бол!",
+      body: "Деректермен жұмыстың төрт әрекеті: CRUD: Create (INSERT), Read (SELECT), Update (UPDATE), Delete (DELETE). WHERE-сіз UPDATE не DELETE бүкіл кестені өзгертеді: абай бол!",
       focus: "db",
       objectives: [
         { id: "insert", text: "INSERT орында", check: (s) => s.stats.sqlKinds.includes("insert") },
@@ -311,7 +311,7 @@ export const lessonDb: L = {
       id: "index",
       title: "Индекс",
       body:
-        "orders кестесінде 2000 жол бар. user_id бойынша іздегенде дерекқор әр жолды тексереді — толық сканерлеу. Индекс — кітаптың соңындағы көрсеткіш сияқты: дерекқор керекті жолдарға бірден жетеді.\n\nАлдымен индекссіз ізде, сосын CREATE INDEX ON orders (user_id) орындап, қайта ізде. «Қаралған жолдар» санын салыстыр.",
+        "orders кестесінде 2000 жол бар. user_id бойынша іздегенде дерекқор әр жолды тексереді: толық сканерлеу. Индекс: кітаптың соңындағы көрсеткіш сияқты: дерекқор керекті жолдарға бірден жетеді.\n\nАлдымен индекссіз ізде, сосын CREATE INDEX ON orders (user_id) орындап, қайта ізде. «Қаралған жолдар» санын салыстыр.",
       focus: "db",
       onEnter: [{ type: "sql/set", text: "SELECT * FROM orders WHERE user_id = 7" }],
       objectives: [
@@ -334,7 +334,7 @@ export const lessonDebug: L = {
       id: "dns",
       title: "Сайт ашылмайды",
       body:
-        "shop.kz ашылмайды. Қате хабарын оқы: браузер қай кезеңде тоқтады? DNS жазбаларын тексер — домен атауында қате бар.",
+        "shop.kz ашылмайды. Қате хабарын оқы: браузер қай кезеңде тоқтады? DNS жазбаларын тексер: домен атауында қате бар.",
       focus: "network",
       onEnter: [{ type: "scenario/load", id: "debug" }, { type: "req/set", params: { method: "GET", url: "https://shop.kz/", token: "" } }],
       objectives: [{ id: "resolve", text: "shop.kz домені IP адреске шешілсін", check: (s) => s.history.some((h) => h.host === "shop.kz" && h.status > 0) }],
@@ -350,7 +350,7 @@ export const lessonDebug: L = {
     {
       id: "500",
       title: "500 Internal Server Error",
-      body: "/api/products сұрауы 500 қайтарады: сервер кодында қате бар. 500 — сенің сұрауыңда емес, сервердің өзінде мәселе барын білдіреді.",
+      body: "/api/products сұрауы 500 қайтарады: сервер кодында қате бар. 500: сенің сұрауыңда емес, сервердің өзінде мәселе барын білдіреді.",
       focus: "network",
       onEnter: [{ type: "req/set", params: { url: "https://shop.kz/api/products" } }],
       objectives: [
@@ -385,7 +385,7 @@ export const lessonDeploy: L = {
     {
       id: "write",
       title: "Сайтыңды жаз",
-      body: "Бұл — сенің сайтың. Тақырыбын (<h1>) өзгерт, кемінде бір абзац (<p>) жаз. Қате болмасын.",
+      body: "Бұл: сенің сайтың. Тақырыбын (<h1>) өзгерт, кемінде бір абзац (<p>) жаз. Қате болмасын.",
       focus: "dom",
       onEnter: [{ type: "scenario/load", id: "deploy" }, { type: "html/set", html: DEPLOY_HTML }],
       objectives: [
@@ -405,7 +405,7 @@ export const lessonDeploy: L = {
       id: "publish",
       title: "Интернетке шығар",
       body:
-        "Сайтты серверге жүктеу — deploy. Бірақ оны адамдар табуы үшін домен атауы IP адреске бағытталуы керек.\n\n1) DNS-ке mysite.kz → 93.184.10.9 жазбасын қос. 2) «Deploy» бас. 3) https://mysite.kz/ ашып көр.",
+        "Сайтты серверге жүктеу: deploy. Бірақ оны адамдар табуы үшін домен атауы IP адреске бағытталуы керек.\n\n1) DNS-ке mysite.kz → 93.184.10.9 жазбасын қос. 2) «Deploy» бас. 3) https://mysite.kz/ ашып көр.",
       focus: "network",
       onEnter: [{ type: "req/set", params: { method: "GET", url: "https://mysite.kz/", token: "" } }],
       objectives: [
@@ -417,7 +417,7 @@ export const lessonDeploy: L = {
       id: "cache",
       title: "Неге жаңа нұсқа көрінбейді?",
       body:
-        "Сервер браузерге «бұл бетті 60 секунд сақта» дейді (Cache-Control: max-age=60). Енді тақырыпты өзгертіп, қайта deploy жаса да, бетті аш — ескі нұсқа шығады!\n\nКэш бетті жылдамдатады, бірақ жаңартуды кешіктіреді. Жаңа нұсқаны көрудің жолын тап.",
+        "Сервер браузерге «бұл бетті 60 секунд сақта» дейді (Cache-Control: max-age=60). Енді тақырыпты өзгертіп, қайта deploy жаса да, бетті аш: ескі нұсқа шығады!\n\nКэш бетті жылдамдатады, бірақ жаңартуды кешіктіреді. Жаңа нұсқаны көрудің жолын тап.",
       focus: "network",
       objectives: [
         { id: "stale", text: "Кэштен ескі нұсқаны көр", check: (s) => s.stats.staleSeen },
@@ -428,7 +428,7 @@ export const lessonDeploy: L = {
     {
       id: "export",
       title: "Файлды сақта",
-      body: "Сенің бетің — жай HTML файл. Оны жүктеп алып, кез келген хостингке (GitHub Pages, Netlify) салуға болады.",
+      body: "Сенің бетің: жай HTML файл. Оны жүктеп алып, кез келген хостингке (GitHub Pages, Netlify) салуға болады.",
       focus: "dom",
       objectives: [{ id: "export", text: "HTML файлын экспортта", check: (s) => s.stats.exports >= 1 }],
     },

@@ -407,7 +407,7 @@ export const gameLabPlugin: SimulationPlugin<GameLabState, GameLabAction> = {
           stats = { ...stats, maxBounceRatio: Math.max(stats.maxBounceRatio, world.params.restitution), lastBounceE: world.params.restitution };
         }
       }
-      // Remove balls that tunnelled out of the arena or came to rest long ago — keep the world small.
+      // Remove balls that tunnelled out of the arena or came to rest long ago: keep the world small.
       next = { ...next, physics: { ...world, balls: world.balls.filter((b) => Math.abs(b.pos[0]) <= ARENA + 1) }, stats };
     }
     // Game

@@ -387,9 +387,9 @@ export function parse(sql: string): Stmt {
 type Ctx = Record<string, Value>;
 
 function colValue(ctx: Ctx, e: { table?: string; name: string }): Value {
-  if (!e.table && ctx[`\u0000ambiguous:${e.name}`]) throw new Error(`«${e.name}» бірнеше кестеде бар — кесте атын жаз (мысалы s.${e.name})`);
+  if (!e.table && ctx[`\u0000ambiguous:${e.name}`]) throw new Error(`«${e.name}» бірнеше кестеде бар: кесте атын жаз (мысалы s.${e.name})`);
   const key = e.table ? `${e.table}.${e.name}` : e.name;
-  if (!(key in ctx)) throw new Error(`«${key}» бағаны жоқ${e.table ? "" : " (не екі кестеде де бар — кесте атын жаз)"}`);
+  if (!(key in ctx)) throw new Error(`«${key}» бағаны жоқ${e.table ? "" : " (не екі кестеде де бар: кесте атын жаз)"}`);
   return ctx[key]!;
 }
 

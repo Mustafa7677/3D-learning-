@@ -13,7 +13,7 @@ export const lessonSelect: L = {
   labId: "db",
   order: 1,
   title: "Tables & SELECT",
-  summary: "Кесте, жол, баған, кілт. SELECT, WHERE, ORDER BY — деректерге сұрақ қою.",
+  summary: "Кесте, жол, баған, кілт. SELECT, WHERE, ORDER BY: деректерге сұрақ қою.",
   estimatedMinutes: 15,
   steps: [
     {
@@ -29,7 +29,7 @@ export const lessonSelect: L = {
       title: "Сұрыптау және шектеу",
       body: "",
       focus: "sql",
-      objectives: [{ id: "senior", text: "3–4 курс студенттерінің аттары, алфавит бойынша", check: (s) => lastMatches(s, "SELECT name FROM students WHERE year >= 3 ORDER BY name", true) }],
+      objectives: [{ id: "senior", text: "3-4 курс студенттерінің аттары, алфавит бойынша", check: (s) => lastMatches(s, "SELECT name FROM students WHERE year >= 3 ORDER BY name", true) }],
     },
   ],
 };
@@ -131,7 +131,7 @@ export const lessonIndex: L = {
       body: "",
       focus: "sql",
       onEnter: [{ type: "mode/set", mode: "sql" }, { type: "sql/reset" }, sqlText("SELECT * FROM events WHERE user_id = 42")],
-      objectives: [{ id: "scan", text: "42-пайдаланушының оқиғаларын тап — неше жол қаралды?", check: (s) => lastMatches(s, "SELECT * FROM events WHERE user_id = 42") && (s.sql.last?.examined ?? 0) >= 5000 }],
+      objectives: [{ id: "scan", text: "42-пайдаланушының оқиғаларын тап: неше жол қаралды?", check: (s) => lastMatches(s, "SELECT * FROM events WHERE user_id = 42") && (s.sql.last?.examined ?? 0) >= 5000 }],
     },
     {
       id: "index",
@@ -197,7 +197,7 @@ export const lessonTransactions: L = {
       focus: "sql",
       onEnter: [{ type: "mode/set", mode: "sql" }, { type: "sql/reset" }, sqlText("SELECT * FROM accounts")],
       objectives: [
-        { id: "commit", text: "Айгерімнен Данаға 300 аудар — бір транзакцияда (COMMIT)", check: (s) => s.stats.commits > 0 && balance(s, 3) === 500 && total(s) === 1700 },
+        { id: "commit", text: "Айгерімнен Данаға 300 аудар: бір транзакцияда (COMMIT)", check: (s) => s.stats.commits > 0 && balance(s, 3) === 500 && total(s) === 1700 },
       ],
     },
     {
@@ -213,7 +213,7 @@ export const lessonTransactions: L = {
       body: "",
       focus: "sql",
       objectives: [
-        { id: "crash", text: "Транзакция ортасында серверді «құлат» — жалпы сома өзгермеуі керек", check: (s) => s.stats.crashes > 0 && total(s) === 1700 },
+        { id: "crash", text: "Транзакция ортасында серверді «құлат»: жалпы сома өзгермеуі керек", check: (s) => s.stats.crashes > 0 && total(s) === 1700 },
       ],
     },
   ],
@@ -269,8 +269,8 @@ export const lessonSharding: L = {
       body: "",
       focus: "shard",
       objectives: [
-        { id: "mod", text: "mod N: 4 → 5 шард — кілттердің көбі көшеді", check: (s) => s.stats.shardMoves.some((m) => m.method === "mod" && m.from === 4 && m.to === 5) },
-        { id: "ring", text: "Consistent hashing: 4 → 5 шард — тек ≈ 1/5 көшеді", check: (s) => s.stats.shardMoves.some((m) => m.method === "consistent" && m.from === 4 && m.to === 5) },
+        { id: "mod", text: "mod N: 4 → 5 шард: кілттердің көбі көшеді", check: (s) => s.stats.shardMoves.some((m) => m.method === "mod" && m.from === 4 && m.to === 5) },
+        { id: "ring", text: "Consistent hashing: 4 → 5 шард: тек ≈ 1/5 көшеді", check: (s) => s.stats.shardMoves.some((m) => m.method === "consistent" && m.from === 4 && m.to === 5) },
       ],
     },
   ],

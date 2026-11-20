@@ -229,7 +229,7 @@ describe("classes", () => {
 });
 
 describe("billing", () => {
-  it("free plan covers lessons 1–4 only", () => {
+  it("free plan covers lessons 1-4 only", () => {
     expect(canAccessLesson("free", "ai-4-training")).toBe(true);
     expect(canAccessLesson("free", "ai-5-overfitting")).toBe(false);
     expect(canAccessLesson("premium", "game-8-create")).toBe(true);

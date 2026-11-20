@@ -203,7 +203,7 @@ function AttackView({ state }: { state: SecLabState }) {
       <Node x={0} color={last?.injected ? BAD : OFF} label={a.parameterized ? "Сервер (параметрлер)" : "Сервер (жапсыру)"} size={0.6} />
       <Node x={5} color={last ? (last.ok ? (last.injected ? BAD : OK) : OFF) : OFF} label="Дерекқор" size={0.6} />
       {last && <Label text={short(last.query, 60)} position={[0, 2.4, 0]} size={0.3} />}
-      {last && <Label text={last.ok ? `Кірді: ${last.as}${last.injected ? " — INJECTION!" : ""}` : "Кіру сәтсіз"} position={[0, 3, 0]} size={0.4} />}
+      {last && <Label text={last.ok ? `Кірді: ${last.as}${last.injected ? ": INJECTION!" : ""}` : "Кіру сәтсіз"} position={[0, 3, 0]} size={0.4} />}
       {latest && (
         <group position={[0, 0, 3]}>
           <mesh position={[0, 0.3, 0]}>

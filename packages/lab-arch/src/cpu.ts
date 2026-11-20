@@ -1,5 +1,5 @@
 /**
- * A tiny 8-bit CPU: four registers (R0–R3), a program counter, Z and C flags
+ * A tiny 8-bit CPU: four registers (R0-R3), a program counter, Z and C flags
  * and 16 bytes of data memory. Programs are written in a small assembly
  * language and run one stage (fetch, decode, execute) at a time.
  */
@@ -85,14 +85,14 @@ export function assemble(source: string): Assembled {
       const reg = /^R([0-3])$/i.exec(s);
       if (k === "r") {
         if (reg) args.push(Number(reg[1]));
-        else bad = !!errors.push({ line: p.line, message: `«${s}» — регистр емес (R0–R3)` });
+        else bad = !!errors.push({ line: p.line, message: `«${s}»: регистр емес (R0-R3)` });
       } else if (k === "i") {
         const n = Number(s);
         if (Number.isInteger(n) && n >= -128 && n <= 255) args.push(((n % 256) + 256) % 256);
-        else bad = !!errors.push({ line: p.line, message: `«${s}» — 0..255 (не −128..127) сан болуы керек` });
+        else bad = !!errors.push({ line: p.line, message: `«${s}»: 0..255 (не −128..127) сан болуы керек` });
       } else if (k === "m") {
         const mem = /^\[\s*(R[0-3]|\d+)\s*\]$/i.exec(s);
-        if (!mem) bad = !!errors.push({ line: p.line, message: `«${s}» — жад адресі [5] не [R1] түрінде` });
+        if (!mem) bad = !!errors.push({ line: p.line, message: `«${s}»: жад адресі [5] не [R1] түрінде` });
         else if (/^R/i.test(mem[1]!)) {
           indirect = true;
           args.push(Number(mem[1]!.slice(1)));
@@ -227,7 +227,7 @@ function exec(s: CpuState, ins: Instr): CpuState {
   return { ...s, regs, mem, pc, z, c, out, cycles, instructions: s.instructions + 1, stage: "fetch", ir: null, touched };
 }
 
-/** Advance one stage of the fetch–decode–execute cycle. */
+/** Advance one stage of the fetch-decode-execute cycle. */
 export function tick(s: CpuState, program: Instr[]): CpuState {
   if (s.halted || s.error) return s;
   if (s.stage === "fetch") {

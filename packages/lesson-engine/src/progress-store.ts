@@ -49,7 +49,7 @@ export class KeyValueProgressStore implements ProgressStore {
       index.add(p.lessonId);
       this.kv.setItem(this.prefix + "_index", JSON.stringify([...index]));
     } catch {
-      /* storage unavailable (private mode, quota) — progress stays in memory */
+      /* storage unavailable (private mode, quota): progress stays in memory */
     }
   }
   async list() {

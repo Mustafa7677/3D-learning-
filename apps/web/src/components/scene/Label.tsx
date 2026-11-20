@@ -13,8 +13,8 @@ interface Props {
 const PX = 64;
 
 /**
- * Text label drawn into a canvas texture on a sprite. Pure WebGL — no DOM
- * portals — so it can mount and unmount at simulation speed safely.
+ * Text label drawn into a canvas texture on a sprite. Pure WebGL: no DOM
+ * portals: so it can mount and unmount at simulation speed safely.
  */
 export function Label({ text, position, size = 0.3 }: Props) {
   const { texture, aspect } = useMemo(() => {

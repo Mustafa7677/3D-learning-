@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnswerResult, QuizView, StepView } from "@inside-tech/lesson-engine";
 import { Prose } from "./Prose";
 import { LectureCinema } from "../film/LectureCinema";
+import { Reward } from "../film/Game";
+import { XP_LESSON } from "@/lib/xp";
 import styles from "./lab.module.css";
 
 interface Props {
@@ -19,6 +21,8 @@ interface Props {
   labHref?: string;
   /** Which lab this is, for the emblem behind the 3D lecture. */
   labId?: string;
+  /** Show the XP reward when the lesson is finished. */
+  celebrate?: boolean;
 }
 
 /** One concept-check question: pick an option, get feedback, retry until right. */
@@ -54,9 +58,17 @@ function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] })
   );
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, nextLessonHref, labHref = "/", labId = "ai" }: Props) {
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
   const [cinema, setCinema] = useState(false);
+  const [reward, setReward] = useState(false);
+  // Celebrate only a finish that happens now, not a lesson that was already done on load.
+  const finished = step.lessonComplete && step.isLast;
+  const wasFinished = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (celebrate && wasFinished.current === false && finished) setReward(true);
+    wasFinished.current = finished;
+  }, [finished, celebrate]);
   const total = step.objectives.length + step.quiz.length;
   const done = step.objectives.filter((o) => o.done).length + step.quiz.filter((q) => q.answered).length;
 
@@ -136,6 +148,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
         </>
       )}
 
+      {reward && <Reward xp={XP_LESSON} nextHref={nextLessonHref} onClose={() => setReward(false)} />}
       <div className={styles.lessonActions} aria-live="polite">
         {step.lessonComplete && step.isLast ? (
           <>

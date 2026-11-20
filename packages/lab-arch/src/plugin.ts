@@ -312,7 +312,7 @@ export const archLabPlugin: SimulationPlugin<ArchLabState, ArchLabAction> = {
   evaluate: evaluateArch,
 };
 
-/** Hidden tests: run the learner's program on other inputs (like CS50's check50). */
+/** Hidden tests: run the learner's program on other inputs (an autograder). */
 export function passesTests(source: string, cases: { mem: number[]; out: number[] }[], maxInstructions = RUN_LIMIT): { passed: number; total: number } {
   const { program, errors } = assemble(source);
   if (errors.length || program.length === 0) return { passed: 0, total: cases.length };

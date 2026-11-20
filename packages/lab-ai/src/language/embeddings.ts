@@ -2,7 +2,7 @@
  * Distributional word vectors: count how often words appear near each other,
  * weight by positive pointwise mutual information (PPMI), then compress with a
  * truncated SVD (power iteration with deflation). Words used in similar
- * contexts end up with similar vectors — the idea behind every embedding layer.
+ * contexts end up with similar vectors: the idea behind every embedding layer.
  */
 export interface Embeddings {
   vocab: string[];

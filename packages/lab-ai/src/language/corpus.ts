@@ -1,6 +1,6 @@
 /**
- * A small Kazakh training corpus. Everything in the language lab — BPE merges,
- * word vectors, the n-gram model — is learned from these sentences at load time.
+ * A small Kazakh training corpus. Everything in the language lab: BPE merges,
+ * word vectors, the n-gram model: is learned from these sentences at load time.
  * Topics repeat on purpose (animals, food, nature, technology, school) so that
  * co-occurrence statistics produce visible clusters.
  */

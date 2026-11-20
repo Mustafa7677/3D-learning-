@@ -54,7 +54,7 @@ function NeuronWalk({ w, lr }: { w: SampleWalkthrough; lr: number }) {
         <li>
           <b>Backprop мүмкін емес.</b>
           <span>
-            step(z) — баспалдақ: оның туындысы барлық жерде 0 (z = 0-де анықталмаған). Сондықтан ∂L/∂w = 0 — gradient descent салмақты қай жаққа
+            step(z): баспалдақ: оның туындысы барлық жерде 0 (z = 0-де анықталмаған). Сондықтан ∂L/∂w = 0: gradient descent салмақты қай жаққа
             жылжытарын білмейді. Активацияны <b>sigmoid</b>-қа ауыстыр: оның туындысы σ(1 − σ) ешқашан 0 емес, және ∂L/∂z = p − y болады.
           </span>
         </li>
@@ -97,7 +97,7 @@ function NetworkWalk({ w, lr }: { w: SampleWalkthrough; lr: number }) {
   return (
     <div className={styles.walkSteps}>
       <p className={styles.small}>
-        Әр қабат: z = W·a + b, a = f(z). δ = ∂L/∂z — backprop шығыстан кері таратқан қате.
+        Әр қабат: z = W·a + b, a = f(z). δ = ∂L/∂z: backprop шығыстан кері таратқан қате.
       </p>
       {w.layers.map((l, k) => (
         <table key={k} className={styles.walkTable}>
@@ -132,7 +132,7 @@ function NetworkWalk({ w, lr }: { w: SampleWalkthrough; lr: number }) {
         Тек осы нүктемен бір қадам (η = {lr}): p {m(w.p)} → {m(w.nextP)}, L {m(w.loss)} → <strong>{m(w.nextLoss)}</strong>
       </p>
       {w.layers.some((l) => l.act === "relu" && l.z.some((z) => z <= 0)) && (
-        <p className={styles.small}>Сұр жолдар — z ≤ 0 болған ReLU нейрондары: олардың δ-сы 0, бұл нүктеден ештеңе үйренбейді.</p>
+        <p className={styles.small}>Сұр жолдар: z ≤ 0 болған ReLU нейрондары: олардың δ-сы 0, бұл нүктеден ештеңе үйренбейді.</p>
       )}
     </div>
   );

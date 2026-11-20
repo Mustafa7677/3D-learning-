@@ -533,7 +533,7 @@ function LoopSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
           </button>
         ))}
       </div>
-      <p className={styles.formula}>Сенің болжамың: {pred.join(" → ") || "—"}</p>
+      <p className={styles.formula}>Сенің болжамың: {pred.join(" → ") || "-"}</p>
       {complete && <p className={right ? web.goodText : web.err}>{right ? "Дұрыс!" : `Қате. Дұрыс рет: ${expected.join(" → ")}. Қадамдап орындап көр.`}</p>}
       {pred.length > 0 && (
         <button type="button" className="btn" onClick={() => dispatch({ type: "loop/clearPrediction" })}>
@@ -600,7 +600,7 @@ function SqlSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
           <p className={web.err}>{last.error}</p>
         ))}
       <p className={styles.small}>
-        Кестелер: {Object.values(state.world.db).map((t) => `${t.name}(${t.columns.join(", ")}) — ${t.rows.length} жол`).join("; ")}
+        Кестелер: {Object.values(state.world.db).map((t) => `${t.name}(${t.columns.join(", ")}): ${t.rows.length} жол`).join("; ")}
       </p>
     </fieldset>
   );

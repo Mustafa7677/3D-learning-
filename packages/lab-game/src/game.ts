@@ -240,7 +240,7 @@ export function tickGame(g: GameState, dt: number): { game: GameState; events: T
   }
   if (status === "playing" && coins.length > 0 && coins.every((c) => c.taken) && has(g, "allCoins", "win")) {
     status = "won";
-    lastEvent = "Барлық тиын жиналды — жеңіс!";
+    lastEvent = "Барлық тиын жиналды: жеңіс!";
   }
   if (status === "playing" && time >= g.timeLimit && has(g, "timeUp", "lose")) {
     status = "lost";

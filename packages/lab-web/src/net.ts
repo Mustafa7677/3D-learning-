@@ -2,8 +2,8 @@ import { bindParams, execute, type Db, type QueryResult } from "./sql";
 
 /**
  * The network world for the Web lab: a browser, a DNS resolver, web servers
- * and a database. Sending a request resolves it into timed stages — the same
- * ones a real browser goes through — which the simulation then plays back.
+ * and a database. Sending a request resolves it into timed stages: the same
+ * ones a real browser goes through: which the simulation then plays back.
  */
 export type NodeId = "browser" | "dns" | "server" | "db";
 export type Method = "GET" | "POST" | "PUT" | "DELETE";
@@ -163,7 +163,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
   if (req.method === "GET") {
     const hit = world.cache.find((c) => c.url === req.url && c.expiresAt > world.clock);
     if (hit) {
-      add({ kind: "cache", from: "browser", to: "browser", dur: 1, title: "Браузер кэші", detail: `Кэште бар (тағы ${Math.round((hit.expiresAt - world.clock) / 1000)} с жарамды) — серверге бармаймыз`, ok: true });
+      add({ kind: "cache", from: "browser", to: "browser", dur: 1, title: "Браузер кэші", detail: `Кэште бар (тағы ${Math.round((hit.expiresAt - world.clock) / 1000)} с жарамды): серверге бармаймыз`, ok: true });
       add({ kind: "render", from: "browser", to: "browser", dur: 8, title: "Көрсету", detail: "Кэштегі нұсқа көрсетілді", ok: true });
       return { stages, response: { status: hit.status, body: hit.body, contentType: hit.contentType, fromCache: true, ms: t }, world };
     }
@@ -177,7 +177,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
   } else {
     const rec = world.dns.find((r) => r.name === url.host);
     if (!rec) {
-      add({ kind: "dns", from: "browser", to: "dns", dur: 24, title: "DNS сұрауы", detail: `${url.host} — мұндай домен жоқ (NXDOMAIN)`, ok: false });
+      add({ kind: "dns", from: "browser", to: "dns", dur: 24, title: "DNS сұрауы", detail: `${url.host}: мұндай домен жоқ (NXDOMAIN)`, ok: false });
       add({ kind: "error", from: "dns", to: "browser", dur: 24, title: "DNS қатесі", detail: "Браузер серверді таба алмады", ok: false });
       return finish(0, "", "text", world, { error: `DNS_PROBE_FINISHED_NXDOMAIN: «${url.host}» табылмады` });
     }
@@ -233,7 +233,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
 
   const match = matchRoute(server.routes, req.method, url.path);
   if (!match) {
-    add({ kind: "route", from: "server", to: "server", dur: 2, title: "Маршрут", detail: `${req.method} ${url.path} — мұндай маршрут жоқ`, ok: false });
+    add({ kind: "route", from: "server", to: "server", dur: 2, title: "Маршрут", detail: `${req.method} ${url.path}: мұндай маршрут жоқ`, ok: false });
     return respond(404, "Not Found", "text", "Бет табылмады");
   }
   const { route, params } = match;

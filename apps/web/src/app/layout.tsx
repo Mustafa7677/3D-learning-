@@ -15,7 +15,7 @@ import "@fontsource/ibm-plex-sans/latin-600.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "INSIDE TECH — технологияның ішіне кір",
+  title: "INSIDE TECH: технологияның ішіне кір",
   description: "IT технологияларын 3D симуляциялар арқылы зерттеуге, өзгертуге және өз қолыңмен жасауға арналған платформа.",
 };
 
