@@ -172,7 +172,7 @@ export function Atlas({ id = "labs" }: { id?: string }) {
         <h2 id="atlas-title" className={styles.h2}>
           Зертханалар атласы
         </h2>
-        <p className={styles.line}>Әр зертхана: 8 сабақ, есептер жиыны және нақты есептейтін симуляция.</p>
+        <p className={styles.line}>Әр зертханада Junior деңгейінің 8 сабағы, есептер жиыны және нақты есептейтін симуляция. Middle және Senior деңгейлері қосылып жатыр.</p>
       </div>
       <ul className={styles.bento}>
         {openLabs.map((lab, i) => {

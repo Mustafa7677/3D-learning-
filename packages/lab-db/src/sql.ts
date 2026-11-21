@@ -102,7 +102,14 @@ export type Expr =
   | { k: "bin"; op: string; a: Expr; b: Expr }
   | { k: "not"; e: Expr }
   | { k: "isnull"; e: Expr; neg: boolean }
-  | { k: "agg"; fn: "COUNT" | "SUM" | "AVG" | "MIN" | "MAX"; arg: Expr | "*" };
+  | { k: "agg"; fn: "COUNT" | "SUM" | "AVG" | "MIN" | "MAX"; arg: Expr | "*" }
+  /** x IN (1, 2) or x IN (SELECT ...); NOT IN with neg. */
+  | { k: "in"; e: Expr; list?: Expr[]; sub?: Select; neg: boolean }
+  /** LIKE with % (any run) and _ (one character). */
+  | { k: "like"; e: Expr; pat: Expr; neg: boolean }
+  | { k: "between"; e: Expr; lo: Expr; hi: Expr; neg: boolean }
+  /** A subquery that returns one value: (SELECT AVG(grade) FROM enrollments). */
+  | { k: "sub"; q: Select };
 
 interface SelectItem {
   expr: Expr | "*";
@@ -115,9 +122,12 @@ interface Source {
 interface Join {
   src: Source;
   on: Expr;
+  /** LEFT JOIN keeps every row on the left, with NULLs where nothing matched. */
+  left?: boolean;
 }
 export interface Select {
   k: "select";
+  distinct?: boolean;
   items: SelectItem[];
   from: Source;
   joins: Join[];
@@ -136,7 +146,7 @@ type Stmt =
   | { k: "begin" | "commit" | "rollback" }
   | { k: "explain"; q: Select };
 
-const KEYWORDS = new Set(["SELECT", "FROM", "WHERE", "JOIN", "INNER", "ON", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "LIMIT", "AND", "OR", "NOT", "AS", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "INDEX", "BEGIN", "COMMIT", "ROLLBACK", "EXPLAIN", "NULL", "IS"]);
+const KEYWORDS = new Set(["DISTINCT", "LEFT", "OUTER", "IN", "LIKE", "BETWEEN", "SELECT", "FROM", "WHERE", "JOIN", "INNER", "ON", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "LIMIT", "AND", "OR", "NOT", "AS", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "INDEX", "BEGIN", "COMMIT", "ROLLBACK", "EXPLAIN", "NULL", "IS"]);
 
 class Parser {
   i = 0;
@@ -245,6 +255,7 @@ class Parser {
     return { table, alias };
   }
   select(): Select {
+    const distinct = this.kw("DISTINCT");
     const items: SelectItem[] = [];
     do {
       if (this.op("*")) items.push({ expr: "*" });
@@ -258,11 +269,18 @@ class Parser {
     const from = this.source();
     const joins: Join[] = [];
     for (;;) {
-      this.kw("INNER");
-      if (!this.kw("JOIN")) break;
+      let left = false;
+      if (this.kw("LEFT")) {
+        this.kw("OUTER");
+        left = true;
+      } else this.kw("INNER");
+      if (!this.kw("JOIN")) {
+        if (left) throw new Error("LEFT-тен кейін JOIN күтілді");
+        break;
+      }
       const src = this.source();
       this.need("ON");
-      joins.push({ src, on: this.expr() });
+      joins.push({ src, on: this.expr(), left });
     }
     const where = this.kw("WHERE") ? this.expr() : undefined;
     const groupBy: Expr[] = [];
@@ -288,7 +306,7 @@ class Parser {
       this.i++;
       limit = t.v;
     }
-    return { k: "select", items, from, joins, where, groupBy, having, orderBy, limit };
+    return { k: "select", distinct, items, from, joins, where, groupBy, having, orderBy, limit };
   }
   expr(): Expr {
     let a = this.and();
@@ -306,6 +324,28 @@ class Parser {
   }
   cmp(): Expr {
     const a = this.add();
+    // x [NOT] IN / LIKE / BETWEEN
+    const save = this.i;
+    const neg = this.kw("NOT");
+    if (this.kw("IN")) {
+      this.needOp("(");
+      if (this.kw("SELECT")) {
+        const sub = this.select();
+        this.needOp(")");
+        return { k: "in", e: a, sub, neg };
+      }
+      const list = [this.expr()];
+      while (this.op(",")) list.push(this.expr());
+      this.needOp(")");
+      return { k: "in", e: a, list, neg };
+    }
+    if (this.kw("LIKE")) return { k: "like", e: a, pat: this.add(), neg };
+    if (this.kw("BETWEEN")) {
+      const lo = this.add();
+      this.need("AND");
+      return { k: "between", e: a, lo, hi: this.add(), neg };
+    }
+    this.i = save;
     if (this.kw("IS")) {
       const neg = this.kw("NOT");
       this.need("NULL");
@@ -338,6 +378,11 @@ class Parser {
     const t = this.peek();
     if (!t) throw new Error("Сұраныс ерте аяқталды");
     if (this.op("(")) {
+      if (this.kw("SELECT")) {
+        const q = this.select();
+        this.needOp(")");
+        return { k: "sub", q };
+      }
       const e = this.expr();
       this.needOp(")");
       return e;
@@ -412,6 +457,32 @@ function evalExpr(e: Expr, ctx: Ctx, group?: Ctx[]): Value {
       const v = evalExpr(e.e, ctx, group);
       return (v === null) !== e.neg ? 1 : 0;
     }
+    case "in": {
+      const v = evalExpr(e.e, ctx, group);
+      if (!e.list) throw new Error("Ішкі сұраныс әлі есептелмеді");
+      if (v === null) return null;
+      const vals = e.list.map((x) => evalExpr(x, ctx, group));
+      const hit = vals.some((x) => x !== null && cmp(v, x) === 0);
+      // SQL: NOT IN with a NULL in the list is unknown, never true.
+      if (!hit && vals.includes(null)) return null;
+      return hit !== e.neg ? 1 : 0;
+    }
+    case "like": {
+      const v = evalExpr(e.e, ctx, group);
+      const p = evalExpr(e.pat, ctx, group);
+      if (v === null || p === null) return null;
+      const re = new RegExp(`^${String(p).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/%/g, ".*").replace(/_/g, ".")}$`, "su");
+      return re.test(String(v)) !== e.neg ? 1 : 0;
+    }
+    case "between": {
+      const v = evalExpr(e.e, ctx, group);
+      const lo = evalExpr(e.lo, ctx, group);
+      const hi = evalExpr(e.hi, ctx, group);
+      if (v === null || lo === null || hi === null) return null;
+      return (cmp(v, lo) >= 0 && cmp(v, hi) <= 0) !== e.neg ? 1 : 0;
+    }
+    case "sub":
+      throw new Error("Ішкі сұраныс әлі есептелмеді");
     case "agg": {
       const rows = group ?? [ctx];
       const vals = e.arg === "*" ? rows.map(() => 1) : rows.map((r) => evalExpr(e.arg as Expr, r)).filter((v) => v !== null);
@@ -458,7 +529,49 @@ function evalExpr(e: Expr, ctx: Ctx, group?: Ctx[]): Value {
 }
 
 const hasAgg = (e: Expr | "*"): boolean =>
-  e !== "*" && (e.k === "agg" || (e.k === "bin" && (hasAgg(e.a) || hasAgg(e.b))) || (e.k === "not" && hasAgg(e.e)) || (e.k === "isnull" && hasAgg(e.e)));
+  e !== "*" &&
+  (e.k === "agg" ||
+    (e.k === "bin" && (hasAgg(e.a) || hasAgg(e.b))) ||
+    ((e.k === "not" || e.k === "isnull") && hasAgg(e.e)) ||
+    ((e.k === "in" || e.k === "like" || e.k === "between") && hasAgg(e.e)));
+
+/**
+ * Run uncorrelated subqueries once, before the outer query: a scalar
+ * subquery becomes its single value, IN (SELECT ...) becomes a list.
+ */
+function resolveSubs(db: Db, e: Expr | undefined, examined: { n: number }): Expr | undefined {
+  if (!e) return e;
+  const r = (x: Expr) => resolveSubs(db, x, examined)!;
+  switch (e.k) {
+    case "sub": {
+      const res = runSelect(db, e.q);
+      examined.n += res.examined;
+      if (res.columns.length !== 1) throw new Error("Ішкі сұраныс бір баған қайтаруы керек");
+      if (res.rows.length > 1) throw new Error("Ішкі сұраныс бір мәннен көп қайтарды");
+      return { k: "lit", v: res.rows[0] ? (Object.values(res.rows[0])[0] ?? null) : null };
+    }
+    case "in": {
+      if (e.sub) {
+        const res = runSelect(db, e.sub);
+        examined.n += res.examined;
+        if (res.columns.length !== 1) throw new Error("IN ішіндегі сұраныс бір баған қайтаруы керек");
+        return { k: "in", e: r(e.e), list: res.rows.map((row) => ({ k: "lit", v: Object.values(row)[0] ?? null }) as Expr), neg: e.neg };
+      }
+      return { ...e, e: r(e.e), list: e.list!.map(r) };
+    }
+    case "bin":
+      return { ...e, a: r(e.a), b: r(e.b) };
+    case "not":
+    case "isnull":
+      return { ...e, e: r(e.e) };
+    case "like":
+      return { ...e, e: r(e.e), pat: r(e.pat) };
+    case "between":
+      return { ...e, e: r(e.e), lo: r(e.lo), hi: r(e.hi) };
+    default:
+      return e;
+  }
+}
 
 function label(e: Expr): string {
   switch (e.k) {
@@ -474,6 +587,14 @@ function label(e: Expr): string {
       return `not ${label(e.e)}`;
     case "isnull":
       return `${label(e.e)} is ${e.neg ? "not " : ""}null`;
+    case "in":
+      return `${label(e.e)} ${e.neg ? "not " : ""}in (...)`;
+    case "like":
+      return `${label(e.e)} ${e.neg ? "not " : ""}like ${label(e.pat)}`;
+    case "between":
+      return `${label(e.e)} ${e.neg ? "not " : ""}between ${label(e.lo)} and ${label(e.hi)}`;
+    case "sub":
+      return "(select ...)";
   }
 }
 
@@ -501,9 +622,17 @@ function indexable(where: Expr | undefined, alias: string, t: Table): { column: 
   return undefined;
 }
 
-function runSelect(db: Db, q: Select): Result {
+function runSelect(db: Db, q0: Select): Result {
   const plan: Plan[] = [];
-  let examined = 0;
+  const sub = { n: 0 };
+  const q: Select = {
+    ...q0,
+    where: resolveSubs(db, q0.where, sub),
+    having: resolveSubs(db, q0.having, sub),
+    items: q0.items.map((it) => (it.expr === "*" ? it : { ...it, expr: resolveSubs(db, it.expr, sub)! })),
+    joins: q0.joins.map((j) => ({ ...j, on: resolveSubs(db, j.on, sub)! })),
+  };
+  let examined = sub.n;
   const base = db[q.from.table];
   if (!base) throw new Error(`«${q.from.table}» кестесі жоқ`);
 
@@ -536,6 +665,8 @@ function runSelect(db: Db, q: Select): Result {
       }
     }
     const next: Ctx[] = [];
+    // A LEFT JOIN row that found nothing: the new table's columns are all NULL.
+    const nullRow: Row = Object.fromEntries(t.columns.map((c) => [c.name, null]));
     if (probeCol && outer) {
       const byKey = new Map<Value, Row[]>();
       for (const r of t.rows) byKey.set(r[probeCol]!, [...(byKey.get(r[probeCol]!) ?? []), r]);
@@ -544,15 +675,22 @@ function runSelect(db: Db, q: Select): Result {
         const matches = byKey.get(evalExpr(outer, c)) ?? [];
         touched += matches.length;
         for (const r of matches) next.push(ctxOf(j.src.alias, r, { ...c }));
+        if (j.left && matches.length === 0) next.push(ctxOf(j.src.alias, nullRow, { ...c }));
       }
       plan.push({ table: t.name, access: "index", column: probeCol, rows: touched });
       examined += touched;
     } else {
-      for (const c of ctxs)
+      for (const c of ctxs) {
+        let found = false;
         for (const r of t.rows) {
           const merged = ctxOf(j.src.alias, r, { ...c });
-          if (evalExpr(j.on, merged)) next.push(merged);
+          if (evalExpr(j.on, merged)) {
+            next.push(merged);
+            found = true;
+          }
         }
+        if (j.left && !found) next.push(ctxOf(j.src.alias, nullRow, { ...c }));
+      }
       plan.push({ table: t.name, access: "scan", rows: t.rows.length * ctxs.length });
       examined += t.rows.length * ctxs.length;
     }
@@ -612,6 +750,15 @@ function runSelect(db: Db, q: Select): Result {
         if (d) return o.desc ? -d : d;
       }
       return 0;
+    });
+  }
+  if (q.distinct) {
+    const seen = new Set<string>();
+    out = out.filter((o) => {
+      const k = JSON.stringify(Object.values(o.row));
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
     });
   }
   const rows = out.map((o) => o.row).slice(0, q.limit ?? undefined);

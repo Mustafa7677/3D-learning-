@@ -12,10 +12,31 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("databases lab page lists eight lessons and the problem set", async ({ page }) => {
+test("databases lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/db");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Databases");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.getByRole("link", { name: /LEFT JOIN & NULL/ })).toContainText("Middle");
+});
+
+test("Middle 10: LEFT JOIN finds the course nobody took, and COUNT gives it zero", async ({ page }) => {
+  await page.goto("/labs/db/db-10-left-join");
+  await expect(page.getByLabel(/Сұраныс/)).toHaveValue(/^SELECT c\.title, e\.student_id FROM courses c JOIN/);
+  await run(page, "SELECT c.title, e.student_id FROM courses c LEFT JOIN enrollments e ON e.course_id = c.id");
+  await expect(objective(page, "Барлық курсты")).toHaveAttribute("data-done", "true");
+  await run(page, "SELECT c.title FROM courses c LEFT JOIN enrollments e ON e.course_id = c.id WHERE e.student_id IS NULL");
+  await expect(objective(page, "студенті жоқ курстарды")).toHaveAttribute("data-done", "true");
+  await expect(page.getByText("Бұлт").first()).toBeVisible();
+});
+
+test("Middle 11: a copied average does not pass, a subquery does", async ({ page }) => {
+  await page.goto("/labs/db/db-11-subqueries");
+  await expect(page.getByLabel(/Сұраныс/)).toHaveValue("SELECT AVG(grade) FROM enrollments");
+  await run(page, "SELECT student_id, course_id, grade FROM enrollments WHERE grade > 84.89");
+  await expect(objective(page, "орташадан жоғары")).toHaveAttribute("data-done", "false");
+  await run(page, "SELECT student_id, course_id, grade FROM enrollments WHERE grade > (SELECT AVG(grade) FROM enrollments)");
+  await expect(objective(page, "орташадан жоғары")).toHaveAttribute("data-done", "true");
 });
 
 test("lesson 1: a WHERE query is graded against the reference result", async ({ page }) => {

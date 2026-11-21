@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { LessonDefinition, LessonProgress } from "@inside-tech/lesson-engine";
 import type { LabInfo } from "@/lib/catalog";
 import { lessonsForLab } from "@/lib/lessons";
+import { levelOf } from "@/lib/levels";
 import { prefersReducedMotion } from "@/lib/nav";
 import { progressStore } from "@/lib/progress";
 import { useScrollProgress } from "@/lib/useScrollProgress";
@@ -100,10 +101,10 @@ export function LabFilm({ lab, warmup, extra }: { lab: LabInfo; warmup?: ReactNo
               const c = completion(l, prog[l.id]);
               const isPset = l.title.startsWith("Problem Set");
               return (
-                <li key={l.id} ref={(n) => void (items.current[i] = n)} className={styles.station} data-active={chapter - 1 === i}>
+                <li key={l.id} ref={(n) => void (items.current[i] = n)} className={styles.station} data-active={chapter - 1 === i} data-level={levelOf(l.order)}>
                   <Link href={`/labs/${lab.id}/${l.id}`} className={styles.stationCard}>
-                    <span className={styles.stationNum} aria-hidden>
-                      {isPset ? "Есептер" : `${l.order}-сабақ`}
+                    <span className={styles.stationNum}>
+                      <b className={styles.level}>{levelOf(l.order)}</b> {isPset ? "Есептер" : `${l.order}-сабақ`}
                     </span>
                     <h2>{l.title}</h2>
                     <p>{l.summary}</p>

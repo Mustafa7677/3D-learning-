@@ -37,6 +37,30 @@ const sql = (d: D, text: string) => {
 };
 
 const scripts: Record<string, Record<string, (d: D) => void>> = {
+  "db-10-left-join": {
+    orphans: (d) => {
+      sql(d, "SELECT c.title, e.student_id FROM courses c LEFT JOIN enrollments e ON e.course_id = c.id");
+      sql(d, "SELECT c.title FROM courses c LEFT JOIN enrollments e ON e.course_id = c.id WHERE e.student_id IS NULL");
+    },
+    zero: (d) => {
+      sql(d, "SELECT c.title, COUNT(e.student_id) AS n FROM courses c LEFT JOIN enrollments e ON e.course_id = c.id GROUP BY c.title");
+      sql(d, "SELECT s.name FROM students s LEFT JOIN enrollments e ON e.student_id = s.id WHERE e.course_id IS NULL");
+    },
+  },
+  "db-11-subqueries": {
+    scalar: (d) => sql(d, "SELECT student_id, course_id, grade FROM enrollments WHERE grade > (SELECT AVG(grade) FROM enrollments)"),
+    in: (d) => {
+      sql(d, "SELECT name FROM students WHERE id IN (SELECT student_id FROM enrollments WHERE course_id = 1)");
+      sql(d, "SELECT name FROM students WHERE id NOT IN (SELECT student_id FROM enrollments WHERE course_id = 1)");
+    },
+  },
+  "db-12-patterns": {
+    distinct: (d) => sql(d, "SELECT DISTINCT city FROM students"),
+    like: (d) => {
+      sql(d, "SELECT name FROM students WHERE name LIKE 'А%'");
+      sql(d, "SELECT student_id, course_id, grade FROM enrollments WHERE grade BETWEEN 70 AND 85");
+    },
+  },
   "db-1-select": {
     where: (d) => sql(d, "SELECT name FROM students WHERE city = 'Алматы'"),
     order: (d) => sql(d, "SELECT name FROM students WHERE year >= 3 ORDER BY name"),
