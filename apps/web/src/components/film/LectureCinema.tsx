@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Prose } from "../lab/Prose";
+import { OyuCorner, OyuRule } from "../lab/Oyu";
+import { findLab } from "@/lib/catalog";
 import { useWebGL } from "@/lib/useWebGL";
 import styles from "./lecture.module.css";
 
@@ -94,8 +96,13 @@ export function LectureCinema({ labId, stepTitle, body, onClose }: { labId: stri
       }}
     >
       {webgl && <LectureBackdrop labId={labId} index={i} count={n} />}
+      <span className={styles.spot} aria-hidden />
+      <span className={styles.grain} aria-hidden />
       <div className={styles.top}>
-        <p className={styles.where}>{stepTitle}</p>
+        <p className={styles.where}>
+          <b>ДӘРІС</b>
+          <span>{stepTitle}</span>
+        </p>
         <button ref={closeRef} type="button" className={styles.close} onClick={onClose}>
           Жабу
         </button>
@@ -120,11 +127,21 @@ export function LectureCinema({ labId, stepTitle, body, onClose }: { labId: stri
                 }}
                 onClick={() => d !== 0 && setI(k)}
               >
+                <OyuCorner className={`${styles.pc} ${styles.pcTL}`} />
+                <OyuCorner className={`${styles.pc} ${styles.pcTR}`} />
+                <header className={styles.mast}>
+                  <span>INSIDE TECH</span>
+                  <span>{findLab(labId)?.title ?? labId}</span>
+                </header>
                 <p className={styles.count}>
-                  {k + 1} / {n}
+                  § {k + 1} <span>/ {n}</span>
                 </p>
                 <h2>{s.title}</h2>
-                <Prose text={s.text} />
+                <OyuRule className={styles.rule} />
+                <div className={styles.text}>
+                  <Prose text={s.text} />
+                </div>
+                <footer className={styles.folio}>· {k + 1} ·</footer>
                 {k === n - 1 && (
                   <button type="button" className={styles.done} onClick={onClose}>
                     Тапсырмаға өту
@@ -140,6 +157,9 @@ export function LectureCinema({ labId, stepTitle, body, onClose }: { labId: stri
         <button type="button" onClick={() => go(-1)} disabled={i === 0}>
           Алдыңғы
         </button>
+        <p className={styles.now} aria-live="polite">
+          <b>§ {i + 1}</b> {sections[i]?.title}
+        </p>
         <ol className={styles.dots}>
           {sections.map((s, k) => (
             <li key={k}>

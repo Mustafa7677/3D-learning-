@@ -1049,3 +1049,64 @@
   line-height: 1.5;
   color: var(--dim);
 }
+
+
+/* =====================================================================
+   ALASH EDITION (home and the warm-ups): press-serif headlines, the
+   section kicker as a red tab, poster buttons with a gold shadow.
+   ===================================================================== */
+.h1,
+.h2 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.h1 {
+  line-height: 0.98;
+}
+.h1 span + span {
+  color: #e0b860;
+}
+.micro {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.micro::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  flex: none;
+  background: #a8281e;
+  transform: rotate(45deg);
+}
+.primary {
+  border-radius: 2px;
+  color: #f3e9d2;
+  background: #a8281e;
+  box-shadow: 5px 5px 0 #c9a24a;
+}
+.primary:hover,
+.primary:focus-visible {
+  background: #bd3226;
+  box-shadow: 7px 7px 0 #c9a24a;
+}
+.secondary {
+  border-radius: 2px;
+  border-color: rgb(201 162 74 / 0.65);
+  font-family: var(--font-serif);
+}
+.tile {
+  border-radius: 4px;
+}
+.tile::before {
+  background: #c9a24a;
+}
+.tileBody strong {
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+.tile_ai .tileBody strong {
+  font-family: var(--font-serif);
+  font-weight: 700;
+}

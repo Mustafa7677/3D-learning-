@@ -528,3 +528,34 @@
     transition: none;
   }
 }
+
+
+/* Alash edition */
+.question {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.h3,
+.fix strong {
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+.stepper button {
+  border-radius: 2px;
+}
+.stepper button[aria-current="step"] {
+  border-color: #c9a24a;
+}
+.stepper button[aria-current="step"] span {
+  background: #a8281e;
+  color: #f3e9d2;
+}
+.mapPane,
+.timePane,
+.metricsPane,
+.pair > div,
+.fix {
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(201 162 74 / 0.22);
+}

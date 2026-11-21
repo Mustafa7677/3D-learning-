@@ -727,3 +727,101 @@
     flex: none;
   }
 }
+
+
+/* =====================================================================
+   ALASH EDITION (every dark page): the header is a masthead, headlines
+   are set in the press serif, buttons are poster stamps.
+   ===================================================================== */
+.header {
+  background: rgb(7 8 15 / 0.94);
+  backdrop-filter: none;
+  border-bottom: 0;
+  box-shadow: 0 1px 0 #c9a24a, 0 4px 0 -1px rgb(7 8 15 / 0.94), 0 4px 0 0 rgb(201 162 74 / 0.4);
+}
+.brand {
+  padding: 6px 14px 6px 10px;
+  color: #f3e9d2;
+  background: #a8281e;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  justify-self: start;
+}
+.brand span {
+  color: #f0c86a;
+}
+.menuLink {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: #d9ccae;
+}
+.menuLink:hover,
+.menuLink:focus-visible {
+  color: #f3e9d2;
+  text-decoration: underline;
+  text-decoration-color: #c9a24a;
+  text-underline-offset: 6px;
+}
+.tools summary {
+  border-radius: 2px;
+  border-color: rgb(201 162 74 / 0.5);
+  color: #d9ccae;
+  font-family: var(--font-serif);
+}
+.tools[open] summary,
+.tools summary:hover {
+  color: #f3e9d2;
+  border-color: #c9a24a;
+}
+.toolsMenu {
+  border-radius: 3px;
+  background: #efe5cc;
+  box-shadow: 6px 6px 0 #a8281e, 0 20px 40px rgb(0 0 0 / 0.45);
+}
+.toolsMenu a {
+  color: #1d1712;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  border-radius: 0;
+}
+.toolsMenu a:hover,
+.toolsMenu a:focus-visible {
+  background: #1d1712;
+  color: #efe5cc;
+}
+
+/* course page */
+.labTitle {
+  font-family: var(--font-serif) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+}
+.enter {
+  border-radius: 2px;
+  color: #f3e9d2;
+  background: #a8281e;
+  box-shadow: 5px 5px 0 #c9a24a;
+}
+.enter:hover,
+.enter:focus-visible {
+  box-shadow: 7px 7px 0 #c9a24a;
+  transform: translate(-1px, -1px);
+}
+.ghost {
+  border-radius: 2px;
+  border-color: rgb(201 162 74 / 0.6);
+  font-family: var(--font-serif);
+}
+.stationCard {
+  border-radius: 3px !important;
+  border-left: 4px solid #c9a24a !important;
+}
+.stationCard h2 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+.stationNum {
+  font-family: var(--font-serif);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e0b860;
+}
