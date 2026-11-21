@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { bodies, bruteForce, findPath, gridPhase, runGuard, type BroadPhase, type FsmRun, type PathAlgo, type PathResult } from "./middle-core";
 import { EFFECT_TEXT, TRIGGER_TEXT, initialGame, sanitizeLevel, spawn, tickGame, type AiParams, type Effect, type EnemyState, type GameState, type Tile, type Trigger, GRID } from "./game";
 import { ARENA, THIN_WALL, stepPhysics, type Ball, type PhysicsParams, type PhysicsWorld } from "./physics";
 import { reparent, starterScene, type Entity, type V3 } from "./scene";
@@ -75,6 +76,9 @@ export interface GameStats {
   throwLog: { speed: number; substeps: number; result: "blocked" | "tunneled" }[];
   /** Levels (rows joined by "/") on which the learner has won. */
   wonLevels: string[];
+  pathRuns: { algo: PathAlgo; weight: number; cost: number; expanded: number }[];
+  fsmRuns: { see: number; lose: number; switches: number; attacked: boolean }[];
+  broadRuns: { n: number; cell: number; brute: number; grid: number; hits: number }[];
 }
 
 export interface GameLabState {
@@ -84,6 +88,17 @@ export interface GameLabState {
   physics: PhysicsWorld;
   graphics: GraphicsParams;
   game: GameState;
+  mid: {
+    algo: PathAlgo;
+    weight: number;
+    path: PathResult | null;
+    see: number;
+    lose: number;
+    guard: FsmRun | null;
+    n: number;
+    cell: number;
+    broad: { brute: BroadPhase; grid: BroadPhase; points: [number, number][] } | null;
+  };
   stats: GameStats;
 }
 
@@ -110,7 +125,13 @@ export type GameLabAction =
   | { type: "game/reset" }
   | { type: "game/input"; key: "up" | "down" | "left" | "right"; down: boolean }
   | { type: "game/tile"; i: number; j: number; tile: Tile }
-  | { type: "game/level"; level: string[] };
+  | { type: "game/level"; level: string[] }
+  | { type: "path/set"; algo?: PathAlgo; weight?: number }
+  | { type: "path/run" }
+  | { type: "fsm/set"; see?: number; lose?: number }
+  | { type: "fsm/run" }
+  | { type: "broad/set"; n?: number; cell?: number }
+  | { type: "broad/run" };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
 const uniq = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
@@ -146,6 +167,9 @@ const emptyStats = (): GameStats => ({
   lastBounceE: null,
   throwLog: [],
   wonLevels: [],
+  pathRuns: [],
+  fsmRuns: [],
+  broadRuns: [],
 });
 
 function newLoop(useDeltaTime: boolean, speed: number): LoopDemo {
@@ -161,6 +185,7 @@ export function initialGameLabState(_seed: number): GameLabState {
     physics: { balls: [], walls: [], params: { gravity: 9.8, restitution: 0.6, friction: 0.2, substeps: 4 }, time: 0, running: true, nextId: 1 },
     graphics: { ambient: 0.4, directional: 1.2, point: 0, color: "#2f5bea", roughness: 0.5, metalness: 0, emissive: 0, flatShading: false },
     game: initialGame(),
+    mid: { algo: "bfs", weight: 1, path: null, see: 5, lose: 5, guard: null, n: 200, cell: 50, broad: null },
     stats: emptyStats(),
   };
 }
@@ -345,6 +370,34 @@ function reduce(s: GameLabState, a: GameLabAction): GameLabState {
     }
     case "game/level":
       return { ...s, game: { ...spawn({ ...s.game, level: sanitizeLevel(a.level) }), status: "ready" } };
+
+    case "path/set":
+      return { ...s, mid: { ...s.mid, algo: a.algo ?? s.mid.algo, weight: a.weight !== undefined ? Math.min(5, Math.max(1, Math.round(a.weight))) : s.mid.weight, path: null } };
+    case "path/run": {
+      const weight = s.mid.algo === "astar" ? s.mid.weight : 1;
+      const r = findPath(s.mid.algo, weight);
+      return { ...s, mid: { ...s.mid, path: r }, stats: { ...st, pathRuns: [...st.pathRuns, { algo: s.mid.algo, weight, cost: r.cost, expanded: r.expanded.length }].slice(-40) } };
+    }
+    case "fsm/set": {
+      const see = a.see !== undefined ? Math.min(9, Math.max(2, Math.round(a.see))) : s.mid.see;
+      const lose = Math.max(see, a.lose !== undefined ? Math.min(10, Math.round(a.lose)) : s.mid.lose);
+      return { ...s, mid: { ...s.mid, see, lose, guard: null } };
+    }
+    case "fsm/run": {
+      const r = runGuard(s.mid.see, s.mid.lose);
+      return { ...s, mid: { ...s.mid, guard: r }, stats: { ...st, fsmRuns: [...st.fsmRuns, { see: s.mid.see, lose: s.mid.lose, switches: r.switches, attacked: r.states.includes("attack") }].slice(-40) } };
+    }
+    case "broad/set": {
+      const n = a.n !== undefined && [50, 200, 1000].includes(a.n) ? a.n : s.mid.n;
+      const cell = a.cell !== undefined && [2, 10, 50].includes(a.cell) ? a.cell : s.mid.cell;
+      return { ...s, mid: { ...s.mid, n, cell, broad: null } };
+    }
+    case "broad/run": {
+      const points = bodies(s.mid.n);
+      const brute = bruteForce(points);
+      const grid = gridPhase(points, s.mid.cell);
+      return { ...s, mid: { ...s.mid, broad: { brute, grid, points } }, stats: { ...st, broadRuns: [...st.broadRuns, { n: s.mid.n, cell: s.mid.cell, brute: brute.checks, grid: grid.checks, hits: grid.hits }].slice(-40) } };
+    }
   }
 }
 

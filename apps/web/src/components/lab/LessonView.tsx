@@ -129,6 +129,9 @@ const GAME_FOCUS_SECTIONS: Record<string, GameSection[]> = {
   graphics: ["graphics"],
   game: ["play", "rules", "ai"],
   editor: ["editor", "play", "rules", "ai"],
+  path: ["path"],
+  fsm: ["fsm"],
+  broad: ["broad"],
 };
 
 /** Algorithms lessons show the controls of the step's mode; authored lessons do the same by focus. */

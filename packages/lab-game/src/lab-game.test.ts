@@ -299,6 +299,40 @@ const scripts: Record<string, Record<string, (b: Bot) => void>> = {
       b.tick(5);
     },
   },
+  "game-10-pathfinding": {
+    dijkstra: (b) => {
+      b.d({ type: "path/run" });
+      b.d({ type: "path/set", algo: "dijkstra" });
+      b.d({ type: "path/run" });
+    },
+    astar: (b) => {
+      b.d({ type: "path/set", algo: "dijkstra" });
+      b.d({ type: "path/run" });
+      b.d({ type: "path/set", algo: "astar" });
+      b.d({ type: "path/run" });
+      b.d({ type: "path/set", algo: "greedy" });
+      b.d({ type: "path/run" });
+    },
+  },
+  "game-11-fsm": {
+    flicker: (b) => b.d({ type: "fsm/run" }),
+    hysteresis: (b) => {
+      b.d({ type: "fsm/set", lose: 7 });
+      b.d({ type: "fsm/run" });
+    },
+  },
+  "game-12-broadphase": {
+    brute: (b) => {
+      b.d({ type: "broad/run" });
+      b.d({ type: "broad/set", n: 1000 });
+      b.d({ type: "broad/run" });
+    },
+    grid: (b) => {
+      b.d({ type: "broad/run" });
+      b.d({ type: "broad/set", cell: 2 });
+      b.d({ type: "broad/run" });
+    },
+  },
 };
 
 describe("game lessons are completable", () => {

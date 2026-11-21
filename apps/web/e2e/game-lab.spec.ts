@@ -12,7 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("game lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/game");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game Development");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
 });
 
 test("lesson 1: selecting and moving a parent object", async ({ page }) => {
@@ -63,4 +64,34 @@ test("lesson 4: dropping balls and switching to Moon gravity", async ({ page }) 
   await page.getByRole("button", { name: "Ай", exact: true }).click();
   await expect(objective(page, "2 доп")).toHaveAttribute("data-done", "true");
   await expect(objective(page, "Гравитацияны")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 10: BFS wades through the mud (30), Dijkstra goes round (20), A* opens fewer cells", async ({ page }) => {
+  await page.goto("/labs/game/game-10-pathfinding");
+  const r = page.getByRole("status", { name: "Іздеу нәтижесі" });
+  await page.getByRole("button", { name: "Жолды іздеу" }).click();
+  await expect(r).toContainText("Жол бағасы30");
+  await page.getByRole("button", { name: "Dijkstra" }).click();
+  await page.getByRole("button", { name: "Жолды іздеу" }).click();
+  await expect(r).toContainText("Жол бағасы20");
+  await expect(r).toContainText("139");
+});
+
+test("Middle 11: hysteresis calms the guard from 10 switches to 4", async ({ page }) => {
+  await page.goto("/labs/game/game-11-fsm");
+  const r = page.getByRole("status", { name: "Күзетші нәтижесі" });
+  await page.getByRole("button", { name: "Күзетшіні іске қосу" }).click();
+  await expect(r).toContainText("Күй ауысуы10");
+  await page.getByLabel("Жоғалту радиусы").fill("7");
+  await page.getByRole("button", { name: "Күзетшіні іске қосу" }).click();
+  await expect(r).toContainText("Күй ауысуы4");
+});
+
+test("Middle 12: a 2-unit grid cuts 19 900 pair tests to 84 and finds the same 30 contacts", async ({ page }) => {
+  await page.goto("/labs/game/game-12-broadphase");
+  const r = page.getByRole("status", { name: "Соқтығыс нәтижесі" });
+  await page.getByRole("button", { name: "ұяшық 2" }).click();
+  await page.getByRole("button", { name: "Соқтығыстарды іздеу" }).click();
+  await expect(r).toContainText("84");
+  await expect(r).toContainText("Соқтығыс30");
 });
