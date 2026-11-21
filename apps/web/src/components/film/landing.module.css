@@ -1110,3 +1110,100 @@
   font-family: var(--font-serif);
   font-weight: 700;
 }
+
+
+/* ---------- the shelf: other formats as printed covers ---------- */
+.shelf {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px var(--gutter) 96px;
+}
+.shelfHead {
+  margin-bottom: 24px;
+}
+.shelfList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.cover {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 10px;
+  height: 100%;
+  min-height: 250px;
+  padding: 18px 16px 16px;
+  color: #1d1712;
+  text-decoration: none;
+  background:
+    radial-gradient(circle, rgb(168 40 30 / 0.12) 1px, transparent 1.4px) 0 0 / 9px 9px,
+    linear-gradient(180deg, #f1e7cf, #e3d3ab);
+  border: 2px solid #1d1712;
+  box-shadow: 5px 5px 0 #a8281e;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.shelfList li:nth-child(even) .cover {
+  box-shadow: 5px 5px 0 #c9a24a;
+}
+.cover:hover,
+.cover:focus-visible {
+  transform: translate(-3px, -3px) rotate(-0.6deg);
+  box-shadow: 9px 9px 0 #a8281e;
+  outline: none;
+}
+.coverKind {
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #a8281e;
+  border-bottom: 3px double #1d1712;
+  padding-bottom: 8px;
+}
+.coverKind b {
+  color: #1d1712;
+  margin-right: 6px;
+}
+.cover strong {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.1;
+}
+.coverText {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.45;
+  color: #4a3d30;
+}
+.coverGo {
+  justify-self: start;
+  padding: 4px 12px 4px 8px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 13px;
+  color: #f3e9d2;
+  background: #1d1712;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+@media (max-width: 1100px) {
+  .shelfList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .shelfList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cover {
+    min-height: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cover {
+    transition: none;
+  }
+}

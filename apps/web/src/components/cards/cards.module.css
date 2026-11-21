@@ -1,0 +1,280 @@
+/* Memory cards: printed cards on a dark desk, five boxes on a shelf. */
+.page {
+  --paper: #efe5cc;
+  --ink: #1d1712;
+  --red: #a8281e;
+  --gold: #c9a24a;
+  --green: #2b6e46;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 104px var(--gutter, 24px) 96px;
+}
+.head {
+  text-align: center;
+  margin-bottom: 26px;
+}
+.issue {
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #e0b860;
+}
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.02;
+}
+.rule {
+  display: block;
+  width: min(300px, 80%);
+  height: 22px;
+  margin: 10px auto;
+  color: var(--red);
+}
+.lede {
+  max-width: 56ch;
+  margin: 0 auto;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.5;
+  color: #d9ccae;
+}
+
+/* ---------- the five boxes ---------- */
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.box {
+  position: relative;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  gap: 2px;
+  height: 104px;
+  padding: 8px 4px;
+  overflow: hidden;
+  text-align: center;
+  border: 2px solid rgb(201 162 74 / 0.5);
+  background: rgb(201 162 74 / 0.05);
+}
+.boxStack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(0deg, rgb(239 229 204 / 0.22) 0 3px, rgb(239 229 204 / 0.08) 3px 6px);
+  transition: height 0.4s ease;
+}
+.box b {
+  position: relative;
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: #f3e9d2;
+}
+.box span:last-child {
+  position: relative;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  color: #c9bfa8;
+}
+.box[data-box="1"] {
+  border-color: rgb(168 40 30 / 0.8);
+}
+.box[data-box="5"] {
+  border-color: var(--gold);
+}
+
+/* ---------- the card ---------- */
+.stage {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
+.counter {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: #c9bfa8;
+}
+.card {
+  position: relative;
+  width: min(560px, 100%);
+  aspect-ratio: 5 / 3;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 1400px;
+}
+.card:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 6px;
+}
+.face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    radial-gradient(120% 70% at 0% 0%, rgb(255 255 255 / 0.4), transparent 60%),
+    repeating-linear-gradient(0deg, rgb(29 23 18 / 0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #f3ead4, #e3d3ab);
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--red), 0 30px 60px rgb(0 0 0 / 0.45);
+  backface-visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.back {
+  transform: rotateY(180deg);
+  box-shadow: 8px 8px 0 var(--gold), 0 30px 60px rgb(0 0 0 / 0.45);
+}
+.card[data-flipped="true"] .front {
+  transform: rotateY(-180deg);
+}
+.card[data-flipped="true"] .back {
+  transform: rotateY(0deg);
+}
+.corner {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 40px;
+  height: 40px;
+  color: var(--red);
+  opacity: 0.75;
+}
+.face em {
+  font-style: normal;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.face strong {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 6vw, 52px);
+  line-height: 1.05;
+}
+.face small {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  color: #6b5b48;
+}
+.face p {
+  margin: 0;
+  max-width: 34ch;
+  font-family: var(--font-serif);
+  font-size: clamp(18px, 2.6vw, 22px);
+  line-height: 1.45;
+}
+.answers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.answers button,
+.done button {
+  min-height: 50px;
+  padding: 12px 26px;
+  font: 700 17px var(--font-serif);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.answers kbd {
+  margin-left: 8px;
+  padding: 1px 6px;
+  font: 12px var(--font-mono);
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+.again {
+  color: #f3e9d2;
+  background: var(--red);
+  border: 2px solid var(--red);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.knew {
+  color: #f3e9d2;
+  background: var(--green);
+  border: 2px solid var(--green);
+  box-shadow: 4px 4px 0 var(--gold);
+}
+.flip {
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--red);
+}
+.lab {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: #e0b860;
+  text-underline-offset: 4px;
+}
+.done {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--red);
+}
+.done p {
+  margin: 0;
+  max-width: 50ch;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.stamp {
+  padding: 6px 18px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: var(--red);
+  border: 4px double var(--red);
+  transform: rotate(-4deg);
+}
+@media (max-width: 560px) {
+  .page {
+    padding: 124px 12px 64px;
+  }
+  .box {
+    height: 86px;
+  }
+  .box b {
+    font-size: 22px;
+  }
+  .card {
+    aspect-ratio: 4 / 3;
+  }
+  .face {
+    padding: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .face,
+  .boxStack {
+    transition: none;
+  }
+}

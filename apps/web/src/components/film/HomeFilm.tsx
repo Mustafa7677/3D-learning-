@@ -11,6 +11,7 @@ import { useWebGL } from "@/lib/useWebGL";
 import { AiDemo } from "./AiDemo";
 import { Atlas } from "./Atlas";
 import { FilmHeader } from "./FilmHeader";
+import { FormatShelf } from "./FormatShelf";
 import type { ChipBlock, HeroMode } from "./HeroChip";
 import film from "./film.module.css";
 import styles from "./landing.module.css";
@@ -184,6 +185,8 @@ export function HomeFilm() {
       <WorldFinale onChoose={() => scrollToEl(document.getElementById("labs"))} />
 
       <Atlas />
+
+      <FormatShelf />
 
       <footer className={styles.footer}>
         <span>INSIDE/TECH</span>

@@ -7,6 +7,9 @@ import { LINKS, PUBLIC_IP, ROUTERS, RTT, currentCongestion, currentTransfer, dis
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
+import { NetRoutingStage } from "./NetRoutingStage";
+import { FilmFx } from "../film/Fx";
+import { QUALITY, useQuality } from "@/lib/quality";
 import { C0, C1 } from "./palette";
 
 export type NetFocus = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat";
@@ -69,41 +72,6 @@ function IpView({ state }: { state: NetLabState }) {
         <Label key={o} text={state.ip.addr.split(".")[o] ?? "?"} position={[-6 + o * 4.2, 1.3, 0]} size={0.38} />
       ))}
       <Label text={n === null ? "Адрес дұрыс емес" : `/${state.ip.prefix}: көк: желі (${state.ip.prefix} бит), сарғыш: хост (${32 - state.ip.prefix} бит)`} position={[0, 2.3, 0]} size={0.36} />
-    </group>
-  );
-}
-
-function RoutingView({ state }: { state: NetLabState }) {
-  const r = state.routing;
-  const pos = Object.fromEntries(ROUTERS.map((x) => [x.id, new Vector3(x.x, 0.5, x.z)]));
-  const path = r.algo === "ls" ? shortestPath(r.from, r.to, r.failed).path : [];
-  const dv = r.algo === "dv" ? distanceVector(r.to, r.rounds, r.failed) : null;
-  const onPath = (a: string, b: string) => path.some((p, i) => i > 0 && ((path[i - 1] === a && p === b) || (path[i - 1] === b && p === a)));
-  return (
-    <group>
-      {LINKS.map((l) => {
-        const failed = r.failed.includes(l.id);
-        const mid = pos[l.a]!.clone().add(pos[l.b]!).multiplyScalar(0.5);
-        return (
-          <group key={l.id}>
-            <Pipe a={pos[l.a]!} b={pos[l.b]!} color={failed ? BAD : onPath(l.a, l.b) ? C0 : OFF} r={onPath(l.a, l.b) ? 0.1 : failed ? 0.03 : 0.06} />
-            <Label text={failed ? `${l.id} ✕` : `${l.cost}`} position={[mid.x, 0.9, mid.z]} size={0.3} />
-          </group>
-        );
-      })}
-      {ROUTERS.map((x) => {
-        const d = dv?.[x.id];
-        return (
-          <group key={x.id} position={pos[x.id]}>
-            <mesh>
-              <boxGeometry args={[0.8, 0.5, 0.8]} />
-              <meshStandardMaterial color={x.id === r.from || x.id === r.to ? C1 : path.includes(x.id) ? C0 : OFF} />
-            </mesh>
-            <Label text={dv ? `${x.id}: ${d === Infinity ? "∞" : d}` : x.id} position={[0, 0.75, 0]} size={0.34} />
-          </group>
-        );
-      })}
-      <Label text={dv ? `Distance vector · ${r.rounds}-раунд · мақсат ${r.to}` : path.length ? `${path.join(" → ")}` : "Жол жоқ"} position={[0, 2.2, -3.6]} size={0.4} />
     </group>
   );
 }
@@ -204,21 +172,24 @@ function Contents({ state, focus }: { state: NetLabState; focus: NetFocus }) {
   const frames: Record<NetFocus, { w: number; h: number; t: [number, number, number]; d: [number, number, number] }> = {
     packets: { w: 17, h: 6, t: [0, 1, 0], d: [0, 0.8, 1] },
     ip: { w: 18, h: 5, t: [0, 0.8, 0], d: [0, 0.6, 1] },
-    routing: { w: 13, h: 9, t: [0, 0, 0], d: [0, 1.8, 1] },
+    routing: { w: 13.5, h: 8.5, t: [0, 0.4, 0], d: [0.2, 1.05, 1] },
     transport: { w: 15, h: 5, t: [0, 1, 0], d: [0, 0.6, 1] },
     congestion: { w: 19, h: 7, t: [0, 2.6, 0], d: [0, 0.3, 1] },
     nat: { w: 15, h: 8, t: [0, 1, 0], d: [0, 1.2, 1] },
   };
   const f = frames[focus];
+  const q = QUALITY[useQuality()];
+  const film = focus === "routing";
   return (
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 9, 6]} intensity={1.2} />
-      <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
-      <StageLook />
+      {!film && <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />}
+      <StageLook shadows={!film} />
       {focus === "packets" && <PacketsView state={state} />}
       {focus === "ip" && <IpView state={state} />}
-      {focus === "routing" && <RoutingView state={state} />}
+      {film && <NetRoutingStage state={state} />}
+      {film && <FilmFx bloom={q.bloom} />}
       {focus === "transport" && <TransportView state={state} />}
       {focus === "congestion" && <CongestionView state={state} />}
       {focus === "nat" && <NatView state={state} />}
