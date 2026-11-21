@@ -999,6 +999,10 @@
   .hero {
     justify-content: flex-end;
   }
+  /* "Технологияның" must fit a 360px screen */
+  .h1 {
+    font-size: clamp(30px, 10vw, 56px);
+  }
   .bento > li,
   .bento > .tile_ai {
     grid-column: span 12;

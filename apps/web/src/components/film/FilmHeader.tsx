@@ -24,7 +24,11 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
         </Link>
       </nav>
       <div className={styles.headerEnd}>
-        {badge && <PlayerBadge />}
+        {badge && (
+          <span className={styles.badgeSlot}>
+            <PlayerBadge />
+          </span>
+        )}
         <details className={styles.tools}>
           <summary>Құралдар</summary>
           <div className={styles.toolsMenu}>

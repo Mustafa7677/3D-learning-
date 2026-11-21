@@ -64,6 +64,34 @@ test("home: the live AI demo trains in the browser", async ({ page }) => {
   await expect(ai.getByRole("button", { name: "XOR" })).toHaveAttribute("aria-pressed", "true");
 });
 
+test("phone 360px: the tools menu is reachable, the headline fits, a lab and its first lesson open", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.getByText("Құралдар")).toBeVisible();
+  const h1 = await page.getByRole("heading", { level: 1 }).evaluate((e) => [...e.querySelectorAll("span")].map((s) => s.getBoundingClientRect().right));
+  for (const right of h1) expect(right).toBeLessThanOrEqual(360);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+  await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("button", { name: "Зертханалар" }).click();
+  await page.getByRole("link", { name: /^Cybersecurity:/ }).click();
+  await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
+  await page.getByRole("link", { name: "Бірінші сабақтан бастау" }).click();
+  await expect(page).toHaveURL(/\/labs\/sec\/.+/, { timeout: 20000 });
+  await ctx.close();
+});
+
+test("keyboard: tab reaches a lab tile and Enter opens it", async ({ page }) => {
+  await page.goto("/");
+  const tile = page.getByRole("link", { name: /^Cybersecurity:/ });
+  await tile.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
+  const start = page.getByRole("link", { name: "Бірінші сабақтан бастау" });
+  await start.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/labs\/sec\/.+/, { timeout: 20000 });
+});
+
 test("home works without WebGL", async ({ page }) => {
   await page.addInitScript(() => {
     const orig = HTMLCanvasElement.prototype.getContext;

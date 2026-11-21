@@ -701,7 +701,7 @@
     grid-row: 2;
     justify-content: flex-start;
   }
-  .headerEnd > :first-child {
+  .badgeSlot {
     display: none;
   }
 }
