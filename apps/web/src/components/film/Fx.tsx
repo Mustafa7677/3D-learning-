@@ -7,10 +7,17 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, Points, Vecto
 import { FILM } from "./Emblems";
 
 /** Glow on everything bright (copper pulses, emissive parts) and a soft frame. */
-export function FilmFx({ strength = 1 }: { strength?: number }) {
+export function FilmFx({ strength = 1, bloom = true }: { strength?: number; bloom?: boolean }) {
+  // Bloom only catches emissive, non-tone-mapped parts (energy traces, pulses): threshold above 1.
+  if (!bloom)
+    return (
+      <EffectComposer multisampling={0}>
+        <Vignette offset={0.25} darkness={0.7} />
+      </EffectComposer>
+    );
   return (
     <EffectComposer multisampling={0}>
-      <Bloom mipmapBlur luminanceThreshold={0.9} luminanceSmoothing={0.15} intensity={1.4 * strength} radius={0.7} />
+      <Bloom mipmapBlur luminanceThreshold={1} luminanceSmoothing={0.1} intensity={1.3 * strength} radius={0.65} />
       <Vignette offset={0.25} darkness={0.7} />
     </EffectComposer>
   );

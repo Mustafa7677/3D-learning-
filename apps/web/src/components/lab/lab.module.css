@@ -755,7 +755,7 @@ div.walkSteps {
   --focus: #9db0ff;
   --scene-bg: #121a3a;
   --glass: rgb(22 29 58 / 0.78);
-  --copper: #e3a04f;
+  --copper: #dda36e;
   color-scheme: dark;
   color: var(--ink);
   background:
@@ -790,8 +790,8 @@ div.walkSteps {
 }
 .progress span {
   border-radius: 4px;
-  background: linear-gradient(90deg, #6d8cff, var(--copper));
-  box-shadow: 0 0 12px rgb(227 160 79 / 0.7);
+  background: linear-gradient(90deg, #7696ff, var(--copper));
+  box-shadow: 0 0 12px rgb(221 163 110 / 0.7);
 }
 
 /* side panels: glass over the night */
@@ -860,7 +860,7 @@ div.walkSteps {
 }
 .stepDot[data-state="current"] {
   background: var(--copper);
-  box-shadow: 0 0 12px rgb(227 160 79 / 0.8);
+  box-shadow: 0 0 12px rgb(221 163 110 / 0.8);
 }
 .stepTitle {
   font-size: 26px;
@@ -932,12 +932,12 @@ div.walkSteps {
   color: #121831;
   border-color: #f2b25c;
   font-weight: 600;
-  box-shadow: 0 6px 18px rgb(227 160 79 / 0.25);
+  box-shadow: 0 6px 18px rgb(221 163 110 / 0.25);
 }
 .shell :global(.btn-primary:hover) {
   background: linear-gradient(180deg, #ffc472, #e39a40);
   border-color: #ffc472;
-  box-shadow: 0 0 0 3px rgb(227 160 79 / 0.25), 0 6px 20px rgb(227 160 79 / 0.35);
+  box-shadow: 0 0 0 3px rgb(221 163 110 / 0.25), 0 6px 20px rgb(221 163 110 / 0.35);
 }
 .shell :global(.btn-primary:disabled) {
   background: var(--panel-2);
@@ -970,9 +970,9 @@ div.walkSteps {
 }
 .cinemaBtn {
   color: var(--ink);
-  background: rgb(227 160 79 / 0.12);
+  background: rgb(221 163 110 / 0.12);
   border-color: var(--copper);
-  box-shadow: 0 0 14px rgb(227 160 79 / 0.2);
+  box-shadow: 0 0 14px rgb(221 163 110 / 0.2);
 }
 .cinemaBtn:hover,
 .cinemaBtn:focus-visible {

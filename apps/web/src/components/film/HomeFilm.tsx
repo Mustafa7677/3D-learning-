@@ -2,35 +2,32 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { openLabs } from "@/lib/catalog";
-import { lessonsForLab } from "@/lib/lessons";
 import { go, prefersReducedMotion } from "@/lib/nav";
+import { useQuality } from "@/lib/quality";
 import { useScrollProgress } from "@/lib/useScrollProgress";
 import { useWebGL } from "@/lib/useWebGL";
-import type { ChipBlock } from "./ChipScene";
+import { AiDemo } from "./AiDemo";
+import { Atlas } from "./Atlas";
+import { CipherDemo } from "./CipherDemo";
 import { FilmHeader } from "./FilmHeader";
-import { BootIntro, WorldCard } from "./Game";
-import { usePlayer } from "@/lib/xp";
-import styles from "./film.module.css";
+import type { ChipBlock, HeroMode } from "./HeroChip";
+import { PidDemo } from "./PidDemo";
+import film from "./film.module.css";
+import styles from "./landing.module.css";
 
-const ChipScene = dynamic(() => import("./ChipScene"), { ssr: false });
+const HeroChip = dynamic(() => import("./HeroChip"), { ssr: false });
 
-const CHAPTERS = 6;
+const scrollToEl = (el: Element | null | undefined) => el?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
 
-function scrollToEl(el: Element | null) {
-  el?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-}
-
-/** The 3D-free stand-in: the same die, drawn with CSS perspective. */
+/** Without WebGL: the same die, drawn with CSS perspective. */
 function CssDie({ blocks }: { blocks: ChipBlock[] }) {
   return (
     <div className={styles.cssStage} aria-hidden>
       <div className={styles.cssDie}>
         {blocks.map((b) => (
-          <span key={b.id} className={styles.cssBlock}>
-            {b.title}
-          </span>
+          <span key={b.id}>{b.title}</span>
         ))}
       </div>
     </div>
@@ -38,138 +35,158 @@ function CssDie({ blocks }: { blocks: ChipBlock[] }) {
 }
 
 export function HomeFilm() {
-  const film = useRef<HTMLDivElement>(null);
-  const courses = useRef<HTMLElement>(null);
-  const chapters = useRef<(HTMLElement | null)[]>([]);
-  const { progress, chapter } = useScrollProgress(film, CHAPTERS);
+  const filmEl = useRef<HTMLDivElement>(null);
+  const chapter2 = useRef<HTMLElement>(null);
+  const { progress } = useScrollProgress(filmEl, 2);
   const webgl = useWebGL();
+  const quality = useQuality();
   const [still, setStill] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [mode, setMode] = useState<HeroMode>("cinematic");
+  const [selected, setSelected] = useState<number | null>(null);
   useEffect(() => setStill(prefersReducedMotion()), []);
 
-  const blocks: ChipBlock[] = useMemo(() => openLabs.map((l) => ({ id: l.id, title: l.title, href: l.href! })), []);
-  const player = usePlayer();
-  const lessonCount = useMemo(() => openLabs.reduce((t, l) => t + lessonsForLab(l.id).length, 0), []);
+  const blocks: ChipBlock[] = useMemo(() => openLabs.map((l) => ({ id: l.id, title: l.title, inside: l.inside, href: l.href! })), []);
+
+  const explore = useCallback((i: number | null = null) => {
+    window.scrollTo({ top: filmEl.current?.offsetTop ?? 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    setMode("explore");
+    setSelected(i);
+  }, []);
+  const leave = useCallback(() => {
+    setMode("cinematic");
+    setSelected(null);
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "explore") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") leave();
+      if (e.key === "ArrowRight") setSelected((s) => ((s ?? -1) + 1) % blocks.length);
+      if (e.key === "ArrowLeft") setSelected((s) => ((s ?? 0) - 1 + blocks.length) % blocks.length);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mode, leave, blocks.length]);
 
   return (
-    <div className={styles.page}>
-      <BootIntro />
+    <div className={`${film.page} ${styles.landing}`}>
       <FilmHeader
         lead={
-          <button type="button" className={styles.menuLink} onClick={() => scrollToEl(courses.current)}>
-            Курстар
+          <button type="button" className={film.menuLink} onClick={() => scrollToEl(document.getElementById("labs"))}>
+            Зертханалар
           </button>
         }
       />
 
-      <div ref={film} className={styles.film} style={{ height: `${CHAPTERS * 100}vh` }}>
+      <div ref={filmEl} className={styles.film} data-mode={mode}>
         <div className={styles.stage}>
-          {webgl === false ? <CssDie blocks={blocks} /> : webgl && <ChipScene progress={progress} blocks={blocks} interactive={chapter === CHAPTERS - 1} onOpen={go} still={still} />}
-          <div className={styles.vignette} aria-hidden />
-          <ol className={styles.reel} aria-label="Кинотаспа бөлімдері">
-            {Array.from({ length: CHAPTERS }, (_, i) => (
-              <li key={i}>
-                <button type="button" aria-current={chapter === i ? "step" : undefined} onClick={() => scrollToEl(chapters.current[i] ?? null)}>
-                  <span className="visually-hidden">{i + 1}-бөлім</span>
-                </button>
-              </li>
-            ))}
-          </ol>
+          <div className={styles.poster} aria-hidden />
+          {webgl === false ? (
+            <CssDie blocks={blocks} />
+          ) : (
+            webgl && (
+              <div className={styles.canvas} data-ready={ready}>
+                <HeroChip
+                  progress={progress}
+                  blocks={blocks}
+                  mode={mode}
+                  selected={selected}
+                  onSelect={(i) => (mode === "explore" ? setSelected(i) : i !== null && explore(i))}
+                  onOpen={go}
+                  onReady={() => setReady(true)}
+                  still={still}
+                  quality={quality}
+                />
+              </div>
+            )
+          )}
+          <div className={styles.shade} aria-hidden />
+
+          {mode === "explore" && (
+            <div className={styles.explorePanel} role="region" aria-label="Чипті зерттеу">
+              <p className={styles.micro}>EXPLORE / 10 БЛОК</p>
+              <p className={styles.exploreTitle}>Блокты таңда</p>
+              <ol className={styles.rail}>
+                {blocks.map((b, i) => (
+                  <li key={b.id}>
+                    <button type="button" aria-pressed={selected === i} onClick={() => setSelected(i)}>
+                      <span>{String(i + 1).padStart(2, "0")}</span>
+                      {b.title}
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              {selected !== null && <p className={styles.exploreInfo}>{blocks[selected]!.inside}</p>}
+              {selected !== null && (
+                <Link href={blocks[selected]!.href} className={styles.exploreOpen}>
+                  {blocks[selected]!.title} зертханасын ашу
+                </Link>
+              )}
+              <button type="button" className={styles.exploreClose} onClick={leave}>
+                Жабу <kbd>Esc</kbd>
+              </button>
+            </div>
+          )}
         </div>
 
         <div className={styles.chapters}>
-          <section ref={(n) => void (chapters.current[0] = n)} className={`${styles.chapter} ${styles.hero}`}>
-            <h1 className={styles.title}>
+          <section className={styles.hero} aria-labelledby="hero-title">
+            <p className={styles.micro}>01 / ТЕХНОЛОГИЯНЫ ІШІНЕН ҮЙРЕН</p>
+            <h1 id="hero-title" className={styles.h1}>
               <span>Технологияның</span>
               <span>ішіне кір.</span>
             </h1>
-            <p className={styles.lead}>Он курс: бір чиптің он блогы. Әр блоктың ішінде нақты есептейтін симуляция бар: нейрон үйренеді, пакет жолын іздейді, лифт тербеліп барып тоқтайды.</p>
-            <div className={styles.actions}>
-              <button type="button" className={styles.enter} onClick={() => scrollToEl(chapters.current[1] ?? null)}>
-                Кіру
+            <p className={styles.lead}>Күрделі жүйелерді оқып қана қоймай, олардың қалай жұмыс істейтінін өз қолыңмен зертте.</p>
+            <div className={styles.ctas}>
+              <button type="button" className={styles.primary} onClick={() => scrollToEl(chapter2.current)}>
+                Зерттеуді бастау
               </button>
-              <button type="button" className={styles.ghost} onClick={() => scrollToEl(courses.current)}>
-                Курстарды көру
+              <button type="button" className={styles.secondary} onClick={() => (webgl === false ? scrollToEl(document.getElementById("labs")) : explore())}>
+                Чипті зертте
               </button>
             </div>
-            <p className={styles.scrollHint} aria-hidden>
-              Төмен айналдыр: қақпақ ашылады
+            <p className={styles.scroll} aria-hidden>
+              <span>SCROLL</span> 01 / 06
             </p>
           </section>
 
-          <section ref={(n) => void (chapters.current[1] = n)} className={styles.chapter}>
-            <div className={styles.card}>
-              <h2>Қақпақтың астында</h2>
-              <p>Әр курс: кристалдағы бір блок. Блоктар бір шинамен жалғанған: алгоритмдер нейрон желісінде, желі хаттамалары бұлтта, сенсорлар контроллерде қайта кездеседі. Бір курста үйренгенің келесісінде керек болады.</p>
-            </div>
-          </section>
-
-          <section ref={(n) => void (chapters.current[2] = n)} className={styles.chapter}>
-            <div className={styles.card}>
-              <h2>Ішін көр</h2>
-              <p>Нейрондық желі сенің көзіңше үйренеді. Әр салмақ, әр градиент, әр қате кеңістікте тұр: оны айналдырып, жақындап, кез келген нүктесін бас.</p>
-              <Link href="/labs/ai" className={styles.inline}>
-                AI курсын ашу
-              </Link>
-            </div>
-          </section>
-
-          <section ref={(n) => void (chapters.current[3] = n)} className={styles.chapter}>
-            <div className={styles.card}>
-              <h2>Бұрап көр</h2>
-              <p>PID коэффициентін өзгерт: лифт тербеледі, асып кетеді, сосын дәл 1 метрде тоқтайды. Қателесуден қорықпа: кез келген әрекет бір батырмамен кері қайтады.</p>
-              <Link href="/labs/iot" className={styles.inline}>
-                Robotics & IoT курсын ашу
-              </Link>
-            </div>
-          </section>
-
-          <section ref={(n) => void (chapters.current[4] = n)} className={styles.chapter}>
-            <div className={styles.card}>
-              <h2>Өзің жаса</h2>
-              <p>Әр курс өз қолыңмен жасалған нәтижемен аяқталады: үйретілген модель, жұмыс істейтін сайт, өз ойын деңгейің. Есептер жиынын автотексеруші тексереді.</p>
-              <Link href="/labs/game" className={styles.inline}>
-                Game курсын ашу
-              </Link>
-            </div>
-          </section>
-
-          <section ref={(n) => void (chapters.current[5] = n)} className={styles.chapter}>
-            <div className={styles.card}>
-              <h2>
-                {openLabs.length} курс, {lessonCount} сабақ
-              </h2>
-              <p>{webgl === false ? "Төмендегі тізімнен курсты таңда." : "Кез келген блокты бас: курс ашылады. Немесе төмендегі тізімнен таңда."}</p>
-              <button type="button" className={styles.inline} onClick={() => scrollToEl(courses.current)}>
-                Тізімге өту
-              </button>
-            </div>
+          <section ref={chapter2} className={styles.exploded} aria-labelledby="layers-title">
+            <p className={styles.micro}>02 / ҚАБАТТАР</p>
+            <h2 id="layers-title" className={styles.h2}>
+              Бәрі сен ойлағаннан терең.
+            </h2>
+            <p className={styles.line}>Қақпақ, мыс байланыс, кристалл, негіз. Он курс: кристалдағы он блок. Кез келгенін бас.</p>
+            <button type="button" className={styles.secondary} onClick={() => (webgl === false ? scrollToEl(document.getElementById("labs")) : explore())}>
+              Чипті зертте
+            </button>
           </section>
         </div>
       </div>
 
-      <section ref={courses} id="courses" className={styles.courses} aria-labelledby="courses-title">
-        <h2 id="courses-title">Курстар</h2>
-        <p className={styles.coursesLead}>Он әлем. Әр сабақ +100 XP береді, әр орындалған тапсырма +10 XP.</p>
+      <AiDemo />
+      <PidDemo />
+      <CipherDemo />
+
+      <section className={styles.journeyBand} aria-label="Саяхат">
         <Link href="/journey" className={styles.journey}>
           <span className={styles.journeyKey} aria-hidden>
             ↵
           </span>
           <span className={styles.journeyText}>
             <strong>Бір басудың саяхаты</strong>
-            <span>Enter басқаннан бет ашылғанға дейінгі 185 миллисекунд: он курс бір сұраныстың ішінде. Пакетпен бірге ұш.</span>
+            <span>Enter басқаннан бет ашылғанға дейінгі 185 миллисекунд: он курс бір сұраныстың ішінде.</span>
           </span>
           <span className={styles.journeyGo}>Саяхатқа шығу</span>
         </Link>
-        <ul className={styles.grid}>
-          {openLabs.map((lab, i) => (
-            <li key={lab.id}>
-              <WorldCard href={lab.href!} index={i + 1} title={lab.title} inside={lab.inside} done={player?.doneByLab[lab.id] ?? 0} total={lessonsForLab(lab.id).length} />
-            </li>
-          ))}
-        </ul>
       </section>
 
-      <footer className={styles.footer}>INSIDE TECH: технологияны ішінен үйрену</footer>
+      <Atlas />
+
+      <footer className={styles.footer}>
+        <span>INSIDE/TECH</span>
+        <span>Басқалар технологияны түсіндіреді. Біз сені оның ішіне кіргіземіз.</span>
+      </footer>
     </div>
   );
 }

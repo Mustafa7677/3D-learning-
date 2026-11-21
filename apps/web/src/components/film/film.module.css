@@ -1,9 +1,9 @@
 /* The cinematic pages: silicon night, copper traces, cobalt for what is active. */
 .page {
-  --night: #121831;
+  --night: #090f1b;
   --die: #283052;
   --die-edge: #3a4470;
-  --copper: #e3a04f;
+  --copper: #dda36e;
   --cobalt: #2f5bea;
   --glow: #8da5ff;
   --paper: #e9edf3;
@@ -142,12 +142,12 @@
   border: 0;
   color: var(--night);
   background: var(--copper);
-  box-shadow: 0 0 0 0 rgb(227 160 79 / 0.6);
+  box-shadow: 0 0 0 0 rgb(221 163 110 / 0.6);
   transition: box-shadow 0.25s, transform 0.25s;
 }
 .enter:hover,
 .enter:focus-visible {
-  box-shadow: 0 0 0 10px rgb(227 160 79 / 0.18);
+  box-shadow: 0 0 0 10px rgb(221 163 110 / 0.18);
   transform: translateY(-1px);
 }
 .ghost {
@@ -249,7 +249,7 @@
   border: 2px solid var(--die-edge);
   border-radius: 10px;
   transform: rotateX(52deg) rotateZ(-24deg);
-  box-shadow: 0 40px 80px rgb(0 0 0 / 0.45), inset 0 0 0 6px rgb(227 160 79 / 0.08);
+  box-shadow: 0 40px 80px rgb(0 0 0 / 0.45), inset 0 0 0 6px rgb(221 163 110 / 0.08);
   background-image: linear-gradient(var(--copper), var(--copper));
   background-size: calc(100% - 52px) 3px;
   background-position: center;
@@ -395,15 +395,15 @@
   text-decoration: none;
   color: var(--paper);
   background:
-    radial-gradient(400px circle at 0% 50%, rgb(227 160 79 / 0.25), transparent 60%),
+    radial-gradient(400px circle at 0% 50%, rgb(221 163 110 / 0.25), transparent 60%),
     linear-gradient(110deg, #232c58, #182046 60%, #1d2a63);
-  border: 1px solid rgb(227 160 79 / 0.45);
-  box-shadow: 0 0 40px rgb(227 160 79 / 0.12);
+  border: 1px solid rgb(221 163 110 / 0.45);
+  box-shadow: 0 0 40px rgb(221 163 110 / 0.12);
   transition: box-shadow 0.3s, transform 0.3s;
 }
 .journey:hover,
 .journey:focus-visible {
-  box-shadow: 0 0 60px rgb(227 160 79 / 0.3);
+  box-shadow: 0 0 60px rgb(221 163 110 / 0.3);
   transform: translateY(-2px);
 }
 .journeyKey {
@@ -414,7 +414,7 @@
   border-radius: 12px;
   font-size: 28px;
   font-weight: 700;
-  color: #e3a04f;
+  color: #dda36e;
   background: linear-gradient(180deg, #fbfcff, #d6dcea);
   box-shadow: inset 0 -5px 0 #b6bed3, 0 6px 0 #8d96b5, 0 10px 20px rgb(0 0 0 / 0.4);
 }
@@ -611,5 +611,97 @@
   .course:hover,
   .course:focus-visible {
     transform: none;
+  }
+}
+
+
+/* ---- header v2: wordmark, two destinations, player and a tools menu ---- */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 16px var(--gutter);
+  /* content scrolls under it: keep it a quiet solid strip */
+  background: rgb(9 15 27 / 0.82);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgb(232 237 246 / 0.06);
+}
+.brand {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+.brand span {
+  color: #dda36e;
+  margin: 0 1px;
+}
+.menu {
+  justify-content: center;
+  gap: 4px 28px;
+}
+.menuLink {
+  font-size: 15px;
+}
+.headerEnd {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+.tools {
+  position: relative;
+}
+.tools summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #98a4bf;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgb(232 237 246 / 0.18);
+}
+.tools summary::-webkit-details-marker {
+  display: none;
+}
+.tools[open] summary,
+.tools summary:hover {
+  color: #e8edf6;
+  border-color: rgb(232 237 246 / 0.4);
+}
+.toolsMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  display: grid;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #17233b;
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.45);
+}
+.toolsMenu a {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #e8edf6;
+  text-decoration: none;
+}
+.toolsMenu a:hover,
+.toolsMenu a:focus-visible {
+  background: #1e2c49;
+}
+@media (max-width: 720px) {
+  .header {
+    grid-template-columns: 1fr auto;
+    background: rgb(9 15 27 / 0.94);
+  }
+  .menu {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .headerEnd > :first-child {
+    display: none;
   }
 }

@@ -15,9 +15,9 @@
   font-weight: 600;
   font-size: 15px;
   color: #121831;
-  background: linear-gradient(160deg, #ffd08a, #e3a04f 55%, #b8722a);
+  background: linear-gradient(160deg, #ffd08a, #dda36e 55%, #b8722a);
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  filter: drop-shadow(0 0 10px rgb(227 160 79 / 0.6));
+  filter: drop-shadow(0 0 10px rgb(221 163 110 / 0.6));
 }
 .xpWrap {
   display: grid;
@@ -39,8 +39,8 @@
   display: block;
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, #6d8cff, #e3a04f);
-  box-shadow: 0 0 10px #e3a04f;
+  background: linear-gradient(90deg, #7696ff, #dda36e);
+  box-shadow: 0 0 10px #dda36e;
 }
 
 /* ---- boot sequence (once per visit) ---- */
@@ -76,8 +76,8 @@
   animation-delay: calc(var(--k) * 45ms);
 }
 .bootLogo span:nth-child(n + 8) {
-  color: #e3a04f;
-  text-shadow: 0 0 22px rgb(227 160 79 / 0.7);
+  color: #dda36e;
+  text-shadow: 0 0 22px rgb(221 163 110 / 0.7);
 }
 @keyframes letterIn {
   to {
@@ -96,8 +96,8 @@
 .bootBar > span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, #6d8cff, #e3a04f);
-  box-shadow: 0 0 14px #e3a04f;
+  background: linear-gradient(90deg, #7696ff, #dda36e);
+  box-shadow: 0 0 14px #dda36e;
 }
 .bootText {
   font-size: 14px;
@@ -135,7 +135,7 @@
   text-decoration: none;
   border-radius: 18px;
   background:
-    radial-gradient(240px circle at var(--mx) var(--my), rgb(109 140 255 / 0.22), transparent 60%),
+    radial-gradient(240px circle at var(--mx) var(--my), rgb(118 150 255 / 0.22), transparent 60%),
     linear-gradient(160deg, #2a3358, #1a2142);
   border: 1px solid #3a4470;
   transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
@@ -145,11 +145,11 @@
 }
 .world:hover,
 .world:focus-visible {
-  border-color: #e3a04f;
-  box-shadow: 0 20px 50px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(227 160 79 / 0.4), 0 0 30px rgb(227 160 79 / 0.25);
+  border-color: #dda36e;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(221 163 110 / 0.4), 0 0 30px rgb(221 163 110 / 0.25);
 }
 .world[data-done="true"] {
-  border-color: rgb(227 160 79 / 0.7);
+  border-color: rgb(221 163 110 / 0.7);
 }
 .worldTop {
   display: flex;
@@ -159,7 +159,7 @@
 .worldNum {
   font-family: var(--font-display);
   font-size: 13px;
-  color: #e3a04f;
+  color: #dda36e;
 }
 .ring {
   width: 46px;
@@ -205,7 +205,7 @@
 }
 .stars [data-on="true"] {
   color: #ffd08a;
-  text-shadow: 0 0 8px #e3a04f;
+  text-shadow: 0 0 8px #dda36e;
 }
 
 /* ---- reward after a lesson ---- */
@@ -235,8 +235,8 @@
   color: #e9edf3;
   text-align: center;
   background: linear-gradient(160deg, #2a3358, #141a33);
-  border: 1px solid #e3a04f;
-  box-shadow: 0 0 60px rgb(227 160 79 / 0.35), 0 30px 80px rgb(0 0 0 / 0.5);
+  border: 1px solid #dda36e;
+  box-shadow: 0 0 60px rgb(221 163 110 / 0.35), 0 30px 80px rgb(0 0 0 / 0.5);
   animation: pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
 @keyframes pop {
@@ -256,7 +256,7 @@
   font-weight: 600;
   line-height: 1;
   color: #ffd08a;
-  text-shadow: 0 0 24px rgb(227 160 79 / 0.8);
+  text-shadow: 0 0 24px rgb(221 163 110 / 0.8);
   font-variant-numeric: tabular-nums;
 }
 .rewardActions {
@@ -276,7 +276,7 @@
 }
 .rewardPrimary {
   color: #121831;
-  background: #e3a04f;
+  background: #dda36e;
   border: 0;
 }
 .rewardGhost {

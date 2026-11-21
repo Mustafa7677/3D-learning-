@@ -7,6 +7,7 @@ import { Label } from "../scene/Label";
 import { StageLook } from "../scene/StageLook";
 import { Emblem, FILM } from "./Emblems";
 import { Dust, FilmFx, usePointerSway } from "./Fx";
+import { QUALITY, useQuality } from "@/lib/quality";
 
 /** Island i floats along a rising, winding road. */
 export const islandPos = (i: number) => new Vector3(i * 4.2, Math.sin(i * 0.8) * 0.9 + i * 0.35, Math.sin(i * 1.1) * 2.6);
@@ -123,10 +124,11 @@ function Rig({ curve, progress, n, still }: { curve: CatmullRomCurve3; progress:
 }
 
 export default function JourneyScene({ progress, stops, active, still }: { progress: MutableRefObject<number>; stops: { lab: string; title: string }[]; active: number; still: boolean }) {
+  const q = QUALITY[useQuality()];
   const n = stops.length;
   const curve = useMemo(() => new CatmullRomCurve3(stops.map((_, i) => islandPos(i).add(new Vector3(0, 0.1, 0))), false, "centripetal"), [stops]);
   return (
-    <Canvas camera={{ position: [-4, 4, 8], fov: 45, near: 0.1, far: 200 }} dpr={[1, 1.75]} gl={{ antialias: true, alpha: true }} aria-hidden>
+    <Canvas camera={{ position: [-4, 4, 8], fov: 45, near: 0.1, far: 200 }} dpr={q.dpr} gl={{ antialias: true, alpha: true }} aria-hidden>
       <ambientLight intensity={0.45} />
       <directionalLight position={[6, 12, 8]} intensity={1.2} />
       <StageLook shadows={false} />
@@ -137,7 +139,7 @@ export default function JourneyScene({ progress, stops, active, still }: { progr
       <Packet curve={curve} progress={progress} n={n} still={still} />
       <Dust still={still} count={900} spread={[n * 4.2 + 20, 12, 18]} />
       <Rig curve={curve} progress={progress} n={n} still={still} />
-      <FilmFx />
+      <FilmFx bloom={q.bloom} />
     </Canvas>
   );
 }

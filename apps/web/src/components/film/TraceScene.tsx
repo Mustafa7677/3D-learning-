@@ -7,6 +7,7 @@ import { Label } from "../scene/Label";
 import { Emblem, FILM } from "./Emblems";
 import { StageLook } from "../scene/StageLook";
 import { Dust, FilmFx, usePointerSway } from "./Fx";
+import { QUALITY, useQuality } from "@/lib/quality";
 
 
 /** Station i of n along an S-shaped copper trace leaving the lab's block. */
@@ -82,10 +83,11 @@ export default function TraceScene({
   active: number;
   still: boolean;
 }) {
+  const q = QUALITY[useQuality()];
   const pts = useMemo(() => titles.map((_, i) => stationPos(i)), [titles]);
   const n = titles.length;
   return (
-    <Canvas camera={{ position: [-4, 3, 6], fov: 42, near: 0.1, far: 120 }} dpr={[1, 1.75]} gl={{ antialias: true, alpha: true }} aria-hidden>
+    <Canvas camera={{ position: [-4, 3, 6], fov: 42, near: 0.1, far: 120 }} dpr={q.dpr} gl={{ antialias: true, alpha: true }} aria-hidden>
       <ambientLight intensity={0.55} />
       <directionalLight position={[5, 10, 6]} intensity={1.3} />
       <pointLight position={[0, 3, 2]} intensity={14} color={FILM.copper} distance={10} />
@@ -126,7 +128,7 @@ export default function TraceScene({
       <StageLook shadows={false} />
       <Dust still={still} spread={[n * 2.5 + 16, 8, 14]} />
       <Rig progress={progress} count={n} still={still} />
-      <FilmFx />
+      <FilmFx bloom={q.bloom} />
     </Canvas>
   );
 }

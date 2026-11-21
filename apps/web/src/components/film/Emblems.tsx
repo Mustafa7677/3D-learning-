@@ -6,13 +6,13 @@ import { Color, Group, Quaternion, Vector3 } from "three";
 
 /** Film palette: silicon night, die, copper traces, cobalt for what is active, paper for text. */
 export const FILM = {
-  night: new Color("#121831"),
-  die: new Color("#283052"),
-  dieEdge: new Color("#3a4470"),
-  copper: new Color("#e3a04f"),
+  night: new Color("#090f1b"),
+  die: new Color("#17233b"),
+  dieEdge: new Color("#2a3a5e"),
+  copper: new Color("#dda36e"),
   cobalt: new Color("#2f5bea"),
-  glow: new Color("#6d8cff"),
-  paper: new Color("#e9edf3"),
+  glow: new Color("#7696ff"),
+  paper: new Color("#f0eee8"),
   pin: new Color("#b9c0d4"),
 };
 

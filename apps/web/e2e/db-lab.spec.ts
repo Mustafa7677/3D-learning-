@@ -38,7 +38,7 @@ test("lesson 4: an index cuts 5000 examined rows to a handful", async ({ page })
   await page.locator("canvas").waitFor();
   await expect(page.getByLabel(/Сұраныс/)).toHaveValue("SELECT * FROM events WHERE user_id = 42");
   await page.getByRole("button", { name: "Орындау" }).click();
-  await expect(page.getByText(/5000 жол қаралды/)).toBeVisible();
+  await expect(page.getByText(/5000 жол қаралды/).first()).toBeVisible();
   await run(page, "CREATE INDEX ON events (user_id); SELECT * FROM events WHERE user_id = 42");
   await expect(page.getByText(/9 жол · 9 жол қаралды/)).toBeVisible();
 });

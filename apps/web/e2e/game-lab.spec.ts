@@ -17,6 +17,7 @@ test("game lab page lists eight lessons and the problem set", async ({ page }) =
 
 test("lesson 1: selecting and moving a parent object", async ({ page }) => {
   await page.goto("/labs/game/game-1-objects");
+  await page.locator("canvas").waitFor();
   for (const name of ["Машина", "Шырша", "Шам"]) await page.getByRole("button", { name, exact: true }).click();
   await expect(objective(page, "3 түрлі объектіні")).toHaveAttribute("data-done", "true");
   await nextStep(page);
@@ -27,6 +28,7 @@ test("lesson 1: selecting and moving a parent object", async ({ page }) => {
 
 test("lesson 3: delta time equalises frame rates", async ({ page }) => {
   await page.goto("/labs/game/game-3-loop");
+  await page.locator("canvas").waitFor();
   await page.getByRole("button", { name: "3 секунд жүгірту" }).click();
   await expect(objective(page, "айырманы көр")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
   await nextStep(page);
@@ -37,6 +39,7 @@ test("lesson 3: delta time equalises frame rates", async ({ page }) => {
 
 test("lesson 6: a movement rule lets the keyboard drive the player", async ({ page }) => {
   await page.goto("/labs/game/game-6-scripting");
+  await page.locator("canvas").waitFor();
   await page.getByRole("button", { name: "Ереже қосу" }).click();
   await expect(page.getByText("Пернелер басылғанда", { exact: false }).first()).toBeVisible();
   await page.getByRole("button", { name: "Ойынды бастау" }).click();
@@ -49,6 +52,7 @@ test("lesson 6: a movement rule lets the keyboard drive the player", async ({ pa
 
 test("lesson 4: dropping balls and switching to Moon gravity", async ({ page }) => {
   await page.goto("/labs/game/game-4-physics");
+  await page.locator("canvas").waitFor();
   await page.getByRole("button", { name: "Доп тастау" }).click();
   await page.getByRole("button", { name: "Доп тастау" }).click();
   await page.getByRole("button", { name: "Ай", exact: true }).click();

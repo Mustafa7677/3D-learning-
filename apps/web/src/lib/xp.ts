@@ -5,6 +5,9 @@ import type { LessonProgress } from "@inside-tech/lesson-engine";
 import { lessonEntries } from "./lessons";
 import { progressStore } from "./progress";
 import { XP_JOURNEY_ANSWER, loadJourney } from "./journey";
+import { XP_CHALLENGE, loadChallenges } from "./challenges";
+
+const bonus = () => loadJourney().length * XP_JOURNEY_ANSWER + loadChallenges().length * XP_CHALLENGE;
 
 /** XP for a finished lesson and for each finished task inside one. */
 export const XP_LESSON = 100;
@@ -58,8 +61,8 @@ export function usePlayer(): PlayerStats | undefined {
       void progressStore()
         .list()
         .then(
-          (all) => setStats(playerStats(all, loadJourney().length * XP_JOURNEY_ANSWER)),
-          () => setStats(playerStats([], loadJourney().length * XP_JOURNEY_ANSWER)),
+          (all) => setStats(playerStats(all, bonus())),
+          () => setStats(playerStats([], bonus())),
         );
     load();
     window.addEventListener(XP_EVENT, load);

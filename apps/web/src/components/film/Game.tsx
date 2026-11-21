@@ -5,55 +5,6 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { prefersReducedMotion } from "@/lib/nav";
 import styles from "./game.module.css";
 
-const BOOT_KEY = "inside-tech:booted";
-
-/** A short "system boot" the first time a visitor opens the site in a session. Clicks pass through. */
-export function BootIntro() {
-  const [phase, setPhase] = useState<"off" | "run" | "done">("off");
-  const [pct, setPct] = useState(0);
-  useEffect(() => {
-    let seen = true;
-    try {
-      seen = sessionStorage.getItem(BOOT_KEY) === "1";
-      sessionStorage.setItem(BOOT_KEY, "1");
-    } catch {
-      seen = false;
-    }
-    if (seen || prefersReducedMotion()) return;
-    setPhase("run");
-    const t0 = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const p = Math.min(1, Math.max(0, (now - t0) / 1500));
-      setPct(Math.round(100 * (1 - (1 - p) ** 3)));
-      if (p < 1) raf = requestAnimationFrame(tick);
-      else setTimeout(() => setPhase("done"), 250);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  if (phase === "off") return null;
-  const word = "INSIDE TECH";
-  return (
-    <div className={styles.boot} data-done={phase === "done"} aria-hidden={phase === "done"}>
-      <div className={styles.bootLogo} aria-label={word}>
-        {[...word].map((ch, k) => (
-          <span key={k} style={{ ["--k" as string]: k }} aria-hidden>
-            {ch === " " ? " " : ch}
-          </span>
-        ))}
-      </div>
-      <div className={styles.bootBar} aria-hidden>
-        <span style={{ width: `${pct}%` }} />
-      </div>
-      <p className={styles.bootText}>Чип іске қосылуда {pct}%</p>
-      <button type="button" className={styles.bootSkip} onClick={() => setPhase("done")}>
-        Өткізу
-      </button>
-    </div>
-  );
-}
-
 /** Progress ring for a world card. */
 function Ring({ done, total }: { done: number; total: number }) {
   const r = 19;

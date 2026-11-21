@@ -7,7 +7,7 @@
 .kicker {
   margin: 0 0 14px;
   font-size: 15px;
-  color: #e3a04f;
+  color: #dda36e;
 }
 .title {
   font-family: var(--font-display);
@@ -17,7 +17,7 @@
   letter-spacing: -0.03em;
   margin: 0 0 26px;
   max-width: 11ch;
-  background: linear-gradient(100deg, #e9edf3 30%, #ffd08a 60%, #e3a04f);
+  background: linear-gradient(100deg, #e9edf3 30%, #ffd08a 60%, #dda36e);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -45,13 +45,13 @@
     inset 0 2px 0 #ffffff,
     0 10px 0 #8d96b5,
     0 18px 30px rgb(0 0 0 / 0.5),
-    0 0 40px rgb(227 160 79 / 0.25);
+    0 0 40px rgb(221 163 110 / 0.25);
   transform: translateY(0);
   transition: transform 0.08s, box-shadow 0.08s;
 }
 .key span:last-child {
   font-size: 28px;
-  color: #e3a04f;
+  color: #dda36e;
 }
 .key:hover {
   box-shadow:
@@ -59,7 +59,7 @@
     inset 0 2px 0 #ffffff,
     0 10px 0 #8d96b5,
     0 18px 30px rgb(0 0 0 / 0.5),
-    0 0 60px rgb(227 160 79 / 0.5);
+    0 0 60px rgb(221 163 110 / 0.5);
 }
 .key:active {
   transform: translateY(8px);
@@ -83,8 +83,8 @@
   transition: border-color 0.4s, box-shadow 0.4s;
 }
 .card[data-active="true"] {
-  border-color: rgb(227 160 79 / 0.6);
-  box-shadow: 0 24px 60px rgb(0 0 0 / 0.4), 0 0 40px rgb(227 160 79 / 0.15);
+  border-color: rgb(221 163 110 / 0.6);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.4), 0 0 40px rgb(221 163 110 / 0.15);
 }
 .card h2 {
   font-family: var(--font-display);
@@ -235,7 +235,7 @@
   font-family: var(--font-display);
   font-size: 26px;
   color: #ffd08a;
-  text-shadow: 0 0 16px rgb(227 160 79 / 0.6);
+  text-shadow: 0 0 16px rgb(221 163 110 / 0.6);
   font-variant-numeric: tabular-nums;
 }
 .timeline {
@@ -262,7 +262,7 @@
   font-size: clamp(48px, 6vw, 84px) !important;
   line-height: 1;
   color: #ffd08a;
-  text-shadow: 0 0 30px rgb(227 160 79 / 0.55);
+  text-shadow: 0 0 30px rgb(221 163 110 / 0.55);
   font-variant-numeric: tabular-nums;
 }
 .breakdown {
@@ -321,8 +321,8 @@
 }
 .badge[data-earned="true"] {
   color: #121831;
-  background: linear-gradient(160deg, #ffd08a, #e3a04f 55%, #b8722a);
-  filter: drop-shadow(0 0 16px rgb(227 160 79 / 0.8));
+  background: linear-gradient(160deg, #ffd08a, #dda36e 55%, #b8722a);
+  filter: drop-shadow(0 0 16px rgb(221 163 110 / 0.8));
 }
 
 /* without WebGL: the road as a column of lit dots */
@@ -335,7 +335,7 @@
   align-items: center;
   gap: 22px;
   margin-left: 40vw;
-  background: linear-gradient(#6d8cff, #6d8cff) center / 3px 70% no-repeat;
+  background: linear-gradient(#7696ff, #7696ff) center / 3px 70% no-repeat;
 }
 .cssRoad span {
   width: 24px;
@@ -345,11 +345,11 @@
   border: 2px solid #121831;
 }
 .cssRoad span[data-done="true"] {
-  background: #e3a04f;
+  background: #dda36e;
 }
 .cssRoad span[data-active="true"] {
   background: #ffd08a;
-  box-shadow: 0 0 0 6px rgb(227 160 79 / 0.3), 0 0 24px #e3a04f;
+  box-shadow: 0 0 0 6px rgb(221 163 110 / 0.3), 0 0 24px #dda36e;
 }
 
 @media (max-width: 720px) {
