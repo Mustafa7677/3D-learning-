@@ -43,6 +43,17 @@ jobs:
           PGTEST_PORT: "5432"
           PGTEST_USER: postgres
           PGTEST_PASSWORD: postgres
+  browser-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @inside-tech/web build
       - run: pnpm --filter @inside-tech/web exec playwright install --with-deps chromium
       - name: Independent black box review
