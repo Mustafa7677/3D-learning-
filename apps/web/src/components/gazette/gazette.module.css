@@ -1,0 +1,377 @@
+/* INSIDE TECH газеті: one broadsheet page of the Alash press on the dark desk. */
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 104px var(--gutter, 24px) 80px;
+}
+.sheet {
+  --paper: #efe5cc;
+  --paper-2: #e4d5b0;
+  --ink: #1d1712;
+  --dim: #5b4c3c;
+  --red: #a8281e;
+  --gold: #b8913c;
+  padding: 28px 36px 24px;
+  color: var(--ink);
+  background:
+    radial-gradient(120% 60% at 10% 0%, rgb(255 255 255 / 0.35), transparent 60%),
+    repeating-linear-gradient(0deg, rgb(29 23 18 / 0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--paper), var(--paper-2));
+  box-shadow: 0 40px 90px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(29 23 18 / 0.3);
+  font-family: var(--font-serif);
+}
+
+/* ---------- masthead ---------- */
+.mast {
+  text-align: center;
+}
+.dateline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-top: 3px double var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+.title {
+  margin: 14px 0 2px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(40px, 7vw, 92px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+.rule {
+  display: block;
+  width: min(420px, 80%);
+  height: 24px;
+  margin: 4px auto 14px;
+  color: var(--red);
+}
+
+/* ---------- three columns with column rules ---------- */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr);
+  border-top: 2px solid var(--ink);
+}
+.columns > * {
+  padding: 18px 20px 10px;
+}
+.columns > * + * {
+  border-left: 1px solid rgb(29 23 18 / 0.35);
+}
+.kicker {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 3px 12px 3px 8px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f3e9d2;
+  background: var(--red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+.columns h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.1;
+}
+.lead p,
+.fact p {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.55;
+  text-align: left;
+}
+.dropcap::first-letter {
+  float: left;
+  margin: 5px 8px 0 0;
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 0.8;
+  color: var(--red);
+}
+.more,
+.fact a,
+.learn a {
+  color: var(--red);
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+
+/* ---------- the crossword ---------- */
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  min-height: 34px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: var(--dim);
+}
+.hints {
+  font-size: 13px;
+}
+.stamp {
+  display: inline-block;
+  padding: 4px 14px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--red);
+  border: 3px double var(--red);
+  transform: rotate(-4deg);
+}
+.gridWrap {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.grid {
+  display: grid;
+  gap: 2px;
+  padding: 2px;
+  background: var(--ink);
+}
+.block {
+  aspect-ratio: 1;
+  background: var(--ink);
+}
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  background: #fbf6e8;
+}
+.cell i {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  font-style: normal;
+  font-size: clamp(7px, 1.4vw, 10px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--dim);
+  pointer-events: none;
+}
+.cell input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font: 700 clamp(14px, 2.6vw, 22px) / 1 var(--font-serif);
+  color: var(--ink);
+  caret-color: transparent;
+  cursor: pointer;
+}
+.cell input:focus {
+  outline: none;
+}
+.cell[data-word="true"] {
+  background: #f3dca0;
+}
+.cell[data-at="true"] {
+  background: #e7b84c;
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.cell[data-wrong="true"] input {
+  color: var(--red);
+  text-decoration: line-through;
+}
+.now {
+  max-width: 520px;
+  margin: 10px auto 0;
+  padding: 8px 12px;
+  font-size: 15px;
+  line-height: 1.45;
+  background: rgb(29 23 18 / 0.06);
+  border-left: 4px solid var(--red);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 6px;
+}
+.actions button {
+  min-height: 40px;
+  padding: 8px 16px;
+  font: 700 14px var(--font-serif);
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.actions button:first-child {
+  color: #f3e9d2;
+  background: var(--red);
+  border-color: var(--red);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.actions button:hover,
+.actions button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.verdict {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 15px;
+}
+.clueCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 14px;
+  border-top: 1px solid rgb(29 23 18 / 0.35);
+}
+.clues h3 {
+  margin: 12px 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.clues ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.clues button {
+  display: block;
+  width: 100%;
+  padding: 5px 6px;
+  font: 15px/1.4 var(--font-serif);
+  color: var(--ink);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.clues li[data-current="true"] button {
+  background: #f3dca0;
+}
+.clues li[data-done="true"] button {
+  color: var(--dim);
+  text-decoration: line-through;
+  text-decoration-color: var(--red);
+}
+.len {
+  color: var(--dim);
+  font-size: 13px;
+}
+.learn {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ---------- facts ---------- */
+.fact {
+  padding: 12px 0;
+  border-bottom: 1px dashed rgb(29 23 18 / 0.35);
+}
+.fact b {
+  display: block;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--red);
+}
+.fact p {
+  margin: 6px 0;
+  text-align: left;
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 8px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-top: 3px double var(--ink);
+}
+
+@media (max-width: 1050px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .puzzle {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    border-left: 0 !important;
+    border-bottom: 1px solid rgb(29 23 18 / 0.35);
+  }
+}
+@media (max-width: 640px) {
+  .page {
+    padding: 124px 8px 48px;
+  }
+  .sheet {
+    padding: 16px 12px;
+  }
+  .dateline {
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .columns > * {
+    padding: 14px 4px;
+  }
+  .columns > * + * {
+    border-left: 0;
+    border-top: 1px solid rgb(29 23 18 / 0.35);
+  }
+  .clueCols {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .foot {
+    flex-direction: column;
+  }
+}
+
+/* the issue prints as a real page: ink on paper, no screen chrome */
+@media print {
+  .page {
+    padding: 0;
+    max-width: none;
+  }
+  .sheet {
+    box-shadow: none;
+    background: #fff;
+  }
+  .actions,
+  .status,
+  .now,
+  .more,
+  .fact a {
+    display: none;
+  }
+  .cell,
+  .cell[data-word="true"],
+  .cell[data-at="true"] {
+    background: #fff;
+    box-shadow: none;
+  }
+  .clues li[data-current="true"] button {
+    background: none;
+  }
+}
