@@ -30,6 +30,19 @@ export interface QuizQuestion {
   wrongHint?: string;
 }
 
+/**
+ * Predict, observe, explain: a question asked before the experiment. The
+ * learner commits to a guess; the answer is revealed only once the step's
+ * objectives are done, i.e. after they have seen it happen. Never graded.
+ */
+export interface Prediction {
+  question: string;
+  options: string[];
+  answer: number;
+  /** Why it happens: shown with the reveal. */
+  explain: string;
+}
+
 export interface LessonStep<S, A = unknown> {
   id: string;
   title: string;
@@ -41,6 +54,8 @@ export interface LessonStep<S, A = unknown> {
   objectives: Objective<S>[];
   quiz?: QuizQuestion[];
   hints?: string[];
+  /** Asked before the experiment, revealed after it (see Prediction). */
+  predict?: Prediction;
   /** Scene anchor id the camera should focus on for this step. */
   focus?: string;
   /** Actions dispatched when the step is entered (e.g. load a dataset). */
@@ -65,6 +80,8 @@ export interface LessonProgress {
   completed: Record<string, string[]>;
   /** Question ids answered correctly per step id. */
   answers?: Record<string, string[]>;
+  /** The option chosen for each step's prediction, before the experiment. */
+  predictions?: Record<string, number>;
   completedAt?: number;
   startedAt: number;
   updatedAt: number;
@@ -75,6 +92,7 @@ export interface StepContent {
   body?: string;
   quiz?: QuizQuestion[];
   hints?: string[];
+  predict?: Prediction;
 }
 
 /**
@@ -90,7 +108,7 @@ export function withContent<S, A>(lesson: LessonDefinition<S, A>, content: Recor
     steps: lesson.steps.map((s) => {
       const c = content[s.id];
       if (!c) return s;
-      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints };
+      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict };
     }),
   };
 }

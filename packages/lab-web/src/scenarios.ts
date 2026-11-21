@@ -60,12 +60,14 @@ export function scenario(id: ScenarioId): World {
     latency: 40,
     maxAge: 0,
     token: "secret-123",
+    adminToken: "admin-777",
     routes: [
       route({ method: "GET", path: "/api/hello", kind: "json", body: '{"message":"Сәлем!"}' }),
       route({ method: "GET", path: "/api/users", kind: "sql", body: "SELECT * FROM users" }),
       route({ method: "GET", path: "/api/users/:id", kind: "sql", body: "SELECT * FROM users WHERE id = :id" }),
       route({ method: "POST", path: "/api/users", kind: "sql", body: "INSERT INTO users (name, city) VALUES (:body_name, :body_city)" }),
       route({ method: "GET", path: "/api/secret", kind: "json", body: '{"plan":"premium"}', requiresAuth: true }),
+      route({ method: "GET", path: "/api/admin/stats", kind: "json", body: '{"report":"weekly","signups":42}', requiresAuth: true, adminOnly: true }),
     ],
   };
   const world: World = {

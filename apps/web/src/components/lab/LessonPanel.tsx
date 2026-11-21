@@ -18,6 +18,7 @@ interface Props {
   onGoTo(i: number): void;
   onRestart(): void;
   onAnswer(questionId: string, option: number): AnswerResult;
+  onPredict?(option: number): void;
   nextLessonHref?: string;
   labHref?: string;
   /** Which lab this is, for the emblem behind the 3D lecture. */
@@ -59,7 +60,44 @@ function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] })
   );
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
+/** Predict, observe, explain: commit to a guess, run the experiment, then see how the guess fared. */
+function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPredict?(o: number): void }) {
+  const revealed = p.answer !== undefined;
+  const right = revealed && p.chosen === p.answer;
+  return (
+    <section className={styles.predict} aria-labelledby="predict-title" data-state={revealed ? (right ? "right" : "wrong") : p.chosen !== undefined ? "waiting" : "open"}>
+      <p id="predict-title" className={styles.predictKicker}>
+        Алдымен болжа
+      </p>
+      <p className={styles.predictQ}>{p.question}</p>
+      <div className={styles.predictOptions} role="group" aria-label="Болжам">
+        {p.options.map((o, i) => (
+          <button
+            key={o}
+            type="button"
+            aria-pressed={p.chosen === i}
+            disabled={p.chosen !== undefined}
+            data-answer={revealed && i === p.answer ? "true" : undefined}
+            onClick={() => onPredict?.(i)}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+      <p className={styles.predictNote} role="status">
+        {p.chosen === undefined
+          ? "Тәжірибеге дейін таңда. Баға қойылмайды: мақсат сенің ойыңды тексеру."
+          : !revealed
+            ? "Болжамың жазылды. Енді тапсырманы орында да, не болатынын өз көзіңмен көр."
+            : right
+              ? `Болжамың расталды. ${p.explain}`
+              : `Тәжірибе басқаша көрсетті. ${p.explain}`}
+      </p>
+    </section>
+  );
+}
+
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
   const [cinema, setCinema] = useState(false);
   const [reward, setReward] = useState(false);
@@ -105,6 +143,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
       <button type="button" className={styles.cinemaBtn} onClick={() => setCinema(true)}>
         Түсіндірмені 3D-де оқу
       </button>
+      {step.predict && <Predict key={step.id} p={step.predict} onPredict={onPredict} />}
       <Prose text={step.body} />
       {cinema && (
         <LectureCinema

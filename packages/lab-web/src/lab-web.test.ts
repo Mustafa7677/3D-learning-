@@ -154,6 +154,34 @@ const SHOP = "93.184.10.5";
 const MINE = "93.184.10.9";
 
 const scripts: Record<string, Record<string, (d: D, s: () => WebLabState, tick: (n: number) => void) => void>> = {
+  "web-10-cache": {
+    maxage: (d, _s, t) => {
+      send(d, t);
+      send(d, t);
+    },
+    etag: (d, _s, t) => {
+      d({ type: "server/set", ip: SITE, patch: { etag: true } });
+      d({ type: "clock/advance", ms: 60_000 });
+      send(d, t);
+    },
+  },
+  "web-11-roles": {
+    who: (d, _s, t) => send(d, t),
+    may: (d, _s, t) => {
+      send(d, t, { token: "secret-123" });
+      send(d, t, { token: "admin-777" });
+    },
+  },
+  "web-12-idempotency": {
+    post: (d, _s, t) => {
+      send(d, t);
+      send(d, t);
+    },
+    put: (d, _s, t) => {
+      send(d, t);
+      send(d, t);
+    },
+  },
   "web-1-internet": {
     journey: (d, _s, t) => send(d, t),
     "dns-cache": (d, _s, t) => send(d, t),

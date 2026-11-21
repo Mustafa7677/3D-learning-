@@ -1406,3 +1406,71 @@ div.walkSteps {
     max-width: calc(100% - 28px);
   }
 }
+
+/* ---- predict, observe, explain: a card on the printed sheet ---- */
+.predict {
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border: 2px solid var(--alash-ink, #1d1712);
+  background: rgb(255 255 255 / 0.45);
+  box-shadow: 4px 4px 0 var(--alash-gold, #c9a24a);
+}
+.predict[data-state="right"] {
+  box-shadow: 4px 4px 0 #2b6e46;
+}
+.predict[data-state="wrong"] {
+  box-shadow: 4px 4px 0 var(--alash-red, #a8281e);
+}
+.predictKicker {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 2px 10px 2px 8px;
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f3e9d2;
+  background: var(--alash-red, #a8281e);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+.predictQ {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.4;
+}
+.predictOptions {
+  display: grid;
+  gap: 6px;
+}
+.predictOptions button {
+  min-height: 40px;
+  padding: 8px 12px;
+  font: 15px/1.35 var(--font-serif);
+  text-align: left;
+  color: var(--alash-ink, #1d1712);
+  background: transparent;
+  border: 1.5px solid rgb(29 23 18 / 0.45);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.predictOptions button[aria-pressed="true"] {
+  color: #f3e9d2;
+  background: var(--alash-ink, #1d1712);
+  border-color: var(--alash-ink, #1d1712);
+}
+.predictOptions button[data-answer="true"] {
+  border: 2px solid #2b6e46;
+  box-shadow: inset 4px 0 0 #2b6e46;
+}
+.predictOptions button:disabled {
+  cursor: default;
+}
+.predictNote {
+  margin: 10px 0 0;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.5;
+}

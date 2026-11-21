@@ -17,6 +17,8 @@ export interface Route {
   /** html / json body, or SQL text for kind = "sql" (may use :params and :body_* fields). */
   body: string;
   requiresAuth: boolean;
+  /** Only the admin token may call it: a valid ordinary token gets 403. */
+  adminOnly?: boolean;
 }
 
 export interface Server {
@@ -31,6 +33,10 @@ export interface Server {
   routes: Route[];
   /** Valid bearer token for routes that require auth. */
   token: string;
+  /** A second token that also passes admin-only routes. */
+  adminToken?: string;
+  /** Answer conditional GETs: a cached copy that is still current gets 304 with no body. */
+  etag?: boolean;
 }
 
 export interface DnsRecord {
@@ -103,6 +109,7 @@ export const STATUS_TEXT: Record<number, string> = {
   304: "Not Modified",
   400: "Bad Request",
   401: "Unauthorized",
+  403: "Forbidden",
   404: "Not Found",
   500: "Internal Server Error",
   502: "Bad Gateway",
@@ -159,9 +166,11 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
   add({ kind: "url", from: "browser", to: "browser", dur: 2, title: "URL талдау", detail: url ? `${url.protocol}://${url.host} + ${url.path}` : "URL дұрыс емес", ok: !!url });
   if (!url) return finish(0, "", "text", world, { error: "URL дұрыс емес. Мысал: https://inside.kz/" });
 
-  // Browser cache (GET only)
+  // Browser cache (GET only). An expired copy is kept to ask the server "has it changed?".
+  let conditional: CacheEntry | undefined;
   if (req.method === "GET") {
     const hit = world.cache.find((c) => c.url === req.url && c.expiresAt > world.clock);
+    conditional = hit ? undefined : world.cache.find((c) => c.url === req.url);
     if (hit) {
       add({ kind: "cache", from: "browser", to: "browser", dur: 1, title: "Браузер кэші", detail: `Кэште бар (тағы ${Math.round((hit.expiresAt - world.clock) / 1000)} с жарамды): серверге бармаймыз`, ok: true });
       add({ kind: "render", from: "browser", to: "browser", dur: 8, title: "Көрсету", detail: "Кэштегі нұсқа көрсетілді", ok: true });
@@ -216,7 +225,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
     to: "server",
     dur: lat,
     title: `HTTP ${req.method}`,
-    detail: `${req.method} ${url.path}${req.token ? " + Authorization" : ""}${bodyText ? ` (${bodyText})` : ""}`,
+    detail: `${req.method} ${url.path}${req.token ? " + Authorization" : ""}${conditional ? ` + If-None-Match: "v${conditional.version}"` : ""}${bodyText ? ` (${bodyText})` : ""}`,
     ok: true,
   });
 
@@ -239,8 +248,22 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
   const { route, params } = match;
   add({ kind: "route", from: "server", to: "server", dur: 2, title: "Маршрут", detail: `${route.method} ${route.path} табылды${Object.keys(params).length ? ` (${Object.entries(params).map(([k, v]) => `${k}=${v}`).join(", ")})` : ""}`, ok: true });
 
-  if (route.requiresAuth && req.token !== server.token) {
+  const isAdmin = !!server.adminToken && req.token === server.adminToken;
+  const known = req.token === server.token || isAdmin;
+  if ((route.requiresAuth || route.adminOnly) && !known) {
+    // 401: we do not know who you are.
     return respond(401, '{"error":"unauthorized"}', "json", req.token ? "Token дұрыс емес" : "Authorization жоқ");
+  }
+  if (route.adminOnly && !isAdmin) {
+    // 403: we know who you are, and you may not.
+    return respond(403, '{"error":"forbidden"}', "json", "Token дұрыс, бірақ бұл маршрут тек әкімшіге");
+  }
+  // A conditional GET for a copy that is still current: 304, no body, the browser reuses its copy.
+  if (conditional && server.etag && conditional.version === world.deployVersion && route.kind !== "crash") {
+    add({ kind: "response", from: "server", to: "browser", dur: lat, title: "304 Not Modified", detail: `ETag "v${conditional.version}" сәйкес: дене жіберілмеді, кэштегі көшірме жарамды`, ok: true });
+    add({ kind: "render", from: "browser", to: "browser", dur: 8, title: "Көрсету", detail: "Кэштегі нұсқа көрсетілді", ok: true });
+    const refreshed: CacheEntry = { ...conditional, expiresAt: world.clock + t + server.maxAge * 1000 };
+    return finish(304, conditional.body, conditional.contentType, { ...w, cache: [...w.cache.filter((c) => c.url !== req.url), refreshed] });
   }
   if (route.kind === "crash") {
     add({ kind: "route", from: "server", to: "server", dur: 3, title: "Код қатесі", detail: "TypeError: Cannot read properties of undefined", ok: false });

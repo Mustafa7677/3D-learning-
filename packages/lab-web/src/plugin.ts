@@ -78,6 +78,8 @@ export interface WebStats {
   staleSeen: boolean;
   freshAfterStale: boolean;
   latencyChanged: boolean;
+  /** Finished requests by "METHOD status", e.g. "PUT 200": what idempotency is about. */
+  calls: Record<string, number>;
 }
 
 export interface WebLabState {
@@ -106,7 +108,7 @@ export type WebLabAction =
   | { type: "speed/set"; speed: number }
   | { type: "dns/set"; name: string; ip: string }
   | { type: "dns/remove"; name: string }
-  | { type: "server/set"; ip: string; patch: Partial<Pick<Server, "up" | "https" | "latency" | "maxAge">> }
+  | { type: "server/set"; ip: string; patch: Partial<Pick<Server, "up" | "https" | "latency" | "maxAge" | "etag">> }
   | { type: "route/add"; ip: string; route: Omit<Route, "id"> }
   | { type: "route/update"; ip: string; id: number; patch: Partial<Omit<Route, "id">> }
   | { type: "route/remove"; ip: string; id: number }
@@ -155,6 +157,7 @@ const emptyStats = (): WebStats => ({
   staleSeen: false,
   freshAfterStale: false,
   latencyChanged: false,
+  calls: {},
 });
 
 export function initialWebState(_seed: number): WebLabState {
@@ -237,6 +240,8 @@ function finishTrace(s: WebLabState): WebLabState {
   const st = { ...s.stats };
   st.requests++;
   st.statuses = { ...st.statuses, [res.status]: (st.statuses[res.status] ?? 0) + 1 };
+  const call = `${tr.spec.method} ${res.status}`;
+  st.calls = { ...(st.calls ?? {}), [call]: ((st.calls ?? {})[call] ?? 0) + 1 };
   st.stageKinds = [...new Set([...st.stageKinds, ...tr.stages.filter((x) => x.ok).map((x) => x.kind)])];
   if (url?.protocol === "https" && !res.fromCache && res.status > 0) st.httpsRequests++;
   if (url?.protocol === "http" && !res.fromCache && res.status > 0) st.httpRequests++;
@@ -272,6 +277,7 @@ function sanitizeRoute(r: Partial<Omit<Route, "id">>): Partial<Omit<Route, "id">
   if (r.kind && ["html", "json", "sql", "crash"].includes(r.kind)) out.kind = r.kind;
   if (typeof r.body === "string") out.body = r.body.slice(0, MAX_HTML);
   if (typeof r.requiresAuth === "boolean") out.requiresAuth = r.requiresAuth;
+  if (typeof r.adminOnly === "boolean") out.adminOnly = r.adminOnly;
   return out;
 }
 
@@ -339,6 +345,7 @@ function reduce(s: WebLabState, a: WebLabAction): WebLabState {
           ...(a.patch.https !== undefined ? { https: a.patch.https } : {}),
           ...(a.patch.latency !== undefined ? { latency: clamp(a.patch.latency, 1, 1000) } : {}),
           ...(a.patch.maxAge !== undefined ? { maxAge: clamp(a.patch.maxAge, 0, 3600) } : {}),
+          ...(a.patch.etag !== undefined ? { etag: !!a.patch.etag } : {}),
         })),
         stats: { ...s.stats, latencyChanged: s.stats.latencyChanged || a.patch.latency !== undefined },
       };

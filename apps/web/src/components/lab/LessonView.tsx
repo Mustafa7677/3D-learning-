@@ -79,6 +79,9 @@ const WEB_SECTIONS: Record<string, WebSection[]> = {
   "web-7-debug": ["request", "dns", "routes", "sql"],
   "web-8-deploy": ["html", "deploy", "request", "dns", "cache"],
   "web-9-pset": ["sql", "request", "routes", "loop"],
+  "web-10-cache": ["request", "cache"],
+  "web-11-roles": ["request", "routes"],
+  "web-12-idempotency": ["request", "routes"],
 };
 
 const GAME_SECTIONS: Record<string, GameSection[]> = {

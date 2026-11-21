@@ -350,6 +350,9 @@ function CacheSection({ state, dispatch }: { state: WebLabState; dispatch: D }) 
           ))}
         </ul>
       )}
+      <label className={styles.row}>
+        <input type="checkbox" checked={!!mine.etag} onChange={(e) => dispatch({ type: "server/set", ip: mine.ip, patch: { etag: e.target.checked } })} /> {mine.host}: ETag (304 жауабы)
+      </label>
       <Range id="max-age" label={`${mine.host}: Cache-Control max-age`} value={mine.maxAge} min={0} max={300} step={10} fmt={(v) => `${v} с`} onChange={(v) => dispatch({ type: "server/set", ip: mine.ip, patch: { maxAge: v } })} />
       <div className={styles.row}>
         <button type="button" className="btn" onClick={() => dispatch({ type: "cache/clear" })}>

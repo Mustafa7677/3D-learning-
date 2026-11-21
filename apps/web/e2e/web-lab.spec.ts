@@ -16,10 +16,60 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("web lab page lists eight lessons and the problem set", async ({ page }) => {
+test("web lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/web");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Web Development");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+});
+
+test("predict, observe, explain: the guess is locked, then revealed after the experiment", async ({ page }) => {
+  await page.goto("/labs/web/web-10-cache");
+  const card = page.getByRole("region", { name: "Алдымен болжа" });
+  await expect(card).toContainText("max-age=60");
+  // A wrong guess on purpose: the server sends the page again.
+  await card.getByRole("button", { name: /Сервер бетті қайта жібереді/ }).click();
+  await expect(card.getByRole("button", { name: /Браузер оны кэштен алады/ })).toBeDisabled();
+  await expect(card.getByRole("status")).toContainText("Болжамың жазылды");
+  await send(page);
+  await expect(page.locator("text=200 OK").first()).toBeVisible({ timeout: 10_000 });
+  await send(page);
+  await expect(objective(page, "кэштен ашылады")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await expect(card.getByRole("status")).toContainText("Тәжірибе басқаша көрсетті");
+  await expect(card.getByRole("button", { name: /Браузер оны кэштен алады/ })).toHaveAttribute("data-answer", "true");
+  // The guess survives a reload.
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Алдымен болжа" }).getByRole("button", { name: /Сервер бетті қайта жібереді/ })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("Middle 10: an expired copy comes back as 304 Not Modified with ETag", async ({ page }) => {
+  await page.goto("/labs/web/web-10-cache");
+  await page.getByRole("region", { name: "Алдымен болжа" }).getByRole("button").first().click();
+  await send(page);
+  await expect(page.locator("text=200 OK").first()).toBeVisible({ timeout: 10_000 });
+  await send(page);
+  await expect(objective(page, "кэштен ашылады")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await nextStep(page);
+  await page.getByLabel(/ETag \(304 жауабы\)/).click();
+  await expect(objective(page, "ETag-ті қос")).toHaveAttribute("data-done", "true");
+  await page.getByRole("button", { name: "Уақыт +60 с" }).click();
+  await send(page);
+  await expect(page.locator("text=304 Not Modified").first()).toBeVisible({ timeout: 10_000 });
+  await expect(objective(page, "304 Not Modified келеді")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+});
+
+test("Middle 11: 401 without a token, 403 with a user's, 200 with the admin's", async ({ page }) => {
+  await page.goto("/labs/web/web-11-roles");
+  await send(page);
+  await expect(objective(page, "401 Unauthorized")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await nextStep(page);
+  await page.getByLabel("Authorization: Bearer (token)").fill("secret-123");
+  await page.getByLabel("Authorization: Bearer (token)").blur();
+  await send(page);
+  await expect(objective(page, "403 Forbidden")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await page.getByLabel("Authorization: Bearer (token)").fill("admin-777");
+  await page.getByLabel("Authorization: Bearer (token)").blur();
+  await send(page);
+  await expect(objective(page, "200 OK")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
 });
 
 test("lesson 1: a request travels DNS → TCP → TLS → HTTP and returns 200", async ({ page }) => {

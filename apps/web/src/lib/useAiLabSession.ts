@@ -21,6 +21,8 @@ export interface LabSession<S, A> {
   goTo(index: number): void;
   restartStep(): void;
   answer(questionId: string, option: number): AnswerResult;
+  /** Commit to the step's prediction before the experiment. */
+  predict(option: number): void;
 }
 
 /**
@@ -147,8 +149,16 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
     return r;
   }, []);
 
+  const predict = useCallback((option: number) => {
+    const eng = engine.current;
+    // Saved with the lesson's progress; not sent to the session log, whose event types the API fixes.
+    if (!eng || !eng.predict(option)) return;
+    setStep(eng.view());
+  }, []);
+
   return {
     answer,
+    predict,
     ready: !!snap && !!step,
     state: snap?.state,
     assessment: snap?.assessment,

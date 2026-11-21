@@ -34,9 +34,20 @@ export interface StepView {
   focus?: string;
   objectives: ObjectiveView[];
   quiz: QuizView[];
+  /** The step's prediction: the answer and why only once the objectives are done. */
+  predict?: PredictionView;
   complete: boolean;
   isLast: boolean;
   lessonComplete: boolean;
+}
+
+export interface PredictionView {
+  question: string;
+  options: string[];
+  chosen?: number;
+  /** Present only after the experiment (all objectives done) and a choice was made. */
+  answer?: number;
+  explain?: string;
 }
 
 export interface AnswerResult {
@@ -119,6 +130,17 @@ export class LessonEngine<S, A = unknown> {
     return { correct: true, feedback: q.explain };
   }
 
+  /** Commit to a prediction for the current step. The first choice stands. Returns false if there is none or it was already made. */
+  predict(option: number): boolean {
+    const step = this.step;
+    const p = step.predict;
+    if (!p || !Number.isInteger(option) || option < 0 || option >= p.options.length) return false;
+    if (this.progress.predictions?.[step.id] !== undefined) return false;
+    this.progress.predictions = { ...(this.progress.predictions ?? {}), [step.id]: option };
+    this.afterChange();
+    return true;
+  }
+
   isStepComplete(index = this.progress.stepIndex): boolean {
     const step = this.lesson.steps[index];
     if (!step) return false;
@@ -171,10 +193,17 @@ export class LessonEngine<S, A = unknown> {
         done: done.has(o.id) && ((o.sticky ?? true) || this.live.has(o.id)),
       })),
       quiz: (step.quiz ?? []).map((q) => ({ id: q.id, question: q.question, options: q.options, answered: answered.has(q.id), explain: answered.has(q.id) ? q.explain : undefined })),
+      predict: step.predict && this.predictionView(step.id, step.predict, step.objectives.every((o) => done.has(o.id))),
       complete: this.isStepComplete(),
       isLast: this.isLastStep(),
       lessonComplete: this.isLessonComplete(),
     };
+  }
+
+  private predictionView(stepId: string, p: NonNullable<LessonStep<S, A>["predict"]>, observed: boolean): PredictionView {
+    const chosen = this.progress.predictions?.[stepId];
+    const reveal = observed && chosen !== undefined;
+    return { question: p.question, options: p.options, chosen, answer: reveal ? p.answer : undefined, explain: reveal ? p.explain : undefined };
   }
 
   /** Fraction of all objectives and questions in the lesson completed (0..1). */

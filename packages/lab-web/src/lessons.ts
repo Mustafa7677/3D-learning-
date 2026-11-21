@@ -1,3 +1,4 @@
+import { lessonCache, lessonIdempotency, lessonRoles, webMiddleContent } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { webContent } from "./content";
 import { findAll, parseHtml, textContent } from "./html";
@@ -436,4 +437,18 @@ export const lessonDeploy: L = {
 };
 
 /** Lessons with their lecture text and concept checks merged in. */
-export const webLessons: L[] = [lessonInternet, lessonHtml, lessonCss, lessonJs, lessonBackend, lessonDb, lessonDebug, lessonDeploy, lessonPsetWeb].map((l) => withDeepDives(withContent(l, webContent[l.id] ?? {}), webDeepDives[l.id] ?? {}));
+export const webLessons: L[] = [
+  lessonInternet,
+  lessonHtml,
+  lessonCss,
+  lessonJs,
+  lessonBackend,
+  lessonDb,
+  lessonDebug,
+  lessonDeploy,
+  lessonPsetWeb,
+  // Middle level
+  lessonCache,
+  lessonRoles,
+  lessonIdempotency,
+].map((l) => withDeepDives(withContent(l, webContent[l.id] ?? webMiddleContent[l.id] ?? {}), webDeepDives[l.id] ?? {}));
