@@ -4,8 +4,10 @@ import { answerQuiz, nextStep } from "./helpers";
 const objective = (page: Page, text: string) => page.locator("li[data-done]", { hasText: text });
 const send = async (page: Page) => {
   await page.getByRole("button", { name: "Жіберу" }).click();
+  // "Соңына өту" shows only while a trace runs and vanishes when it ends, which can
+  // happen between the check and the click: never wait the default 30 s for it.
   const skip = page.getByRole("button", { name: "Соңына өту" });
-  if (await skip.isVisible().catch(() => false)) await skip.click().catch(() => {});
+  if (await skip.isVisible().catch(() => false)) await skip.click({ timeout: 1000 }).catch(() => {});
 };
 
 test.beforeEach(async ({ page }) => {
@@ -24,7 +26,9 @@ test("lesson 1: a request travels DNS → TCP → TLS → HTTP and returns 200",
   await page.goto("/labs/web/web-1-internet");
   await send(page);
   await expect(page.locator("text=200 OK").first()).toBeVisible({ timeout: 10_000 });
-  await expect(objective(page, "200 OK")).toHaveAttribute("data-done", "true");
+  // The log shows 200 OK when the response arrives; the objectives are graded when the
+  // whole trace (render included) has finished, which can take a few more seconds under load.
+  await expect(objective(page, "200 OK")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
   await expect(objective(page, "DNS, TCP және TLS")).toHaveAttribute("data-done", "true");
   await expect(page.locator('ol[aria-label="Сұрау кезеңдері"] li')).toHaveCount(12);
 });
