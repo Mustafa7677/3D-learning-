@@ -271,7 +271,9 @@ export function Gazette() {
           </div>
           <footer className={styles.foot}>
             <span>INSIDE TECH · Технологияны ішінен үйрену</span>
-            <span>Келесі нөмірде: «Қара жәшік» ішінде не бар?</span>
+            <Link href="/comic" className={styles.next}>
+              Жаңа комикс: «Үш қол алысу» →
+            </Link>
           </footer>
         </article>
       </main>

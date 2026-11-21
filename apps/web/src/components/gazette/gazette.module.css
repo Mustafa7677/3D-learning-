@@ -375,3 +375,8 @@
     background: none;
   }
 }
+
+.next {
+  color: var(--red);
+  font-weight: 700;
+}
