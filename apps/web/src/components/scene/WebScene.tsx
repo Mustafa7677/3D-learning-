@@ -17,6 +17,10 @@ import {
 } from "@inside-tech/lab-web";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
+import { WebNetworkStage } from "./WebNetworkStage";
+import { Dust, FilmFx } from "../film/Fx";
+import { QUALITY, useQuality } from "@/lib/quality";
 import { C0, C1 } from "./palette";
 
 export type WebFocus = "network" | "dom" | "box" | "flex" | "loop" | "db";
@@ -41,84 +45,6 @@ const NODES: Record<NodeId, { pos: [number, number, number]; label: string; colo
   server: { pos: [2.4, 0.6, 0], label: "Сервер", color: INK },
   db: { pos: [4.6, 0.6, -2.2], label: "Дерекқор", color: C1 },
 };
-
-function Edge({ a, b }: { a: NodeId; b: NodeId }) {
-  const geom = useMemo(() => {
-    const g = new BufferGeometry();
-    g.setAttribute("position", new BufferAttribute(new Float32Array([...NODES[a].pos, ...NODES[b].pos]), 3));
-    return g;
-  }, [a, b]);
-  return (
-    <lineSegments geometry={geom}>
-      <lineBasicMaterial color={MUTED} />
-    </lineSegments>
-  );
-}
-
-function Packet({ state }: { state: WebLabState }) {
-  const ref = useRef<Mesh>(null);
-  const tr = state.trace;
-  const at = tr ? traceProgress(tr) : undefined;
-  const stage = tr && at ? tr.stages[at.index] : undefined;
-
-  useFrame(({ clock }) => {
-    const m = ref.current;
-    if (!m || !stage || !at) return;
-    const from = NODES[stage.from].pos;
-    const to = NODES[stage.to].pos;
-    if (stage.from === stage.to) {
-      const pulse = 1 + 0.25 * Math.sin(clock.elapsedTime * 10);
-      m.position.set(from[0], from[1] + 1.1, from[2]);
-      m.scale.setScalar(pulse);
-    } else {
-      const k = at.progress;
-      m.position.set(from[0] + (to[0] - from[0]) * k, from[1] + (to[1] - from[1]) * k + Math.sin(Math.PI * k) * 0.6, from[2] + (to[2] - from[2]) * k);
-      m.scale.setScalar(1);
-    }
-  });
-
-  if (!tr || !stage) return null;
-  const color = !stage.ok ? RED : stage.kind === "response" || stage.kind === "render" ? C1 : C0;
-  const done = tr.done;
-  return (
-    <group>
-      {!done && (
-        <mesh ref={ref}>
-          <sphereGeometry args={[0.18, 20, 14]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
-        </mesh>
-      )}
-      <Label text={done ? (tr.response.status ? `${tr.response.status} · ${Math.round(tr.response.ms)} мс` : "Қате") : stage.title} position={[0, 4.1, 0]} size={0.48} />
-    </group>
-  );
-}
-
-function NetworkView({ state }: { state: WebLabState }) {
-  const active = state.trace && !state.trace.done ? state.trace.stages[traceProgress(state.trace).index] : undefined;
-  const serverUp = state.world.servers.every((s) => s.up);
-  return (
-    <group>
-      <Edge a="browser" b="dns" />
-      <Edge a="browser" b="server" />
-      <Edge a="server" b="db" />
-      {(Object.keys(NODES) as NodeId[]).map((id) => {
-        const n = NODES[id];
-        const lit = active && (active.from === id || active.to === id);
-        const color = id === "server" && !serverUp ? RED : n.color;
-        return (
-          <group key={id} position={n.pos}>
-            <mesh>
-              {id === "db" ? <cylinderGeometry args={[0.55, 0.55, 0.9, 28]} /> : <boxGeometry args={[1.1, id === "browser" ? 0.75 : 1.1, 0.8]} />}
-              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={lit ? 0.35 : 0} roughness={0.5} />
-            </mesh>
-            <Label text={n.label} position={[0, 0.95, 0]} size={0.42} />
-          </group>
-        );
-      })}
-      <Packet state={state} />
-    </group>
-  );
-}
 
 // ---------------- DOM tree ----------------
 
@@ -327,7 +253,7 @@ function DbView({ state }: { state: WebLabState }) {
 
 /** Region each view must keep visible (world units), framed for the viewport aspect. */
 const FRAME: Record<WebFocus, { width: number; height: number; target: [number, number, number]; dir: [number, number, number] }> = {
-  network: { width: 11, height: 5, target: [0.2, 1.5, 0], dir: [0, 0.35, 1] },
+  network: { width: 11.5, height: 5.5, target: [0.4, 1, -0.6], dir: [0.15, 0.42, 1] },
   dom: { width: 10, height: 7, target: [0, 0, 0], dir: [0, 0.05, 1] },
   box: { width: 12, height: 6, target: [1.2, 1.4, 0], dir: [0.6, 0.45, 1] },
   flex: { width: 11, height: 6, target: [0, 1.4, 0], dir: [0, 0.2, 1] },
@@ -337,11 +263,21 @@ const FRAME: Record<WebFocus, { width: number; height: number; target: [number, 
 
 export default function WebScene(props: Props) {
   const fr = FRAME[props.focus];
+  const q = QUALITY[useQuality()];
+  const film = props.focus === "network";
   return (
     <Canvas key={props.focus} camera={{ position: [0, 3, 12], fov: 45, near: 0.1, far: 100 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: веб технологиялары">
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[4, 8, 6]} intensity={1.3} />
-      {props.focus === "network" && <NetworkView state={props.state} />}
+      <ambientLight intensity={film ? 0.35 : 0.8} />
+      <directionalLight position={[4, 8, 6]} intensity={film ? 1.1 : 1.3} />
+      {film && (
+        <>
+          <directionalLight position={[-7, 4, -6]} intensity={1.2} color="#c9a24a" />
+          <StageLook shadows={false} />
+          <WebNetworkStage state={props.state} />
+          <Dust count={Math.round(q.dust / 2)} spread={[20, 7, 14]} />
+          <FilmFx bloom={q.bloom} />
+        </>
+      )}
       {props.focus === "dom" && <DomView {...props} />}
       {props.focus === "box" && <BoxView state={props.state} />}
       {props.focus === "flex" && <FlexView state={props.state} />}

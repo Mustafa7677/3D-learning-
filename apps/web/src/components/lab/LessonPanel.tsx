@@ -8,6 +8,7 @@ import { LectureCinema } from "../film/LectureCinema";
 import { Reward } from "../film/Game";
 import { XP_LESSON, announceXp } from "@/lib/xp";
 import styles from "./lab.module.css";
+import { OyuRule } from "./Oyu";
 
 interface Props {
   lessonTitle: string;
@@ -96,6 +97,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
           </li>
         ))}
       </ol>
+      <OyuRule className={styles.rule} />
 
       <h1 id="lesson-step-title" className={styles.stepTitle}>
         {step.title}

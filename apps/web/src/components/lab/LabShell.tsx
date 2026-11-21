@@ -7,6 +7,7 @@ import type { LabSession } from "@/lib/useAiLabSession";
 import { findLab } from "@/lib/catalog";
 import { LessonPanel } from "./LessonPanel";
 import { PlayerBadge } from "../film/PlayerBadge";
+import { StageFrame } from "./StageFrame";
 import styles from "./lab.module.css";
 
 interface Props {
@@ -64,7 +65,10 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
             <p className={styles.small}>Сабақ жүктелуде…</p>
           )}
         </div>
-        <div className={styles.stage}>{stage}</div>
+        <div className={styles.stage}>
+          {stage}
+          {step && <StageFrame shot={step.index + 1} title={step.title} />}
+        </div>
         <div className={styles.right}>{controls}</div>
       </main>
     </div>

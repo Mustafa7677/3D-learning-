@@ -993,3 +993,416 @@ div.walkSteps {
     display: none;
   }
 }
+
+
+/* =====================================================================
+   ALASH EDITION
+   The lesson page as a film set in the spirit of the Alash press:
+   the lesson is a printed sheet (paper, ink, a serif masthead, ram's-horn
+   rules), the controls are a dark instrument panel with gold, the stage
+   is a cinema frame (letterbox, ornament corners, grain, a shot plate),
+   and a poster's red diagonal marks what matters.
+   ===================================================================== */
+.shell {
+  --alash-paper: #efe5cc;
+  --alash-paper-2: #e4d5b0;
+  --alash-ink: #1d1712;
+  --alash-ink-dim: #5b4c3c;
+  --alash-red: #a8281e;
+  --alash-gold: #c9a24a;
+  --alash-night: #0c0f1d;
+  background:
+    radial-gradient(70% 50% at 60% 0%, rgb(201 162 74 / 0.1), transparent 70%),
+    linear-gradient(#0e1120, #0a0c17);
+}
+
+/* masthead bar: ink black, a red tab under the wordmark, a double gold rule */
+.topbar {
+  background: var(--alash-night);
+  backdrop-filter: none;
+  border-bottom: 0;
+  box-shadow: 0 1px 0 var(--alash-gold), 0 4px 0 -1px var(--alash-night), 0 4px 0 0 rgb(201 162 74 / 0.45);
+}
+.topbar::after {
+  display: none;
+}
+.brand {
+  position: relative;
+  padding: 6px 12px;
+  color: #f6ecd4;
+  background: var(--alash-red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.topbar nav {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: #c9bfa8;
+}
+.topbar nav [aria-current] {
+  color: #f6ecd4;
+  font-weight: 700;
+}
+.progress span {
+  background: linear-gradient(90deg, var(--alash-red), var(--alash-gold));
+  box-shadow: 0 0 10px rgb(201 162 74 / 0.6);
+}
+
+/* the lesson: a printed sheet. No glass here: it would also trap fixed overlays. */
+.left {
+  --ink: var(--alash-ink);
+  --muted: var(--alash-ink-dim);
+  --line: rgb(29 23 18 / 0.22);
+  --panel: var(--alash-paper);
+  --panel-2: #e8dcbc;
+  --c0: #23409e;
+  --c0-soft: rgb(35 64 158 / 0.1);
+  --c1: var(--alash-red);
+  --c1-soft: rgb(168 40 30 / 0.08);
+  --ok: #2b6e46;
+  --danger: var(--alash-red);
+  --focus: #23409e;
+  color-scheme: light;
+  color: var(--alash-ink);
+  backdrop-filter: none;
+  border-right: 0;
+  box-shadow: inset -10px 0 18px -12px rgb(0 0 0 / 0.5), 6px 0 0 -3px var(--alash-gold);
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgb(255 255 255 / 0.35), transparent 60%),
+    repeating-linear-gradient(0deg, rgb(29 23 18 / 0.018) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--alash-paper), var(--alash-paper-2));
+}
+.lesson {
+  padding: 22px 24px 32px;
+}
+.lessonName {
+  margin: 0 0 12px;
+  padding: 8px 0 7px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--alash-ink);
+  border-top: 3px double var(--alash-ink);
+  border-bottom: 1px solid var(--alash-ink);
+}
+.stepper {
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.stepDot {
+  width: 30px;
+  height: 7px;
+  border-radius: 0;
+  background: rgb(29 23 18 / 0.14);
+  box-shadow: none;
+}
+.stepDot[data-state="done"] {
+  background: var(--alash-ink);
+  box-shadow: none;
+}
+.stepDot[data-state="current"] {
+  background: var(--alash-red);
+  box-shadow: none;
+}
+.rule {
+  display: block;
+  width: 100%;
+  height: 20px;
+  margin: 2px 0 12px;
+  color: var(--alash-red);
+}
+.stepTitle {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(28px, 2.4vw, 36px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--alash-ink);
+}
+.left :global(p),
+.left :global(li) {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.left :global(strong) {
+  color: #000;
+}
+.left :global(code) {
+  background: rgb(29 23 18 / 0.08);
+  color: var(--alash-ink);
+}
+.left :global(pre) {
+  background: rgb(29 23 18 / 0.06);
+  border-left-color: var(--alash-red);
+}
+/* the 3D lecture button: a poster stamp */
+.cinemaBtn {
+  color: #f6ecd4;
+  background: var(--alash-ink);
+  border: 0;
+  border-radius: 2px;
+  box-shadow: 4px 4px 0 var(--alash-red);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+.cinemaBtn:hover,
+.cinemaBtn:focus-visible {
+  background: var(--alash-red);
+  color: #f6ecd4;
+  box-shadow: 4px 4px 0 var(--alash-ink);
+}
+.objHeading {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--alash-ink);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--alash-ink);
+}
+.objHeading::before {
+  background: var(--alash-red);
+  box-shadow: none;
+}
+.objectives li {
+  border-radius: 0;
+  background: rgb(255 255 255 / 0.35);
+  border: 1px solid rgb(29 23 18 / 0.2);
+  border-left: 4px solid var(--alash-ink);
+  box-shadow: none;
+}
+.objectives li[data-done="true"] {
+  border-color: rgb(43 110 70 / 0.45);
+  border-left-color: var(--ok);
+  background: rgb(43 110 70 / 0.08);
+  box-shadow: none;
+}
+.check {
+  border-color: var(--alash-ink-dim);
+  color: #fff;
+}
+.objectives li[data-done="true"] .check {
+  box-shadow: none;
+}
+.quiz {
+  border-radius: 0;
+  background: rgb(255 255 255 / 0.3);
+  border-color: rgb(29 23 18 / 0.25);
+}
+.left :global(.btn) {
+  background: transparent;
+  color: var(--alash-ink);
+  border: 1.5px solid var(--alash-ink);
+  border-radius: 2px;
+  box-shadow: none;
+}
+.left :global(.btn:hover) {
+  background: var(--alash-ink);
+  color: #f6ecd4;
+  box-shadow: none;
+}
+.left :global(.btn-primary) {
+  background: var(--alash-red);
+  color: #f6ecd4;
+  border-color: var(--alash-red);
+  box-shadow: 3px 3px 0 var(--alash-ink);
+}
+.left :global(.btn-primary:hover) {
+  background: #8f1f17;
+  border-color: #8f1f17;
+  box-shadow: 3px 3px 0 var(--alash-ink);
+}
+.left :global(.btn-primary:disabled) {
+  background: transparent;
+  color: var(--alash-ink-dim);
+  border-color: rgb(29 23 18 / 0.3);
+  box-shadow: none;
+}
+
+/* the instrument panel: dark, gold-ruled */
+.right {
+  background: linear-gradient(180deg, #121527, #0d0f1c);
+  backdrop-filter: none;
+  border-left: 0;
+  box-shadow: inset 1px 0 0 rgb(201 162 74 / 0.35);
+}
+.group {
+  border-radius: 4px;
+  border-color: rgb(201 162 74 / 0.28);
+  background: rgb(201 162 74 / 0.035);
+}
+.group legend {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--alash-gold);
+}
+.right :global(.btn-primary) {
+  background: var(--alash-red);
+  color: #f6ecd4;
+  border-color: var(--alash-red);
+  box-shadow: 3px 3px 0 var(--alash-gold);
+}
+.right :global(.btn-primary:hover) {
+  background: #c0352a;
+  border-color: #c0352a;
+}
+.shell input[type="range"] {
+  accent-color: var(--alash-gold);
+}
+
+/* ---------- the stage: a cinema frame ---------- */
+.stage {
+  background: radial-gradient(70% 60% at 50% 40%, #1b2347 0%, #10152c 55%, #080a14 100%);
+}
+.stage::before,
+.stage::after {
+  display: none;
+}
+.frame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* the vignette that makes the scene a shot */
+  background: radial-gradient(120% 90% at 50% 50%, transparent 55%, rgb(5 6 12 / 0.75) 100%);
+}
+.letterTop,
+.letterBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 26px;
+  background: #050609;
+}
+.letterTop {
+  top: 0;
+  box-shadow: 0 1px 0 rgb(201 162 74 / 0.35);
+}
+.letterBottom {
+  bottom: 0;
+  box-shadow: 0 -1px 0 rgb(201 162 74 / 0.35);
+}
+.corner {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  color: var(--alash-gold);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px rgb(201 162 74 / 0.35));
+}
+.cornerTL {
+  left: 12px;
+  top: 36px;
+}
+.cornerTR {
+  right: 12px;
+  top: 36px;
+  transform: scaleX(-1);
+}
+.cornerBL {
+  left: 12px;
+  bottom: 36px;
+  transform: scaleY(-1);
+}
+.cornerBR {
+  right: 12px;
+  bottom: 36px;
+  transform: scale(-1, -1);
+}
+.grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  animation: alash-grain 0.9s steps(4) infinite;
+}
+@keyframes alash-grain {
+  25% {
+    transform: translate(-3%, 2%);
+  }
+  50% {
+    transform: translate(2%, -3%);
+  }
+  75% {
+    transform: translate(-2%, -1%);
+  }
+}
+/* the shot plate: a poster strip with a red diagonal */
+.plate {
+  position: absolute;
+  left: 76px;
+  bottom: 44px;
+  display: flex;
+  align-items: stretch;
+  max-width: calc(100% - 152px);
+  font-size: 13px;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.45);
+}
+.plate b {
+  display: grid;
+  place-items: center;
+  padding: 6px 14px 6px 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: #f6ecd4;
+  background: var(--alash-red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.plate span {
+  padding: 6px 14px 6px 10px;
+  margin-left: -8px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--alash-ink);
+  background: var(--alash-paper);
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%);
+  padding-left: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stageTip {
+  bottom: 44px;
+  z-index: 3;
+  background: var(--alash-paper);
+  color: var(--alash-ink);
+  border-radius: 2px;
+  font-family: var(--font-serif);
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
+}
+@media (max-width: 720px) {
+  .corner {
+    width: 36px;
+    height: 36px;
+  }
+  .letterTop,
+  .letterBottom {
+    height: 14px;
+  }
+  .cornerTL,
+  .cornerTR {
+    top: 22px;
+  }
+  .cornerBL,
+  .cornerBR {
+    bottom: 22px;
+  }
+  .plate {
+    left: 14px;
+    bottom: 28px;
+    max-width: calc(100% - 28px);
+  }
+}
