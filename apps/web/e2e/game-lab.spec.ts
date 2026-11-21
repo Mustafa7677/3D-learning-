@@ -21,7 +21,10 @@ test("lesson 1: selecting and moving a parent object", async ({ page }) => {
   for (const name of ["Машина", "Шырша", "Шам"]) await page.getByRole("button", { name, exact: true }).click();
   await expect(objective(page, "3 түрлі объектіні")).toHaveAttribute("data-done", "true");
   await nextStep(page);
-  await page.getByRole("button", { name: "Машина", exact: true }).click();
+  await expect(objective(page, "Машинаны жылжыт")).toBeVisible();
+  const car = page.getByRole("button", { name: "Машина", exact: true });
+  await car.click();
+  await expect(car).toHaveAttribute("aria-pressed", "true");
   await page.getByLabel("position.x (local)").fill("1");
   await expect(objective(page, "Машинаны жылжыт")).toHaveAttribute("data-done", "true");
 });
@@ -43,11 +46,13 @@ test("lesson 6: a movement rule lets the keyboard drive the player", async ({ pa
   await page.getByRole("button", { name: "Ереже қосу" }).click();
   await expect(page.getByText("Пернелер басылғанда", { exact: false }).first()).toBeVisible();
   await page.getByRole("button", { name: "Ойынды бастау" }).click();
-  await page.locator("canvas").click({ position: { x: 5, y: 5 } }).catch(() => {});
+  await page.locator("canvas").click({ position: { x: 5, y: 5 } });
   await page.keyboard.down("ArrowDown");
-  await page.waitForTimeout(600);
-  await page.keyboard.up("ArrowDown");
-  await expect(objective(page, "пернелермен жылжыт")).toHaveAttribute("data-done", "true");
+  try {
+    await expect(objective(page, "пернелермен жылжыт")).toHaveAttribute("data-done", "true");
+  } finally {
+    await page.keyboard.up("ArrowDown");
+  }
 });
 
 test("lesson 4: dropping balls and switching to Moon gravity", async ({ page }) => {
