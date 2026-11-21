@@ -19,6 +19,7 @@ export function SiteHeader({ current }: { current?: string }) {
       </Link>
       <nav className={styles.labSwitch} aria-label="Негізгі мәзір">
         {openLabs.map((l) => link(l.href!, l.id, SHORT[l.id] ?? l.title))}
+        {link("/journey", "journey", "Саяхат")}
         {link("/create", "create", "Сабақ жасау")}
         {link("/teacher", "teacher", "Мұғалімге")}
         {link("/account", "account", "Аккаунт")}

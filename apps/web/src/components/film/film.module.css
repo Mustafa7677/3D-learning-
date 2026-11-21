@@ -383,6 +383,73 @@
   box-shadow: 0 0 0 6px rgb(47 91 234 / 0.3);
 }
 
+/* ---- invitation to the journey ---- */
+.journey {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+  margin: 0 0 22px;
+  padding: 20px 24px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: var(--paper);
+  background:
+    radial-gradient(400px circle at 0% 50%, rgb(227 160 79 / 0.25), transparent 60%),
+    linear-gradient(110deg, #232c58, #182046 60%, #1d2a63);
+  border: 1px solid rgb(227 160 79 / 0.45);
+  box-shadow: 0 0 40px rgb(227 160 79 / 0.12);
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+.journey:hover,
+.journey:focus-visible {
+  box-shadow: 0 0 60px rgb(227 160 79 / 0.3);
+  transform: translateY(-2px);
+}
+.journeyKey {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 58px;
+  border-radius: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #e3a04f;
+  background: linear-gradient(180deg, #fbfcff, #d6dcea);
+  box-shadow: inset 0 -5px 0 #b6bed3, 0 6px 0 #8d96b5, 0 10px 20px rgb(0 0 0 / 0.4);
+}
+.journeyText {
+  display: grid;
+  gap: 4px;
+}
+.journeyText strong {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+.journeyText span {
+  color: var(--paper-dim);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.journeyGo {
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 999px;
+  color: var(--night);
+  background: var(--copper);
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .journey {
+    grid-template-columns: auto 1fr;
+  }
+  .journeyGo {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+}
+
 /* ---- course list after the film ---- */
 .courses {
   position: relative;
@@ -497,6 +564,10 @@
     align-items: flex-start;
     gap: 6px;
     padding-top: 10px;
+    padding-bottom: 10px;
+    /* cards scroll under it on phones: keep the menu readable */
+    background: rgb(18 24 49 / 0.94);
+    backdrop-filter: blur(8px);
   }
   .menu {
     justify-content: flex-start;

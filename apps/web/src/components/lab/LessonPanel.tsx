@@ -6,7 +6,7 @@ import type { AnswerResult, QuizView, StepView } from "@inside-tech/lesson-engin
 import { Prose } from "./Prose";
 import { LectureCinema } from "../film/LectureCinema";
 import { Reward } from "../film/Game";
-import { XP_LESSON } from "@/lib/xp";
+import { XP_LESSON, announceXp } from "@/lib/xp";
 import styles from "./lab.module.css";
 
 interface Props {
@@ -66,7 +66,10 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
   const finished = step.lessonComplete && step.isLast;
   const wasFinished = useRef<boolean | null>(null);
   useEffect(() => {
-    if (celebrate && wasFinished.current === false && finished) setReward(true);
+    if (celebrate && wasFinished.current === false && finished) {
+      setReward(true);
+      setTimeout(announceXp, 600);
+    }
     wasFinished.current = finished;
   }, [finished, celebrate]);
   const total = step.objectives.length + step.quiz.length;

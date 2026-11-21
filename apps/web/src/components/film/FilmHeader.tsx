@@ -13,6 +13,9 @@ export function FilmHeader({ lead }: { lead?: ReactNode }) {
       <PlayerBadge />
       <nav aria-label="Негізгі мәзір" className={styles.menu}>
         {lead}
+        <Link href="/journey" className={styles.menuLink}>
+          Саяхат
+        </Link>
         <Link href="/create" className={styles.menuLink}>
           Сабақ жасау
         </Link>

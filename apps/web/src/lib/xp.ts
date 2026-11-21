@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { LessonProgress } from "@inside-tech/lesson-engine";
 import { lessonEntries } from "./lessons";
 import { progressStore } from "./progress";
+import { XP_JOURNEY_ANSWER, loadJourney } from "./journey";
 
 /** XP for a finished lesson and for each finished task inside one. */
 export const XP_LESSON = 100;
@@ -22,8 +23,8 @@ export interface PlayerStats {
   doneByLab: Record<string, number>;
 }
 
-export function playerStats(progress: LessonProgress[]): PlayerStats {
-  let xp = 0;
+export function playerStats(progress: LessonProgress[], bonusXp = 0): PlayerStats {
+  let xp = bonusXp;
   let lessonsDone = 0;
   const doneByLab: Record<string, number> = {};
   for (const p of progress) {
@@ -45,13 +46,24 @@ export function playerStats(progress: LessonProgress[]): PlayerStats {
   return { xp, level, into, need: levelCost(level), lessonsDone, doneByLab };
 }
 
+/** Fired after anything that earns XP, so badges on screen update at once. */
+export const XP_EVENT = "inside-tech:xp";
+export const announceXp = () => window.dispatchEvent(new Event(XP_EVENT));
+
 /** The visitor's stats from saved progress (local or server). */
 export function usePlayer(): PlayerStats | undefined {
   const [stats, setStats] = useState<PlayerStats>();
   useEffect(() => {
-    void progressStore()
-      .list()
-      .then((all) => setStats(playerStats(all)), () => setStats(playerStats([])));
+    const load = () =>
+      void progressStore()
+        .list()
+        .then(
+          (all) => setStats(playerStats(all, loadJourney().length * XP_JOURNEY_ANSWER)),
+          () => setStats(playerStats([], loadJourney().length * XP_JOURNEY_ANSWER)),
+        );
+    load();
+    window.addEventListener(XP_EVENT, load);
+    return () => window.removeEventListener(XP_EVENT, load);
   }, []);
   return stats;
 }

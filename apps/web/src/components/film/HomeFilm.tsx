@@ -150,6 +150,16 @@ export function HomeFilm() {
       <section ref={courses} id="courses" className={styles.courses} aria-labelledby="courses-title">
         <h2 id="courses-title">Курстар</h2>
         <p className={styles.coursesLead}>Он әлем. Әр сабақ +100 XP береді, әр орындалған тапсырма +10 XP.</p>
+        <Link href="/journey" className={styles.journey}>
+          <span className={styles.journeyKey} aria-hidden>
+            ↵
+          </span>
+          <span className={styles.journeyText}>
+            <strong>Бір басудың саяхаты</strong>
+            <span>Enter басқаннан бет ашылғанға дейінгі 185 миллисекунд: он курс бір сұраныстың ішінде. Пакетпен бірге ұш.</span>
+          </span>
+          <span className={styles.journeyGo}>Саяхатқа шығу</span>
+        </Link>
         <ul className={styles.grid}>
           {openLabs.map((lab, i) => (
             <li key={lab.id}>

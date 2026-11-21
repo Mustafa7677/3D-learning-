@@ -34,6 +34,9 @@ test("lesson 1: a WHERE query is graded against the reference result", async ({ 
 
 test("lesson 4: an index cuts 5000 examined rows to a handful", async ({ page }) => {
   await page.goto("/labs/db/db-4-index");
+  // Run the step's own query only once the runtime has put it in the box.
+  await page.locator("canvas").waitFor();
+  await expect(page.getByLabel(/Сұраныс/)).toHaveValue("SELECT * FROM events WHERE user_id = 42");
   await page.getByRole("button", { name: "Орындау" }).click();
   await expect(page.getByText(/5000 жол қаралды/)).toBeVisible();
   await run(page, "CREATE INDEX ON events (user_id); SELECT * FROM events WHERE user_id = 42");
