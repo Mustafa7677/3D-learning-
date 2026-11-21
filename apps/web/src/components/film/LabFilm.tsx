@@ -26,7 +26,7 @@ export function completion(lesson: LessonDefinition<unknown, unknown>, p?: Lesso
   return total ? done / total : 0;
 }
 
-export function LabFilm({ lab, warmup }: { lab: LabInfo; warmup?: ReactNode }) {
+export function LabFilm({ lab, warmup, extra }: { lab: LabInfo; warmup?: ReactNode; extra?: { href: string; label: string } }) {
   const lessons = useMemo(() => lessonsForLab(lab.id).map((e) => e.lesson), [lab.id]);
   const film = useRef<HTMLDivElement>(null);
   const items = useRef<(HTMLElement | null)[]>([]);
@@ -84,6 +84,11 @@ export function LabFilm({ lab, warmup }: { lab: LabInfo; warmup?: ReactNode }) {
               <button type="button" className={styles.ghost} onClick={() => jump(0)}>
                 Сабақтарды аралау
               </button>
+              {extra && (
+                <Link href={extra.href} className={styles.ghost}>
+                  {extra.label}
+                </Link>
+              )}
             </div>
             <p className={styles.scrollHint} aria-hidden>
               {lessons.length} сабақ · төмен айналдыр: жол бойымен жүреміз

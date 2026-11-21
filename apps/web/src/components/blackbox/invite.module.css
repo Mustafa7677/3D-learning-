@@ -1,0 +1,14 @@
+.invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 72px var(--gutter, 24px);
+  border-top: 1px solid #2a3a5e;
+}
+.invite > div {
+  max-width: 640px;
+}

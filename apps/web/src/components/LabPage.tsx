@@ -1,3 +1,4 @@
+import { BlackBoxInvite } from "./blackbox/BlackBoxInvite";
 import { CipherDemo } from "./film/CipherDemo";
 import { LabFilm } from "./film/LabFilm";
 import { PidDemo } from "./film/PidDemo";
@@ -8,11 +9,13 @@ import { findLab } from "@/lib/catalog";
 const WARMUP: Record<string, () => React.ReactNode> = {
   iot: () => <PidDemo micro="ЖЫЛЫНУ / ROBOTICS / CONTROL" />,
   sec: () => <CipherDemo micro="ЖЫЛЫНУ / SECURITY / CHALLENGE" />,
+  arch: () => <BlackBoxInvite />,
 };
 
 export function LabPage({ labId }: { labId: string }) {
   const lab = findLab(labId);
   if (!lab || lab.status !== "open") return null;
   const warm = WARMUP[lab.id];
-  return <LabFilm lab={lab} warmup={warm && <div className={landing.landing}>{warm()}</div>} />;
+  const extra = lab.id === "arch" ? { href: "/blackbox", label: "Қара жәшік ойыны" } : undefined;
+  return <LabFilm lab={lab} extra={extra} warmup={warm && <div className={landing.landing}>{warm()}</div>} />;
 }

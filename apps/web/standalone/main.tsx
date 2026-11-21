@@ -8,6 +8,7 @@ import { TeacherPage } from "../src/components/TeacherPage";
 import { CreatorPage } from "../src/components/CreatorPage";
 import { PlayPage } from "../src/components/PlayPage";
 import { JourneyFilm } from "../src/components/film/JourneyFilm";
+import { BlackBox } from "../src/components/blackbox/BlackBox";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
 import "../src/app/globals.css";
@@ -33,12 +34,13 @@ function App() {
   const lesson = lessonEntries.find((e) => e.lesson.id === route)?.lesson;
   useEffect(() => {
     const lab = openLabs.find((l) => l.id === route);
-    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : route === "journey" ? "Бір басудың саяхаты | INSIDE TECH" : "INSIDE TECH";
+    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : route === "journey" ? "Бір басудың саяхаты | INSIDE TECH" : route === "blackbox" ? "Қара жәшік | INSIDE TECH" : "INSIDE TECH";
   }, [route, lesson]);
 
   if (lesson) return <LessonView key={lesson.id} lessonId={lesson.id} />;
   if (openLabs.some((l) => l.id === route)) return <LabPage labId={route} />;
   if (route === "journey") return <JourneyFilm />;
+  if (route === "blackbox") return <BlackBox />;
   if (route === "account") return <AccountPage />;
   if (route === "teacher") return <TeacherPage />;
   if (route === "create" || route.startsWith("import=")) return <CreatorPage />;
