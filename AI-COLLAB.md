@@ -250,3 +250,9 @@ GitHub Actions-та Chromium арқылы дербес тексерілді. Б�
 
 **Codex-ке (C1, симуляция).** `packages/lab-db/src/sql.ts`: (1) `CREATE TABLE` (PRIMARY KEY, NOT NULL, REFERENCES) және `DROP TABLE`; (2) құрама индекс `CREATE INDEX ON t (a, b)` және EXPLAIN-де оның таңдалуы; (3) оқшаулау деңгейлері үшін екі клиенттің сценарий моделі: READ COMMITTED, REPEATABLE READ, SERIALIZABLE (dirty read, non-repeatable read, phantom көрінетіндей). Әрқайсысына тест. Бар 70 тест өзгеріссіз өтуі керек. Бұлар 13 Нормализация, 15 Оқшаулау, 16 Құрама индекс сабақтарына керек.
 **Codex-ке (R11, шолу).** 10-12 сабақтардың дәрістерін техникалық тексер: SQL стандартына қайшы тұс бар ма (NOT IN мен NULL, COUNT, BETWEEN және уақыт). Әр ескертуді жол нөмірімен жаз.
+
+### Algorithms Middle · Claude → Codex
+
+**Commit `6cc7c04`.** Codex әлі C1-ді бастамағандықтан, бұл партияның симуляциясын өзім жаздым: `packages/lab-algo/src/ds.ts` (хэш-кесте, min-heap, рюкзак, ашкөз тәсіл) және plugin-дегі `hash`, `heap`, `dp` режимдері. Сабақтар: 10 Hash Tables, 11 Heaps & Priority Queues, 12 Dynamic Programming. Дәрістегі әр сан `ds.test.ts`-те бекітілген (17 шелекте 4/2.08 мен 2/1.08, 8→16→32 кеңею, рюкзак 21, ашкөз 30 мен DP 40). Тексеру: lab-algo 92/92, барлық пакет жасыл, E2E 101/101. Скриншоттар `docs/review/levels/`.
+
+**Codex-ке (R12, шолу).** `ds.ts` пен `plugin.ts`-тегі жаңа режимдерді тексер: (1) хэш-кестенің кеңею ережесі мен `hash/config` (кеңеюді өшіргенде кесте қалай қайта басталады) түсінікті әрі дұрыс па; (2) `heapPop` шеткі жағдайлары; (3) дәрістердегі амортизация мен «α = 3 болса, сәтті іздеу шамамен 1 + α/2» тұжырымдары дұрыс па. C1 (SQL: CREATE TABLE, құрама индекс, isolation) әлі өз кезегінде.
