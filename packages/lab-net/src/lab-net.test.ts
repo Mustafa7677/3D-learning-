@@ -115,6 +115,60 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "tx/run" });
     },
   },
+  "net-10-dns": {
+    recursion: (d) => {
+      d({ type: "dns/resolve", name: "inside.kz" });
+      d({ type: "dns/resolve", name: "inside.kz" });
+      d({ type: "dns/resolve", name: "api.inside.kz" });
+    },
+    ttl: (d) => {
+      d({ type: "dns/move" });
+      d({ type: "dns/resolve", name: "inside.kz" });
+      d({ type: "dns/advance", seconds: 300 });
+      d({ type: "dns/resolve", name: "inside.kz" });
+    },
+  },
+  "net-11-tcp-states": {
+    handshake: (d) => {
+      d({ type: "tcp/event", event: { kind: "connect" } });
+      d({ type: "tcp/event", event: { kind: "deliver" } });
+      d({ type: "tcp/event", event: { kind: "deliver" } });
+      d({ type: "tcp/event", event: { kind: "listen" } });
+      d({ type: "tcp/event", event: { kind: "connect" } });
+      for (let i = 0; i < 3; i++) d({ type: "tcp/event", event: { kind: "deliver" } });
+    },
+    loss: (d) => {
+      d({ type: "tcp/event", event: { kind: "connect" } });
+      d({ type: "tcp/event", event: { kind: "drop" } });
+      d({ type: "tcp/event", event: { kind: "timer", side: "client" } });
+      for (let i = 0; i < 3; i++) d({ type: "tcp/event", event: { kind: "deliver" } });
+    },
+    close: (d) => {
+      d({ type: "tcp/event", event: { kind: "close", side: "client" } });
+      d({ type: "tcp/event", event: { kind: "deliver" } });
+      d({ type: "tcp/event", event: { kind: "deliver" } });
+      d({ type: "tcp/event", event: { kind: "close", side: "server" } });
+      d({ type: "tcp/event", event: { kind: "deliver" } });
+      d({ type: "tcp/event", event: { kind: "deliver" } });
+      d({ type: "tcp/event", event: { kind: "timer", side: "client" } });
+    },
+  },
+  "net-12-switch": {
+    arp: (d) => {
+      d({ type: "lan/send", from: "A", to: "192.168.1.11" });
+      d({ type: "lan/send", from: "A", to: "192.168.1.11" });
+    },
+    flood: (d) => {
+      d({ type: "lan/age" });
+      d({ type: "lan/send", from: "A", to: "192.168.1.11" });
+      d({ type: "lan/send", from: "B", to: "192.168.1.10" });
+      d({ type: "lan/send", from: "A", to: "192.168.1.11" });
+    },
+    gateway: (d) => {
+      d({ type: "lan/send", from: "A", to: "8.8.8.8" });
+      d({ type: "lan/send", from: "A", to: "1.1.1.1" });
+    },
+  },
 };
 
 describe("networks lessons are completable", () => {

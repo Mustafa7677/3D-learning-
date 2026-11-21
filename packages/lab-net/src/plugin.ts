@@ -1,7 +1,8 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { ageSwitch, lanSend, newLan, newTcp, resolve, tcpStep, zone, type CacheEntry, type DnsResult, type Lan, type Side, type Tcp, type TcpEvent, type TcpState } from "./middle-core";
 import { LINKS, cidr, congestion, natIn, natOut, newNat, packetize, sameSubnet, shortestPath, transfer, type Nat, type Protocol, type Variant } from "./core";
 
-export type NetMode = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat";
+export type NetMode = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat" | "dns" | "tcp" | "lan";
 export const RTT = 10;
 export const PACKETS = 50;
 
@@ -16,6 +17,15 @@ export interface NetStats {
   natOut: number;
   natDelivered: number;
   natDropped: number;
+  dnsRuns: { name: string; ms: number; hops: string[]; fromCache: boolean; stale: boolean; moved: boolean; ip: string | null }[];
+  dnsMoved: number;
+  tcpSeen: Record<Side, TcpState[]>;
+  tcpRst: number;
+  tcpDrops: { flag: string; from: Side }[];
+  tcpResends: number;
+  tcpEstablished: number;
+  lanRuns: { from: string; to: string; nextHop: string; arped: boolean; flooded: boolean[]; kinds: string[]; dstMac: string }[];
+  lanAged: number;
 }
 
 export interface NetLabState {
@@ -26,6 +36,9 @@ export interface NetLabState {
   transport: { protocol: Protocol; window: number; loss: number; t: number; playing: boolean; ran: boolean };
   congestion: { variant: Variant; capacity: number; ran: boolean };
   nat: Nat;
+  dns: { cache: CacheEntry[]; clock: number; moved: boolean; last: DnsResult | null };
+  tcp: Tcp;
+  lan: Lan;
   speed: number;
   stats: NetStats;
 }
@@ -46,7 +59,16 @@ export type NetLabAction =
   | { type: "cc/run" }
   | { type: "nat/out"; host: string; port: number }
   | { type: "nat/in"; port: number }
-  | { type: "nat/reset" };
+  | { type: "nat/reset" }
+  | { type: "dns/resolve"; name: string }
+  | { type: "dns/advance"; seconds: number }
+  | { type: "dns/move" }
+  | { type: "dns/flush" }
+  | { type: "tcp/event"; event: TcpEvent }
+  | { type: "tcp/reset" }
+  | { type: "lan/send"; from: string; to: string }
+  | { type: "lan/age" }
+  | { type: "lan/reset" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -77,8 +99,31 @@ export function initialNetState(): NetLabState {
     transport: { protocol: "stopwait", window: 1, loss: 0, t: 0, playing: false, ran: false },
     congestion: { variant: "reno", capacity: 20, ran: false },
     nat: newNat(),
+    dns: { cache: [], clock: 0, moved: false, last: null },
+    tcp: newTcp(),
+    lan: newLan(),
     speed: 20,
-    stats: { modes: ["packets"], packetRuns: [], ipQueries: [], routeRuns: [], dvViews: [], transfers: [], congestionRuns: [], natOut: 0, natDelivered: 0, natDropped: 0 },
+    stats: {
+      modes: ["packets"],
+      packetRuns: [],
+      ipQueries: [],
+      routeRuns: [],
+      dvViews: [],
+      transfers: [],
+      congestionRuns: [],
+      natOut: 0,
+      natDelivered: 0,
+      natDropped: 0,
+      dnsRuns: [],
+      dnsMoved: 0,
+      tcpSeen: { client: ["CLOSED"], server: ["CLOSED"] },
+      tcpRst: 0,
+      tcpDrops: [],
+      tcpResends: 0,
+      tcpEstablished: 0,
+      lanRuns: [],
+      lanAged: 0,
+    },
   };
 }
 
@@ -152,6 +197,54 @@ function reduce(s: NetLabState, a: NetLabAction): NetLabState {
     }
     case "nat/reset":
       return { ...s, nat: newNat() };
+
+    case "dns/resolve": {
+      if (!zone(a.name, false)) return s;
+      const r = resolve(s.dns.cache, a.name, s.dns.clock, s.dns.moved);
+      const run = { name: a.name, ms: r.ms, hops: r.hops.map((h) => h.server), fromCache: r.fromCache, stale: r.stale, moved: s.dns.moved, ip: r.ip };
+      return { ...s, mode: "dns", dns: { ...s.dns, cache: r.cache, last: r }, stats: { ...st, dnsRuns: cap([...st.dnsRuns, run]) } };
+    }
+    case "dns/advance":
+      return { ...s, dns: { ...s.dns, clock: s.dns.clock + Math.round(clamp(a.seconds, 0, 86_400)) } };
+    case "dns/move":
+      return s.dns.moved ? s : { ...s, dns: { ...s.dns, moved: true }, stats: { ...st, dnsMoved: st.dnsMoved + 1 } };
+    case "dns/flush":
+      return { ...s, dns: { ...s.dns, cache: [], last: null } };
+
+    case "tcp/event": {
+      const before = s.tcp;
+      const t = tcpStep(before, a.event);
+      if (t === before) return s;
+      const seen = { client: uniq(st.tcpSeen.client, t.client), server: uniq(st.tcpSeen.server, t.server) };
+      const seg = before.wire[0];
+      const both = t.client === "ESTABLISHED" && t.server === "ESTABLISHED" && !(before.client === "ESTABLISHED" && before.server === "ESTABLISHED");
+      return {
+        ...s,
+        mode: "tcp",
+        tcp: t,
+        stats: {
+          ...st,
+          tcpSeen: seen,
+          tcpRst: st.tcpRst + (a.event.kind === "deliver" && seg?.flag === "RST" ? 1 : 0),
+          tcpDrops: a.event.kind === "drop" && seg ? cap([...st.tcpDrops, { flag: seg.flag, from: seg.from }]) : st.tcpDrops,
+          tcpResends: st.tcpResends + (a.event.kind === "timer" && t.wire.length > before.wire.length ? 1 : 0),
+          tcpEstablished: st.tcpEstablished + (both ? 1 : 0),
+        },
+      };
+    }
+    case "tcp/reset":
+      return { ...s, mode: "tcp", tcp: newTcp() };
+
+    case "lan/send": {
+      if (a.from === a.to) return s;
+      const r = lanSend(s.lan, a.from, a.to);
+      const run = { from: a.from, to: a.to, nextHop: r.nextHop, arped: r.arped, flooded: r.frames.map((f) => f.flooded), kinds: r.frames.map((f) => f.kind), dstMac: r.frames.at(-1)!.dstMac };
+      return { ...s, mode: "lan", lan: r.lan, stats: { ...st, lanRuns: cap([...st.lanRuns, run]) } };
+    }
+    case "lan/age":
+      return { ...s, lan: { ...ageSwitch(s.lan), frames: [] }, stats: { ...st, lanAged: st.lanAged + 1 } };
+    case "lan/reset":
+      return { ...s, mode: "lan", lan: newLan() };
   }
 }
 

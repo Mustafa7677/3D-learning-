@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LINKS, PACKETS, ROUTERS, RTT, cidr, currentTransfer, packetize, sameSubnet, shortestPath, type NetLabAction, type NetLabState } from "@inside-tech/lab-net";
 import type { NetFocus } from "../scene/NetScene";
 import styles from "./lab.module.css";
+import { DnsSection, LanSection, TcpSection } from "./NetMiddleSections";
 
 type D = (a: NetLabAction) => void;
 
@@ -295,6 +296,9 @@ export function NetControlPanel({ state, focus, dispatch, canUndo, onUndo }: { s
       {focus === "transport" && <TransportSection state={state} dispatch={dispatch} />}
       {focus === "congestion" && <CongestionSection state={state} dispatch={dispatch} />}
       {focus === "nat" && <NatSection state={state} dispatch={dispatch} />}
+      {focus === "dns" && <DnsSection state={state} dispatch={dispatch} />}
+      {focus === "tcp" && <TcpSection state={state} dispatch={dispatch} />}
+      {focus === "lan" && <LanSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

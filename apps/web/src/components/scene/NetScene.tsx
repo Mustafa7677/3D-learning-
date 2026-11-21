@@ -8,11 +8,12 @@ import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
 import { NetRoutingStage } from "./NetRoutingStage";
+import { DnsView, LanView, TcpView } from "./NetMiddleViews";
 import { FilmFx } from "../film/Fx";
 import { QUALITY, useQuality } from "@/lib/quality";
 import { C0, C1 } from "./palette";
 
-export type NetFocus = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat";
+export type NetFocus = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat" | "dns" | "tcp" | "lan";
 
 const OFF = new Color("#c9d0de");
 const OK = new Color("#17895c");
@@ -176,6 +177,9 @@ function Contents({ state, focus }: { state: NetLabState; focus: NetFocus }) {
     transport: { w: 15, h: 5, t: [0, 1, 0], d: [0, 0.6, 1] },
     congestion: { w: 19, h: 7, t: [0, 2.6, 0], d: [0, 0.3, 1] },
     nat: { w: 15, h: 8, t: [0, 1, 0], d: [0, 1.2, 1] },
+    dns: { w: 15, h: 8, t: [-1, 1.2, 0], d: [0, 0.9, 1] },
+    tcp: { w: 13, h: 7.5, t: [0, 2.6, 0], d: [0, 0.25, 1] },
+    lan: { w: 15, h: 7, t: [0, 1, 0.5], d: [0, 0.9, 1] },
   };
   const f = frames[focus];
   const q = QUALITY[useQuality()];
@@ -193,6 +197,9 @@ function Contents({ state, focus }: { state: NetLabState; focus: NetFocus }) {
       {focus === "transport" && <TransportView state={state} />}
       {focus === "congestion" && <CongestionView state={state} />}
       {focus === "nat" && <NatView state={state} />}
+      {focus === "dns" && <DnsView state={state} />}
+      {focus === "tcp" && <TcpView state={state} />}
+      {focus === "lan" && <LanView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

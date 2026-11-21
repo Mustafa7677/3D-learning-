@@ -508,7 +508,7 @@ function DbLesson({ labId, lesson, nextLessonId, persist }: LessonProps<DbLabSta
   );
 }
 
-const NET_FOCI: NetFocus[] = ["packets", "ip", "routing", "transport", "congestion", "nat"];
+const NET_FOCI: NetFocus[] = ["packets", "ip", "routing", "transport", "congestion", "nat", "dns", "tcp", "lan"];
 
 function NetLesson({ labId, lesson, nextLessonId, persist }: LessonProps<NetLabState, NetLabAction>) {
   const session = useLabSession(lesson, "net", { persist });

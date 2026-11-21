@@ -8,10 +8,52 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("networks lab page lists eight lessons and the problem set", async ({ page }) => {
+test("networks lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/net");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Networks");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+});
+
+test("Middle 10: DNS goes root, TLD, zone; then the cache answers in 10 ms", async ({ page }) => {
+  await page.goto("/labs/net/net-10-dns");
+  const card = page.getByRole("region", { name: "Алдымен болжа" });
+  await card.getByRole("button", { name: /Тек біреуіне/ }).click();
+  const ask = (name: string) => page.getByRole("button", { name: `${name} сұрау`, exact: true }).click();
+  const answer = page.getByRole("status", { name: "Соңғы жауап" });
+  await ask("inside.kz");
+  await expect(answer).toContainText("100 мс");
+  await expect(objective(page, "Бос кэшпен")).toHaveAttribute("data-done", "true");
+  await ask("inside.kz");
+  await expect(answer).toContainText("10 мс");
+  await ask("api.inside.kz");
+  await expect(answer).toContainText("30 мс");
+  await expect(objective(page, "басқа атауды")).toHaveAttribute("data-done", "true");
+  await expect(card.getByRole("status")).toContainText("Болжамың расталды");
+});
+
+test("Middle 11: a closed port answers RST, a listening one completes the handshake", async ({ page }) => {
+  await page.goto("/labs/net/net-11-tcp-states");
+  await page.getByRole("button", { name: "Клиент: connect()" }).click();
+  await page.getByRole("button", { name: /^Жеткізу: SYN/ }).click();
+  await page.getByRole("button", { name: /^Жеткізу: RST/ }).click();
+  await expect(objective(page, "RST келеді")).toHaveAttribute("data-done", "true");
+  await page.getByRole("button", { name: "Сервер: listen()" }).click();
+  await page.getByRole("button", { name: "Клиент: connect()" }).click();
+  for (const flag of ["SYN", "SYN-ACK", "ACK"]) await page.getByRole("button", { name: new RegExp(`^Жеткізу: ${flag} `) }).click();
+  await expect(page.getByRole("status", { name: "Күйлер" })).toContainText("ESTABLISHED");
+  await expect(objective(page, "ESTABLISHED-ке жеткіз")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 12: the first packet floods an ARP request, the second goes to one port", async ({ page }) => {
+  await page.goto("/labs/net/net-12-switch");
+  await page.getByRole("button", { name: "Пакетті жіберу" }).click();
+  const frames = page.getByRole("status", { name: "Соңғы кадрлар" });
+  await expect(frames).toContainText("ARP сұрауы: 192.168.1.11 кімде? · барлық портқа (1, 3, 4)");
+  await page.getByRole("button", { name: "Пакетті жіберу" }).click();
+  await expect(frames.locator("li")).toHaveCount(1);
+  await expect(frames).toContainText("3-портқа");
+  await expect(objective(page, "Тағы жібер")).toHaveAttribute("data-done", "true");
 });
 
 test("lesson 2: the CIDR calculator finds the network", async ({ page }) => {
