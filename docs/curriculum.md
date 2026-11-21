@@ -67,6 +67,23 @@
 - **Middle:** күй бағалау мен сенсорларды біріктіру, моторларды басқару (PWM, H-көпір), кинематика тізбегі, траектория жоспарлау, нақты уақыт шектеулері, байланыс хаттамалары (I2C, SPI, UART), қуат басқару; есептер.
 - **Senior:** SLAM негіздері, бөлшек сүзгісі, модельдік болжамды басқару (MPC), робот қауіпсіздігі, OTA жаңарту және құрылғылар паркі, жиек есептеулері (edge), өрістегі ақауды диагностикалау; жоба.
 
+## Middle 10-12: дайын (барлық 10 зертхана)
+
+Әр қадам «Алдымен болжа» картасымен ашылады (predict, observe, explain). Дәрістегі әр сан `middle-core.test.ts` тестінде бекітілген.
+
+- **Databases:** 10 LEFT JOIN & NULL, 11 Subqueries, 12 LIKE / BETWEEN / DISTINCT.
+- **Algorithms:** 10 Hash Tables, 11 Heaps, 12 Dynamic Programming.
+- **Web:** 10 HTTP Caching (max-age, ETag, 304), 11 401 vs 403, 12 POST vs PUT.
+- **Networks:** 10 DNS (рекурсия, кэш, TTL), 11 TCP күйлер машинасы, 12 ARP және коммутатор.
+- **Cybersecurity:** 10 ECB мен CBC, 11 Hash мен HMAC, 12 Diffie-Hellman және MITM.
+- **Architecture:** 10 Конвейер және forwarding, 11 Тармақты болжау, 12 Кэш ассоциативтілігі.
+- **Cloud:** 10 Readiness және liveness, 11 Кезек және қарсы қысым, 12 Жүктемені тарату алгоритмдері.
+- **AI:** 10 SGD, Momentum, Adam, 11 Precision, recall және дәлдік тұзағы, 12 Свёртка.
+- **Game:** 10 BFS, Dijkstra, A*, 11 Күйлер машинасы және гистерезис, 12 Broad phase торы.
+- **IoT:** 10 PWM және мотор, 11 UART, I2C, SPI, 12 Нақты уақыттағы жоспарлау.
+
+Келесі: әр зертхананың Middle 13-17, сосын Senior 18-25.
+
 ## Реті
 
 1. **Databases Middle (13-17)** аяқталады: Codex CREATE TABLE мен isolation levels-ті қосады, Claude сабақтарды жазады.
