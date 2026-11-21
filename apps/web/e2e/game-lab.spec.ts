@@ -21,7 +21,10 @@ test("lesson 1: selecting and moving a parent object", async ({ page }) => {
   for (const name of ["Машина", "Шырша", "Шам"]) await page.getByRole("button", { name, exact: true }).click();
   await expect(objective(page, "3 түрлі объектіні")).toHaveAttribute("data-done", "true");
   await nextStep(page);
-  await page.getByRole("button", { name: "Машина", exact: true }).click();
+  await expect(objective(page, "Машинаны жылжыт")).toBeVisible();
+  const car = page.getByRole("button", { name: "Машина", exact: true });
+  await car.click();
+  await expect(car).toHaveAttribute("aria-pressed", "true");
   await page.getByLabel("position.x (local)").fill("1");
   await expect(objective(page, "Машинаны жылжыт")).toHaveAttribute("data-done", "true");
 });
