@@ -19,7 +19,10 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
             Зертханалар
           </Link>
         )}
-        <Link href="/journey" className={styles.menuLink}>
+        <Link href="/mission" className={styles.menuLink}>
+          Миссия
+        </Link>
+        <Link href="/journey" className={`${styles.menuLink} ${styles.wideOnly}`}>
           Саяхат
         </Link>
         <Link href="/passport" className={styles.menuLink}>
@@ -35,6 +38,9 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
         <details className={styles.tools}>
           <summary>Құралдар</summary>
           <div className={styles.toolsMenu}>
+            <Link href="/journey" className={styles.narrowOnly}>
+              Саяхат
+            </Link>
             <Link href="/create">Сабақ жасау</Link>
             <Link href="/teacher">Мұғалімге</Link>
             <Link href="/account">Аккаунт</Link>

@@ -705,3 +705,25 @@
     display: none;
   }
 }
+
+/* Phones: three destinations in one row (labs, mission, passport); the journey moves into the tools menu. */
+.narrowOnly {
+  display: none;
+}
+@media (max-width: 720px) {
+  .wideOnly {
+    display: none;
+  }
+  .toolsMenu a.narrowOnly {
+    display: block;
+  }
+  .menu {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 4px 16px;
+  }
+  .menu > * {
+    flex: none;
+  }
+}

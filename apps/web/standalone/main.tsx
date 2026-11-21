@@ -10,6 +10,7 @@ import { PlayPage } from "../src/components/PlayPage";
 import { JourneyFilm } from "../src/components/film/JourneyFilm";
 import { BlackBox } from "../src/components/blackbox/BlackBox";
 import { Passport } from "../src/components/passport/Passport";
+import { Mission } from "../src/components/mission/Mission";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
 import "../src/app/globals.css";
@@ -35,7 +36,7 @@ function App() {
   const lesson = lessonEntries.find((e) => e.lesson.id === route)?.lesson;
   useEffect(() => {
     const lab = openLabs.find((l) => l.id === route);
-    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : route === "journey" ? "Бір басудың саяхаты | INSIDE TECH" : route === "blackbox" ? "Қара жәшік | INSIDE TECH" : route === "passport" ? "Оқу паспорты | INSIDE TECH" : "INSIDE TECH";
+    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : route === "journey" ? "Бір басудың саяхаты | INSIDE TECH" : route === "blackbox" ? "Қара жәшік | INSIDE TECH" : route === "passport" ? "Оқу паспорты | INSIDE TECH" : route === "mission" ? "Миссия: Бір қаланың интернеті | INSIDE TECH" : "INSIDE TECH";
   }, [route, lesson]);
 
   if (lesson) return <LessonView key={lesson.id} lessonId={lesson.id} />;
@@ -43,6 +44,7 @@ function App() {
   if (route === "journey") return <JourneyFilm />;
   if (route === "blackbox") return <BlackBox />;
   if (route === "passport") return <Passport />;
+  if (route === "mission") return <Mission />;
   if (route === "account") return <AccountPage />;
   if (route === "teacher") return <TeacherPage />;
   if (route === "create" || route.startsWith("import=")) return <CreatorPage />;
