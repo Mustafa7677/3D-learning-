@@ -2,10 +2,6 @@ import { expect, test, type Page } from "@playwright/test";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 const run = async (page: Page, sql: string) => {
-  // Wait until the lesson's runtime is up (the scene renders from its first state),
-  // so the step's setup text cannot replace what we type.
-  await page.locator("canvas").waitFor();
-  await page.waitForFunction(() => (document.querySelector("#sql-src") as HTMLTextAreaElement | null)?.value !== undefined);
   await page.getByLabel(/Сұраныс/).fill(sql);
   await page.getByRole("button", { name: "Орындау" }).click();
 };
@@ -25,6 +21,7 @@ test("databases lab page lists eight lessons and the problem set", async ({ page
 test("lesson 1: a WHERE query is graded against the reference result", async ({ page }) => {
   await page.goto("/labs/db/db-1-select");
   await expect(page.locator("canvas")).toBeVisible();
+  await expect(page.getByLabel(/Сұраныс/)).toHaveValue("SELECT * FROM students");
   await run(page, "SELECT name FROM students WHERE city = 'Астана'");
   await expect(objective(page, "Алматыдағы")).toHaveAttribute("data-done", "false");
   await run(page, "SELECT name FROM students WHERE city = 'Алматы'");
@@ -45,6 +42,7 @@ test("lesson 4: an index cuts 5000 examined rows to a handful", async ({ page })
 
 test("lesson 6: a crash in the middle of a transaction loses nothing", async ({ page }) => {
   await page.goto("/labs/db/db-6-transactions");
+  await expect(page.getByLabel(/Сұраныс/)).toHaveValue("SELECT * FROM accounts");
   await run(page, "BEGIN; UPDATE accounts SET balance = balance - 300 WHERE id = 1");
   await expect(page.getByText("Транзакция ашық: COMMIT не ROLLBACK күтуде.")).toBeVisible();
   await page.getByRole("button", { name: "Сервер құлады", exact: true }).click();
