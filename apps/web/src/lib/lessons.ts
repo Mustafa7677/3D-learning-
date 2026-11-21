@@ -1,5 +1,5 @@
 import type { LessonDefinition } from "@inside-tech/lesson-engine";
-import { aiLessons, languageLessons } from "@inside-tech/lab-ai";
+import { aiLessons, languageLessons, optimLessons } from "@inside-tech/lab-ai";
 import { webLessons } from "@inside-tech/lab-web";
 import { gameLessons } from "@inside-tech/lab-game";
 import { algoLessons } from "@inside-tech/lab-algo";
@@ -25,6 +25,7 @@ export const lessonEntries: LessonEntry[] = [
   ...[
     ...aiLessons.map((lesson) => ({ labId: "ai", kind: "classifier" as const, lesson })),
     ...languageLessons.map((lesson) => ({ labId: "ai", kind: "language" as const, lesson })),
+    ...optimLessons.map((lesson) => ({ labId: "ai", kind: "optim" as const, lesson })),
   ].sort(byOrder),
   ...webLessons.map((lesson) => ({ labId: "web", kind: "web" as const, lesson })).sort(byOrder),
   ...gameLessons.map((lesson) => ({ labId: "game", kind: "game" as const, lesson })).sort(byOrder),

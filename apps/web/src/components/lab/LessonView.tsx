@@ -11,6 +11,8 @@ import type { ArchLabAction, ArchLabState } from "@inside-tech/lab-arch";
 import type { SecLabAction, SecLabState } from "@inside-tech/lab-sec";
 import type { DbLabAction, DbLabState } from "@inside-tech/lab-db";
 import type { NetLabAction, NetLabState } from "@inside-tech/lab-net";
+import type { OptimLabAction, OptimLabState } from "@inside-tech/lab-ai";
+import { OptimControlPanel, type OptimFocus } from "./OptimControlPanel";
 import type { CloudLabAction, CloudLabState } from "@inside-tech/lab-cloud";
 import type { IotLabAction, IotLabState } from "@inside-tech/lab-iot";
 import { findLesson } from "@/lib/lessons";
@@ -51,6 +53,7 @@ const AlgoScene = dynamic(() => import("../scene/AlgoScene"), { ssr: false, load
 const ArchScene = dynamic(() => import("../scene/ArchScene"), { ssr: false, loading: sceneLoading });
 const SecScene = dynamic(() => import("../scene/SecScene"), { ssr: false, loading: sceneLoading });
 const DbScene = dynamic(() => import("../scene/DbScene"), { ssr: false, loading: sceneLoading });
+const OptimScene = dynamic(() => import("../scene/OptimScene"), { ssr: false, loading: sceneLoading });
 const NetScene = dynamic(() => import("../scene/NetScene"), { ssr: false, loading: sceneLoading });
 const CloudScene = dynamic(() => import("../scene/CloudScene"), { ssr: false, loading: sceneLoading });
 const IotScene = dynamic(() => import("../scene/IotScene"), { ssr: false, loading: sceneLoading });
@@ -377,6 +380,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   const props = { labId: entry.labId, lesson: entry.lesson, nextLessonId: next?.lesson.id };
   if (entry.kind === "classifier") return <ClassifierLesson {...props} />;
   if (entry.kind === "language") return <LanguageLesson {...props} />;
+  if (entry.kind === "optim") return <OptimLesson {...props} />;
   if (entry.kind === "web") return <WebLesson {...props} />;
   if (entry.kind === "algo") return <AlgoLesson {...props} />;
   if (entry.kind === "arch") return <ArchLesson {...props} />;
@@ -397,6 +401,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   const props = { labId: spec.labId, lesson: lesson as LessonDefinition<never, never>, persist: !preview };
   if (spec.kind === "classifier") return <ClassifierLesson {...(props as LessonProps<AiLabState, AiLabAction>)} />;
   if (spec.kind === "language") return <LanguageLesson {...(props as LessonProps<LangLabState, LangLabAction>)} />;
+  if (spec.kind === "optim") return <OptimLesson {...(props as LessonProps<OptimLabState, OptimLabAction>)} />;
   if (spec.kind === "web") return <WebLesson {...(props as LessonProps<WebLabState, WebLabAction>)} />;
   if (spec.kind === "algo") return <AlgoLesson {...(props as LessonProps<AlgoLabState, AlgoLabAction>)} />;
   if (spec.kind === "arch") return <ArchLesson {...(props as LessonProps<ArchLabState, ArchLabAction>)} />;
@@ -504,6 +509,30 @@ function DbLesson({ labId, lesson, nextLessonId, persist }: LessonProps<DbLabSta
         </div>
       }
       controls={state && <DbControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+    />
+  );
+}
+
+const OPTIM_FOCI: OptimFocus[] = ["optim", "metrics", "conv"];
+
+function OptimLesson({ labId, lesson, nextLessonId, persist }: LessonProps<OptimLabState, OptimLabAction>) {
+  const session = useLabSession(lesson, "optim", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (OPTIM_FOCI.includes(step?.focus as OptimFocus) ? step!.focus : "optim") as OptimFocus;
+  return (
+    <LabShell
+      labId={labId}
+      preview={persist === false}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <OptimScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <OptimControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }

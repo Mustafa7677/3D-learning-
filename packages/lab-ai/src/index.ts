@@ -11,3 +11,6 @@ export * from "./language/ngram";
 export * from "./language/plugin";
 export * from "./language/lessons";
 export * from "./pset";
+export * from "./middle/core";
+export * from "./middle/plugin";
+export * from "./middle/lessons";

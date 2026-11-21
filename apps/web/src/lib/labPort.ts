@@ -1,5 +1,5 @@
 import { exposeRuntime, type MessagePortLike, type SimulationPlugin } from "@inside-tech/sim-core";
-import { aiLabPlugin, langLabPlugin } from "@inside-tech/lab-ai";
+import { aiLabPlugin, langLabPlugin, optimLabPlugin } from "@inside-tech/lab-ai";
 import { webLabPlugin } from "@inside-tech/lab-web";
 import { gameLabPlugin } from "@inside-tech/lab-game";
 import { algoLabPlugin } from "@inside-tech/lab-algo";
@@ -13,7 +13,7 @@ import { spawnWorker } from "./spawnWorker";
 
 export const LAB_SEED = 20261120;
 
-export type LabKind = "classifier" | "language" | "web" | "game" | "algo" | "arch" | "sec" | "db" | "net" | "cloud" | "iot";
+export type LabKind = "classifier" | "language" | "optim" | "web" | "game" | "algo" | "arch" | "sec" | "db" | "net" | "cloud" | "iot";
 
 export interface LabPort {
   port: MessagePortLike;
@@ -44,6 +44,7 @@ export function pluginFor(kind: string): SimulationPlugin<unknown, unknown> | un
   const all: Record<string, SimulationPlugin<never, never>> = {
     classifier: aiLabPlugin as never,
     language: langLabPlugin as never,
+    optim: optimLabPlugin as never,
     web: webLabPlugin as never,
     game: gameLabPlugin as never,
     algo: algoLabPlugin as never,
@@ -64,6 +65,7 @@ export function pluginFor(kind: string): SimulationPlugin<unknown, unknown> | un
  */
 export function createLabPort(kind: LabKind): LabPort {
   if (kind === "language") return inThread(langLabPlugin);
+  if (kind === "optim") return inThread(optimLabPlugin);
   if (kind === "web") return inThread(webLabPlugin);
   if (kind === "game") return inThread(gameLabPlugin);
   if (kind === "algo") return inThread(algoLabPlugin);

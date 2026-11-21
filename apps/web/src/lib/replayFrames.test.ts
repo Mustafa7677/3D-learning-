@@ -22,7 +22,7 @@ describe("replay frames", () => {
     expect(frames[4]!.time).toBeCloseTo(5 * rt.record().fixedDt, 6);
   });
   it("knows every lab kind", () => {
-    for (const k of ["classifier", "language", "web", "game", "algo", "arch", "sec", "db", "net", "cloud", "iot"]) expect(pluginFor(k)?.id, k).toBeTruthy();
+    for (const k of ["classifier", "language", "optim", "web", "game", "algo", "arch", "sec", "db", "net", "cloud", "iot"]) expect(pluginFor(k)?.id, k).toBeTruthy();
     expect(pluginFor("nope")).toBeUndefined();
   });
 });
