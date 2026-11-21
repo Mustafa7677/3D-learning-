@@ -11,7 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("robotics lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/iot");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Robotics & IoT");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
 });
 
 test("lesson 1: an 8-bit ADC reads 23.20 °C", async ({ page }) => {
@@ -46,4 +47,33 @@ test("lesson 8: only home temperature sensors", async ({ page }) => {
   await input.fill("home/+/temp");
   await page.getByRole("button", { name: "Жазылу" }).click();
   await expect(objective(page, "температура")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 10: 20 Hz PWM jerks the motor, 20 kHz runs it smooth and silent", async ({ page }) => {
+  await page.goto("/labs/iot/iot-10-pwm");
+  await expect(page.locator("canvas")).toBeVisible();
+  const r = page.getByRole("status", { name: "PWM нәтижесі" });
+  await page.getByRole("button", { name: "Моторды іске қосу" }).click();
+  await expect(r).toContainText("6.0 В");
+});
+
+test("Middle 11: a baud mismatch reads garbage; matching it reads HELLO", async ({ page }) => {
+  await page.goto("/labs/iot/iot-11-buses");
+  const r = page.getByRole("status", { name: "UART қабылдады" });
+  await page.getByRole("button", { name: "Қабылдау" }).click();
+  await expect(r).toContainText("⚠");
+  await page.getByRole("group", { name: "Микроконтроллер (RX)" }).getByRole("button", { name: "9600" }).click();
+  await page.getByRole("button", { name: "Қабылдау" }).click();
+  await expect(r).toContainText("HELLO ✓");
+  await expect(objective(page, "Жылдамдықтарды теңестір")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 12: the superloop misses 4 control deadlines; priorities miss none", async ({ page }) => {
+  await page.goto("/labs/iot/iot-12-rtos");
+  const r = page.getByRole("status", { name: "Жоспарлау нәтижесі" });
+  await page.getByRole("button", { name: "Жоспарлауды іске қосу" }).click();
+  await expect(r).toContainText("Басқару өткізді4");
+  await page.getByRole("button", { name: "RTOS басымдықтары" }).click();
+  await page.getByRole("button", { name: "Жоспарлауды іске қосу" }).click();
+  await expect(r).toContainText("Басқару өткізді0");
 });

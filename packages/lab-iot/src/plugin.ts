@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { TASKS, dec, enc, i2cRead, pwm, schedule, transferTime, uartReceive, type Bus, type PwmResult, type Schedule, type Scheduler } from "./middle-core";
 import {
   HEAVY,
   LIFT,
@@ -20,7 +21,7 @@ import {
   type Radio,
 } from "./core";
 
-export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power";
+export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos";
 export type PlantId = "lift" | "heavy";
 
 /** Targets for the arm; the last one is out of reach. */
@@ -43,6 +44,11 @@ export interface IotStats {
   kalmanRuns: { q: number; r: number; gpsNoise: number; odo: number; gps: number; fused: number }[];
   subscriptions: { filter: string; matches: string[] }[];
   powerChecks: { minutes: number; radio: Radio; days: number }[];
+  pwmRuns: { duty: number; freq: number; ripple: number }[];
+  uartRuns: { tx: number; rx: number; ok: boolean }[];
+  busRuns: { bus: Bus; ms: number }[];
+  i2cRuns: { a: number; b: number; ok: boolean }[];
+  rtosRuns: { kind: Scheduler; logger: number; controlMisses: number; loggerMisses: number; utilization: number }[];
 }
 
 export interface IotLabState {
@@ -56,6 +62,9 @@ export interface IotLabState {
   kalman: { q: number; r: number; gpsNoise: number; ran: boolean };
   mqtt: { filter: string; error: string | null };
   power: { minutes: number; radio: Radio };
+  pwm: { duty: number; freq: number; last: PwmResult | null };
+  serial: { tx: number; rx: number; received: string | null; addrB: number; i2c: { ok: boolean; answered: number } | null; bus: Bus; ms: number | null };
+  rtos: { kind: Scheduler; logger: number; last: Schedule | null };
   stats: IotStats;
 }
 
@@ -76,7 +85,16 @@ export type IotLabAction =
   | { type: "kalman/set"; q?: number; r?: number; gpsNoise?: number }
   | { type: "kalman/run" }
   | { type: "mqtt/subscribe"; filter: string }
-  | { type: "power/set"; minutes?: number; radio?: Radio };
+  | { type: "power/set"; minutes?: number; radio?: Radio }
+  | { type: "pwm/set"; duty?: number; freq?: number }
+  | { type: "pwm/run" }
+  | { type: "uart/set"; tx?: number; rx?: number }
+  | { type: "uart/send" }
+  | { type: "i2c/address"; addrB: number }
+  | { type: "i2c/read" }
+  | { type: "bus/send"; bus: Bus }
+  | { type: "rtos/set"; kind?: Scheduler; logger?: number }
+  | { type: "rtos/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -95,6 +113,9 @@ export function initialIotState(): IotLabState {
     kalman: { q: 0.05, r: 9, gpsNoise: 3, ran: false },
     mqtt: { filter: "", error: null },
     power: { minutes: 1, radio: "wifi" },
+    pwm: { duty: 0.5, freq: 20, last: null },
+    serial: { tx: 9600, rx: 115200, received: null, addrB: 0x76, i2c: null, bus: "uart", ms: null },
+    rtos: { kind: "superloop", logger: 30, last: null },
     stats: {
       modes: ["adc"],
       adcReads: [],
@@ -107,6 +128,11 @@ export function initialIotState(): IotLabState {
       kalmanRuns: [],
       subscriptions: [],
       powerChecks: [],
+      pwmRuns: [],
+      uartRuns: [],
+      busRuns: [],
+      i2cRuns: [],
+      rtosRuns: [],
     },
   };
 }
@@ -200,6 +226,44 @@ function reduce(s: IotLabState, a: IotLabAction): IotLabState {
     case "power/set": {
       const power = { minutes: a.minutes ?? s.power.minutes, radio: a.radio ?? s.power.radio };
       return { ...s, power, stats: { ...st, powerChecks: cap([...st.powerChecks, { ...power, days: batteryDays(power.minutes, power.radio) }]) } };
+    }
+
+    case "pwm/set": {
+      const duty = a.duty !== undefined ? Math.round(Math.min(1, Math.max(0, a.duty)) * 20) / 20 : s.pwm.duty;
+      const freq = a.freq !== undefined && [20, 200, 2000, 20000].includes(a.freq) ? a.freq : s.pwm.freq;
+      return { ...s, mode: "pwm", pwm: { duty, freq, last: null } };
+    }
+    case "pwm/run": {
+      const r = pwm(s.pwm.duty, s.pwm.freq);
+      return { ...s, mode: "pwm", pwm: { ...s.pwm, last: r }, stats: { ...st, pwmRuns: cap([...st.pwmRuns, { duty: s.pwm.duty, freq: s.pwm.freq, ripple: r.ripple }]) } };
+    }
+    case "uart/set": {
+      const ok = (b: number | undefined) => b !== undefined && [9600, 115200].includes(b);
+      return { ...s, mode: "serial", serial: { ...s.serial, tx: ok(a.tx) ? a.tx! : s.serial.tx, rx: ok(a.rx) ? a.rx! : s.serial.rx, received: null } };
+    }
+    case "uart/send": {
+      const r = uartReceive(enc("HELLO"), s.serial.tx, s.serial.rx);
+      const text = dec(r.bytes);
+      return { ...s, mode: "serial", serial: { ...s.serial, received: text }, stats: { ...st, uartRuns: cap([...st.uartRuns, { tx: s.serial.tx, rx: s.serial.rx, ok: text === "HELLO" }]) } };
+    }
+    case "i2c/address":
+      return [0x76, 0x77].includes(a.addrB) ? { ...s, mode: "serial", serial: { ...s.serial, addrB: a.addrB, i2c: null } } : s;
+    case "i2c/read": {
+      const r = i2cRead(0x76, s.serial.addrB, 0x76);
+      return { ...s, mode: "serial", serial: { ...s.serial, i2c: r }, stats: { ...st, i2cRuns: cap([...st.i2cRuns, { a: 0x76, b: s.serial.addrB, ok: r.ok }]) } };
+    }
+    case "bus/send": {
+      const ms = Math.round(transferTime(a.bus, 1024) * 100000) / 100;
+      return { ...s, mode: "serial", serial: { ...s.serial, bus: a.bus, ms }, stats: { ...st, busRuns: cap([...st.busRuns, { bus: a.bus, ms }]) } };
+    }
+    case "rtos/set": {
+      const logger = a.logger !== undefined && [30, 70].includes(a.logger) ? a.logger : s.rtos.logger;
+      return { ...s, mode: "rtos", rtos: { kind: a.kind ?? s.rtos.kind, logger, last: null } };
+    }
+    case "rtos/run": {
+      const r = schedule(s.rtos.kind, TASKS(s.rtos.logger));
+      const run = { kind: s.rtos.kind, logger: s.rtos.logger, controlMisses: r.misses.control!, loggerMisses: r.misses.logger!, utilization: r.utilization };
+      return { ...s, mode: "rtos", rtos: { ...s.rtos, last: r }, stats: { ...st, rtosRuns: cap([...st.rtosRuns, run]) } };
     }
   }
 }

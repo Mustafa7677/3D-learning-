@@ -30,11 +30,12 @@ import {
   type IotLabState,
 } from "@inside-tech/lab-iot";
 import { FitCamera } from "./FitCamera";
+import { PwmView, RtosView, SerialView } from "./IotMiddleViews";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
-export type IotFocus = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power";
+export type IotFocus = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos";
 
 const OFF = new Color("#c9d0de");
 const OK = new Color("#17895c");
@@ -382,6 +383,9 @@ function Contents({ state, focus }: { state: IotLabState; focus: IotFocus }) {
     kalman: { w: 17, h: 7, t: [0, 3.2, 0], d: [0, 0.15, 1] },
     mqtt: { w: 16, h: 10, t: [0, 0.6, 0], d: [0, 1.4, 1] },
     power: { w: 17, h: 4, t: [0, 1.4, 0], d: [0, 0.6, 1] },
+    pwm: { w: 15, h: 5, t: [-1, 1, 0], d: [0, 0.6, 1] },
+    serial: { w: 11, h: 7, t: [0, 0.8, 0.2], d: [0, 1.1, 1] },
+    rtos: { w: 17, h: 4.5, t: [0, 0.4, -0.3], d: [0, 1.3, 1] },
   };
   const f = frames[focus];
   return (
@@ -399,6 +403,9 @@ function Contents({ state, focus }: { state: IotLabState; focus: IotFocus }) {
       {focus === "kalman" && <KalmanView state={state} />}
       {focus === "mqtt" && <MqttView state={state} />}
       {focus === "power" && <PowerView state={state} />}
+      {focus === "pwm" && <PwmView state={state} />}
+      {focus === "serial" && <SerialView state={state} />}
+      {focus === "rtos" && <RtosView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

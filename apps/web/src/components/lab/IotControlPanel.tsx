@@ -14,6 +14,7 @@ import {
   type Radio,
 } from "@inside-tech/lab-iot";
 import type { IotFocus } from "../scene/IotScene";
+import { PwmSection, RtosSection, SerialSection } from "./IotMiddleSections";
 import styles from "./lab.module.css";
 
 type D = (a: IotLabAction) => void;
@@ -280,6 +281,9 @@ export function IotControlPanel({ state, focus, dispatch, canUndo, onUndo }: { s
       {focus === "kalman" && <KalmanSection state={state} dispatch={dispatch} />}
       {focus === "mqtt" && <MqttSection state={state} dispatch={dispatch} />}
       {focus === "power" && <PowerSection state={state} dispatch={dispatch} />}
+      {focus === "pwm" && <PwmSection state={state} dispatch={dispatch} />}
+      {focus === "serial" && <SerialSection state={state} dispatch={dispatch} />}
+      {focus === "rtos" && <RtosSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

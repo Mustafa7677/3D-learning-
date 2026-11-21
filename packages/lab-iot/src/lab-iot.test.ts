@@ -113,6 +113,41 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
     },
     minute: (d) => d({ type: "power/set", minutes: 1, radio: "lora" }),
   },
+  "iot-10-pwm": {
+    duty: (d) => {
+      d({ type: "pwm/set", duty: 0.25 });
+      d({ type: "pwm/run" });
+      d({ type: "pwm/set", duty: 0.75 });
+      d({ type: "pwm/run" });
+    },
+    freq: (d) => {
+      d({ type: "pwm/run" });
+      d({ type: "pwm/set", freq: 20000 });
+      d({ type: "pwm/run" });
+    },
+  },
+  "iot-11-buses": {
+    uart: (d) => {
+      d({ type: "uart/send" });
+      d({ type: "uart/set", rx: 9600 });
+      d({ type: "uart/send" });
+    },
+    bus: (d) => {
+      d({ type: "i2c/read" });
+      d({ type: "i2c/address", addrB: 0x77 });
+      d({ type: "i2c/read" });
+      d({ type: "bus/send", bus: "uart" });
+      d({ type: "bus/send", bus: "spi" });
+    },
+  },
+  "iot-12-rtos": {
+    superloop: (d) => d({ type: "rtos/run" }),
+    priority: (d) => {
+      d({ type: "rtos/run" });
+      d({ type: "rtos/set", logger: 70 });
+      d({ type: "rtos/run" });
+    },
+  },
 };
 
 describe("iot lessons are completable", () => {
