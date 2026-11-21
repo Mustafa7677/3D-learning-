@@ -30,7 +30,7 @@ interface Props {
 
 const RED = new Color("#c23b3b");
 const WALL = new Color("#56617c");
-const FLOOR = new Color("#e3e8f0");
+const FLOOR = new Color("#8e97b8");
 const GOLD = new Color("#f2b632");
 
 // ---------------- scene graph ----------------
@@ -157,7 +157,7 @@ function PhysicsView({ state, onDrop }: { state: GameLabState; onDrop?: (x: numb
         <planeGeometry args={[ARENA * 2, ARENA * 2]} />
         <meshStandardMaterial color={FLOOR} />
       </mesh>
-      <gridHelper args={[ARENA * 2, 12, "#9aa6bd", "#c3cad8"]} position={[0, 0.01, 0]} />
+      <gridHelper args={[ARENA * 2, 12, "#4a5794", "#2c3663"]} position={[0, 0.01, 0]} />
       {p.walls.map((w) => (
         <mesh key={w.id} position={[(w.min[0] + w.max[0]) / 2, (w.min[1] + w.max[1]) / 2, (w.min[2] + w.max[2]) / 2]}>
           <boxGeometry args={[w.max[0] - w.min[0], w.max[1] - w.min[1], w.max[2] - w.min[2]]} />

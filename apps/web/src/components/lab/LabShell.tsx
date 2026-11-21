@@ -6,6 +6,7 @@ import type { LessonDefinition } from "@inside-tech/lesson-engine";
 import type { LabSession } from "@/lib/useAiLabSession";
 import { findLab } from "@/lib/catalog";
 import { LessonPanel } from "./LessonPanel";
+import { PlayerBadge } from "../film/PlayerBadge";
 import styles from "./lab.module.css";
 
 interface Props {
@@ -35,6 +36,9 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
             {lesson.order}. {lesson.title}
           </span>
         </nav>
+        <span className={styles.hud}>
+          <PlayerBadge />
+        </span>
         <span className={styles.progress} aria-label="Сабақ прогресі">
           <span style={{ width: `${Math.round(session.completion * 100)}%` }} />
         </span>

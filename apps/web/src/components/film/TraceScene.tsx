@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Group, Quaternion, Vector3 } from "three";
 import { Label } from "../scene/Label";
 import { Emblem, FILM } from "./Emblems";
+import { StageLook } from "../scene/StageLook";
 import { Dust, FilmFx, usePointerSway } from "./Fx";
 
 
@@ -122,6 +123,7 @@ export default function TraceScene({
         </group>
       ))}
       {active >= 0 && active < n && <Beam at={pts[active]!} />}
+      <StageLook shadows={false} />
       <Dust still={still} spread={[n * 2.5 + 16, 8, 14]} />
       <Rig progress={progress} count={n} still={still} />
       <FilmFx />

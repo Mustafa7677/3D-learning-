@@ -1,5 +1,6 @@
 "use client";
 
+import { StageLook } from "./StageLook";
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -86,7 +87,8 @@ function Floor({ onPick }: { onPick?: (x: number, y: number) => void }) {
   };
   return (
     <group>
-      <gridHelper args={[2 * S, 12, "#9aa6bd", "#c3cad8"]} position={[0, 0.001, 0]} />
+      <gridHelper args={[2 * S, 12, "#4a5794", "#2c3663"]} position={[0, 0.001, 0]} />
+      <StageLook />
       <mesh rotation={[-Math.PI / 2, 0, 0]} onClick={handle} receiveShadow>
         <planeGeometry args={[2 * S, 2 * S]} />
         <meshStandardMaterial color="#f5f7fa" transparent opacity={0.55} />

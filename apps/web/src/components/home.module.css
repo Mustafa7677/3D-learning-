@@ -1,5 +1,50 @@
 .page {
   min-height: 100dvh;
+  /* Same night palette as the film and lesson pages. */
+  --paper: #0d1229;
+  --panel: #161d3a;
+  --panel-2: #1f2850;
+  --ink: #e9edf3;
+  --muted: #a3adc8;
+  --line: #2f3a66;
+  --c0: #7d97ff;
+  --c1: #f0aa4a;
+  --c0-soft: #222d63;
+  --c1-soft: #43301a;
+  --ok: #3fd39a;
+  --danger: #ff7a7a;
+  --focus: #9db0ff;
+  --scene-bg: #121a3a;
+  color-scheme: dark;
+  color: var(--ink);
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgb(47 91 234 / 0.18), transparent 70%),
+    linear-gradient(#0d1229, #0b1024);
+}
+.page :global(.btn) {
+  background: var(--panel-2);
+  color: var(--ink);
+  border-color: var(--line);
+  border-radius: 10px;
+}
+.page :global(.btn:hover) {
+  border-color: var(--c0);
+}
+.page :global(.btn[aria-pressed="true"]) {
+  background: var(--c0-soft);
+  color: var(--ink);
+  border-color: var(--c0);
+}
+.page :global(.btn-primary) {
+  background: linear-gradient(180deg, #f2b25c, #d98d33);
+  color: #121831;
+  border-color: #f2b25c;
+  font-weight: 600;
+}
+.page :global(.btn-primary:disabled) {
+  background: var(--panel-2);
+  color: var(--muted);
+  border-color: var(--line);
 }
 
 .nav {

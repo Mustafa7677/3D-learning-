@@ -732,3 +732,264 @@ div.walkSteps {
   background: var(--c1);
   color: #18203a;
 }
+
+
+/* =====================================================================
+   Game HUD theme for the lesson page: the same silicon night, copper and
+   cobalt as the home film. Tokens are redefined on the shell, so every
+   panel, control and lecture inside follows.
+   ===================================================================== */
+.shell {
+  --paper: #0d1229;
+  --panel: #161d3a;
+  --panel-2: #1f2850;
+  --ink: #e9edf3;
+  --muted: #a3adc8;
+  --line: #2f3a66;
+  --c0: #7d97ff;
+  --c1: #f0aa4a;
+  --c0-soft: #222d63;
+  --c1-soft: #43301a;
+  --ok: #3fd39a;
+  --danger: #ff7a7a;
+  --focus: #9db0ff;
+  --scene-bg: #121a3a;
+  --glass: rgb(22 29 58 / 0.78);
+  --copper: #e3a04f;
+  color-scheme: dark;
+  color: var(--ink);
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgb(47 91 234 / 0.16), transparent 70%),
+    linear-gradient(#0d1229, #0b1024);
+}
+
+/* top bar: a HUD strip with a glowing edge */
+.topbar {
+  position: relative;
+  background: rgb(13 18 41 / 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid transparent;
+  z-index: 5;
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c0) 30%, var(--copper) 70%, transparent);
+  opacity: 0.7;
+}
+.progress {
+  width: 160px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgb(233 237 243 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(233 237 243 / 0.08);
+}
+.progress span {
+  border-radius: 4px;
+  background: linear-gradient(90deg, #6d8cff, var(--copper));
+  box-shadow: 0 0 12px rgb(227 160 79 / 0.7);
+}
+
+/* side panels: glass over the night */
+.left,
+.right {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+}
+.left {
+  border-right: 1px solid var(--line);
+}
+.right {
+  border-left: 1px solid var(--line);
+}
+
+/* stage: a framed viewport with HUD corner brackets */
+.stage {
+  background:
+    radial-gradient(70% 60% at 50% 35%, #1d2652 0%, #121a3a 55%, #0c1230 100%);
+}
+.stage::before,
+.stage::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  z-index: 2;
+  pointer-events: none;
+  border: 2px solid var(--copper);
+  opacity: 0.7;
+}
+.stage::before {
+  left: 14px;
+  top: 14px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 6px;
+}
+.stage::after {
+  right: 14px;
+  bottom: 14px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: 6px;
+}
+
+/* lesson card: quest log */
+.lessonName {
+  color: var(--copper);
+  font-size: 13px;
+}
+.stepper {
+  gap: 8px;
+}
+.stepDot {
+  height: 8px;
+  width: 40px;
+  border-radius: 4px;
+  background: rgb(233 237 243 / 0.1);
+  transform: skewX(-20deg);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.stepDot[data-state="done"] {
+  background: var(--c0);
+  box-shadow: 0 0 10px rgb(125 151 255 / 0.6);
+}
+.stepDot[data-state="current"] {
+  background: var(--copper);
+  box-shadow: 0 0 12px rgb(227 160 79 / 0.8);
+}
+.stepTitle {
+  font-size: 26px;
+  letter-spacing: -0.01em;
+}
+.objHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+.objHeading::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--copper);
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px var(--copper);
+}
+.objectives li {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgb(233 237 243 / 0.04);
+  border: 1px solid var(--line);
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.objectives li[data-done="true"] {
+  border-color: rgb(63 211 154 / 0.55);
+  background: rgb(63 211 154 / 0.08);
+  box-shadow: 0 0 18px rgb(63 211 154 / 0.12);
+}
+.check {
+  border-radius: 7px;
+  border-color: var(--muted);
+  color: #0d1229;
+}
+.objectives li[data-done="true"] .check {
+  box-shadow: 0 0 10px var(--ok);
+}
+.quiz {
+  background: rgb(233 237 243 / 0.035);
+  border-color: var(--line);
+  border-radius: 14px;
+}
+.quiz[data-done="true"] {
+  border-color: rgb(63 211 154 / 0.5);
+}
+
+/* buttons inside the lesson page */
+.shell :global(.btn) {
+  background: var(--panel-2);
+  color: var(--ink);
+  border-color: var(--line);
+  border-radius: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.shell :global(.btn:hover) {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 3px rgb(125 151 255 / 0.15);
+}
+.shell :global(.btn[aria-pressed="true"]) {
+  background: var(--c0-soft);
+  color: var(--ink);
+  border-color: var(--c0);
+  box-shadow: inset 0 0 0 1px var(--c0), 0 0 12px rgb(125 151 255 / 0.3);
+}
+.shell :global(.btn-primary) {
+  background: linear-gradient(180deg, #f2b25c, #d98d33);
+  color: #121831;
+  border-color: #f2b25c;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgb(227 160 79 / 0.25);
+}
+.shell :global(.btn-primary:hover) {
+  background: linear-gradient(180deg, #ffc472, #e39a40);
+  border-color: #ffc472;
+  box-shadow: 0 0 0 3px rgb(227 160 79 / 0.25), 0 6px 20px rgb(227 160 79 / 0.35);
+}
+.shell :global(.btn-primary:disabled) {
+  background: var(--panel-2);
+  color: var(--muted);
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+/* control groups: titled cards */
+.group {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 14px 16px;
+  background: rgb(233 237 243 / 0.03);
+}
+.group legend {
+  padding: 0 8px;
+  color: var(--copper);
+}
+.metrics > div {
+  background: rgb(233 237 243 / 0.04);
+  border-color: var(--line);
+}
+.metrics strong {
+  color: var(--ink);
+  text-shadow: 0 0 12px rgb(125 151 255 / 0.35);
+}
+.shell input[type="range"] {
+  accent-color: var(--copper);
+}
+.cinemaBtn {
+  color: var(--ink);
+  background: rgb(227 160 79 / 0.12);
+  border-color: var(--copper);
+  box-shadow: 0 0 14px rgb(227 160 79 / 0.2);
+}
+.cinemaBtn:hover,
+.cinemaBtn:focus-visible {
+  background: var(--copper);
+  color: #121831;
+}
+
+.hud {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.hud + .progress {
+  margin-left: 0;
+}
+@media (max-width: 720px) {
+  .hud {
+    display: none;
+  }
+}

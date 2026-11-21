@@ -7,6 +7,7 @@ import { Color, Quaternion, Vector3 } from "three";
 import { GRAPHS, pathTo, type AlgoLabState } from "@inside-tech/lab-algo";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type AlgoFocus = "sort" | "search" | "graph" | "bench";
@@ -141,7 +142,8 @@ function Contents({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
       <ambientLight intensity={0.8} />
       <directionalLight position={[4, 9, 6]} intensity={1.3} />
       <directionalLight position={[-6, 4, -4]} intensity={0.35} />
-      <gridHelper args={[16, 16, "#c3cad8", "#e1e6ef"]} />
+      <gridHelper args={[16, 16, "#36427a", "#232c55"]} />
+      <StageLook />
       {mode === "sort" && <SortView state={state} />}
       {mode === "search" && <SearchView state={state} />}
       {graph && <GraphView state={state} />}

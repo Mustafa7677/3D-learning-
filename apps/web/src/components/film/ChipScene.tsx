@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import { Group, Mesh, MeshStandardMaterial, QuadraticBezierCurve3, TubeGeometry, Vector3 } from "three";
+import { StageLook } from "../scene/StageLook";
 import { Label } from "../scene/Label";
 import { Emblem, FILM } from "./Emblems";
 import { Dust, FilmFx, usePointerSway } from "./Fx";
@@ -124,6 +125,59 @@ function Traces({ blocks, still }: { blocks: ChipBlock[]; still: boolean }) {
   );
 }
 
+const GOLD = "#d9b35a";
+
+/** Gold bond wires from pads on the die edge to the package frame, and the die's etched grid. */
+function DieDetail() {
+  const wires = useMemo(() => {
+    const out: TubeGeometry[] = [];
+    const arc = (a: Vector3, b: Vector3) => {
+      const mid = a.clone().lerp(b, 0.5);
+      mid.y += 0.32;
+      return new TubeGeometry(new QuadraticBezierCurve3(a, mid, b), 10, 0.012, 5, false);
+    };
+    for (let z = -1.85; z <= 1.86; z += 0.37)
+      for (const sx of [-1, 1]) out.push(arc(new Vector3(sx * 3.3, 0.27, z), new Vector3(sx * 3.68, 0.19, z)));
+    for (let x = -3.0; x <= 3.01; x += 0.5)
+      for (const sz of [-1, 1]) out.push(arc(new Vector3(x, 0.27, sz * 2.1), new Vector3(x, 0.19, sz * 2.56)));
+    return out;
+  }, []);
+  const pads = useMemo(() => {
+    const out: [number, number, number, number, number][] = [];
+    for (let z = -1.85; z <= 1.86; z += 0.37) for (const sx of [-1, 1]) out.push([sx * 3.3, 0.265, z, 0.09, 0.09], [sx * 3.68, 0.185, z, 0.12, 0.08]);
+    for (let x = -3.0; x <= 3.01; x += 0.5) for (const sz of [-1, 1]) out.push([x, 0.265, sz * 2.1, 0.09, 0.09], [x, 0.185, sz * 2.56, 0.08, 0.12]);
+    return out;
+  }, []);
+  return (
+    <group>
+      {wires.map((g, i) => (
+        <mesh key={i} geometry={g}>
+          <meshStandardMaterial color={GOLD} metalness={1} roughness={0.25} />
+        </mesh>
+      ))}
+      {pads.map(([x, y, z, w, d], i) => (
+        <mesh key={`p${i}`} position={[x, y, z]}>
+          <boxGeometry args={[w, 0.01, d]} />
+          <meshStandardMaterial color={GOLD} metalness={1} roughness={0.3} />
+        </mesh>
+      ))}
+      {/* etched routing grid on the die surface */}
+      {Array.from({ length: 16 }, (_, i) => (
+        <mesh key={`gx${i}`} position={[-3 + i * 0.4, 0.262, 0]}>
+          <boxGeometry args={[0.012, 0.004, 4.1]} />
+          <meshStandardMaterial color="#3c477c" emissive="#2a3466" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+      {Array.from({ length: 11 }, (_, i) => (
+        <mesh key={`gz${i}`} position={[0, 0.262, -2 + i * 0.4]}>
+          <boxGeometry args={[6.4, 0.004, 0.012]} />
+          <meshStandardMaterial color="#3c477c" emissive="#2a3466" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function Package({ progress }: { progress: MutableRefObject<number> }) {
   const lid = useRef<Mesh>(null);
   useFrame(() => {
@@ -141,7 +195,7 @@ function Package({ progress }: { progress: MutableRefObject<number> }) {
     <group>
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[7.6, 0.36, 5.4]} />
-        <meshStandardMaterial color={FILM.night} metalness={0.2} roughness={0.8} />
+        <meshStandardMaterial color="#1a1f33" metalness={0.15} roughness={0.75} />
       </mesh>
       {Array.from({ length: 14 }, (_, i) =>
         [-1, 1].map((s) => (
@@ -153,11 +207,12 @@ function Package({ progress }: { progress: MutableRefObject<number> }) {
       )}
       <mesh position={[0, 0.22, 0]}>
         <boxGeometry args={[6.8, 0.08, 4.4]} />
-        <meshStandardMaterial color={FILM.die} metalness={0.3} roughness={0.5} />
+        <meshStandardMaterial color={FILM.die} metalness={0.55} roughness={0.32} />
       </mesh>
+      <DieDetail />
       <mesh ref={lid} position={[0, 0.85, 0]}>
         <boxGeometry args={[7.2, 1.1, 5]} />
-        <meshStandardMaterial color="#8f97ad" metalness={0.85} roughness={0.35} transparent />
+        <meshStandardMaterial color="#9aa2b8" metalness={0.95} roughness={0.28} transparent />
         {/* copper frame and the pin-1 dot engraved on the cap */}
         {[
           [0, 1.75, 6, 0.06],
@@ -230,6 +285,7 @@ export default function ChipScene({ progress, blocks, interactive, onOpen, still
       <Package progress={progress} />
       <Traces blocks={blocks} still={still} />
       <Blocks blocks={blocks} interactive={interactive} onOpen={onOpen} still={still} />
+      <StageLook shadows={false} />
       <Dust still={still} />
       <Rig progress={progress} blocks={blocks} still={still} />
       <FilmFx />

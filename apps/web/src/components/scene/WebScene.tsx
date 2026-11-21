@@ -27,7 +27,7 @@ interface Props {
   onDomPick?: (id: number) => void;
 }
 
-const INK = new Color("#18203a");
+const INK = new Color("#55649f");
 const MUTED = new Color("#9aa6bd");
 const RED = new Color("#c23b3b");
 const GREEN = new Color("#17895c");

@@ -7,6 +7,7 @@ import { BufferAttribute, BufferGeometry, Color, InstancedMesh, Object3D } from 
 import { EOS, attention, languageModels, nearest, nextTokens, sentenceWords, type LangLabState } from "@inside-tech/lab-ai";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type LangFocus = "tokens" | "embedding" | "attention" | "llm";
@@ -146,7 +147,8 @@ export default function LangScene(props: Props) {
     >
       <ambientLight intensity={0.8} />
       <directionalLight position={[4, 8, 5]} intensity={1.3} />
-      <gridHelper args={[10, 10, "#9aa6bd", "#c3cad8"]} />
+      <gridHelper args={[10, 10, "#4a5794", "#2c3663"]} />
+      <StageLook />
       {llm ? (
         <ProbabilityBars state={props.state} />
       ) : (

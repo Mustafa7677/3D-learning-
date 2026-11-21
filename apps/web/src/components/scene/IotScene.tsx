@@ -31,6 +31,7 @@ import {
 } from "@inside-tech/lab-iot";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type IotFocus = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power";
@@ -387,7 +388,8 @@ function Contents({ state, focus }: { state: IotLabState; focus: IotFocus }) {
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 9, 6]} intensity={1.2} />
-      <gridHelper args={[24, 24, "#c3cad8", "#e1e6ef"]} position={[0, -0.01, 0]} />
+      <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
+      <StageLook />
       {focus === "adc" && <AdcView state={state} />}
       {focus === "sampling" && <SamplingView state={state} />}
       {focus === "filter" && <FilterView state={state} />}

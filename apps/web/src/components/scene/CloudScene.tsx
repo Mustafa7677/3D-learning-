@@ -21,6 +21,7 @@ import {
 } from "@inside-tech/lab-cloud";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type CloudFocus = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident";
@@ -272,7 +273,8 @@ function Contents({ state, focus }: { state: CloudLabState; focus: CloudFocus })
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 9, 6]} intensity={1.2} />
-      <gridHelper args={[24, 24, "#c3cad8", "#e1e6ef"]} position={[0, -0.01, 0]} />
+      <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
+      <StageLook />
       {focus === "image" && <ImageView state={state} />}
       {focus === "cluster" && <ClusterView state={state} />}
       {focus === "scale" && <ScaleView state={state} />}

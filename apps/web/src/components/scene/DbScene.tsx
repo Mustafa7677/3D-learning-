@@ -6,6 +6,7 @@ import { Color } from "three";
 import { assign, loads, type DbLabState } from "@inside-tech/lab-db";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type DbFocus = "sql" | "race" | "shard";
@@ -119,7 +120,8 @@ function Contents({ state, focus }: { state: DbLabState; focus: DbFocus }) {
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 9, 6]} intensity={1.2} />
-      <gridHelper args={[24, 24, "#c3cad8", "#e1e6ef"]} position={[0, -0.01, 0]} />
+      <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
+      <StageLook />
       {focus === "sql" && <Tables state={state} />}
       {focus === "race" && <RaceView state={state} />}
       {focus === "shard" && <ShardView state={state} />}

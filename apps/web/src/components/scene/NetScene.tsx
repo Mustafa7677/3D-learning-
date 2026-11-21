@@ -6,6 +6,7 @@ import { Color, Quaternion, Vector3 } from "three";
 import { LINKS, PUBLIC_IP, ROUTERS, RTT, currentCongestion, currentTransfer, distanceVector, packetize, parseIp, shortestPath, type NetLabState } from "@inside-tech/lab-net";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type NetFocus = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat";
@@ -213,7 +214,8 @@ function Contents({ state, focus }: { state: NetLabState; focus: NetFocus }) {
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 9, 6]} intensity={1.2} />
-      <gridHelper args={[24, 24, "#c3cad8", "#e1e6ef"]} position={[0, -0.01, 0]} />
+      <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
+      <StageLook />
       {focus === "packets" && <PacketsView state={state} />}
       {focus === "ip" && <IpView state={state} />}
       {focus === "routing" && <RoutingView state={state} />}

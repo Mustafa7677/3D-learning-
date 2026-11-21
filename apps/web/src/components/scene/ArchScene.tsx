@@ -6,6 +6,7 @@ import { Color, Vector3 } from "three";
 import { CIRCUITS, COLS, MEM_SIZE, ROWS, cacheTrace, evaluate, hex, toBits, toSigned, type ArchLabState } from "@inside-tech/lab-arch";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type ArchFocus = "bits" | "gates" | "cpu" | "cache";
@@ -217,7 +218,8 @@ function Contents({ state, focus }: { state: ArchLabState; focus: ArchFocus }) {
       <ambientLight intensity={0.8} />
       <directionalLight position={[4, 9, 6]} intensity={1.3} />
       <directionalLight position={[-6, 4, -4]} intensity={0.35} />
-      <gridHelper args={[20, 20, "#c3cad8", "#e1e6ef"]} position={[0, -0.01, 0]} />
+      <gridHelper args={[20, 20, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
+      <StageLook />
       {focus === "bits" && <BitsView state={state} />}
       {focus === "gates" && <GatesView state={state} />}
       {focus === "cpu" && <CpuView state={state} />}

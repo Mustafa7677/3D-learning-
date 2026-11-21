@@ -7,6 +7,7 @@ import { Color } from "three";
 import { A, USERS, attempt, bitDistance, cipherText, frequencies, sha256, stored, strength, utf8, xorBytes, type SecLabState } from "@inside-tech/lab-sec";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
+import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
 export type SecFocus = "cipher" | "xor" | "hash" | "passwords" | "strength" | "rsa" | "attack";
@@ -232,7 +233,8 @@ function Contents({ state, focus }: { state: SecLabState; focus: SecFocus }) {
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 9, 6]} intensity={1.2} />
-      <gridHelper args={[24, 24, "#c3cad8", "#e1e6ef"]} position={[0, -0.01, 0]} />
+      <gridHelper args={[24, 24, "#36427a", "#232c55"]} position={[0, -0.01, 0]} />
+      <StageLook />
       {focus === "cipher" && <Wheel state={state} />}
       {focus === "xor" && <XorView state={state} />}
       {focus === "hash" && <HashView state={state} />}
