@@ -1,0 +1,139 @@
+"use client";
+
+import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type ProbeScenario } from "@inside-tech/lab-cloud";
+import styles from "./lab.module.css";
+
+type D = (a: CloudLabAction) => void;
+
+export function ProbesSection({ state, dispatch }: { state: CloudLabState; dispatch: D }) {
+  const p = state.probes;
+  const last = p.last;
+  const scenarios: [ProbeScenario, string][] = [
+    ["rollout", "Rolling update"],
+    ["deadlock", "B поды қатады (22 с)"],
+  ];
+  return (
+    <fieldset className={styles.group}>
+      <legend>Денсаулық тексерістері · 3 под, 100 сұраныс/с, 90 с</legend>
+      <div className={styles.row} role="group" aria-label="Сценарий">
+        {scenarios.map(([v, label]) => (
+          <button key={v} type="button" className="btn" aria-pressed={p.scenario === v} onClick={() => dispatch({ type: "probes/set", scenario: v })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <label className={styles.row}>
+        <input type="checkbox" checked={p.readiness} onChange={(e) => dispatch({ type: "probes/set", readiness: e.target.checked })} /> Readiness тексерісі (әр 5 с)
+      </label>
+      <label className={styles.row}>
+        <input type="checkbox" checked={p.liveness} onChange={(e) => dispatch({ type: "probes/set", liveness: e.target.checked })} /> Liveness тексерісі (3 сәтсіздік = қайта іске қосу)
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "probes/run" })}>
+        90 секундты ойнату
+      </button>
+      {last && (
+        <div className={styles.metrics} role="status" aria-label="Тексеріс нәтижесі">
+          <div>
+            <span>Қате сұраныс</span>
+            <strong>{last.errors}</strong>
+          </div>
+          <div>
+            <span>Қайта іске қосу</span>
+            <strong>{last.restarts}</strong>
+          </div>
+          <div>
+            <span>Соңында B</span>
+            <strong>{last.timeline.at(-1)![1]!.phase === "dead" ? "қатып тұр" : "сау"}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+export function QueueSection({ state, dispatch }: { state: CloudLabState; dispatch: D }) {
+  const q = state.queue;
+  const last = q.last;
+  return (
+    <fieldset className={styles.group}>
+      <legend>Кезек · 30 с бойы 150/с, сосын 50/с</legend>
+      <div className={styles.row} role="group" aria-label="Өңдеушілер">
+        {[1, 2].map((n) => (
+          <button key={n} type="button" className="btn" aria-pressed={q.consumers === n} onClick={() => dispatch({ type: "queue/set", consumers: n })}>
+            {n} өңдеуші ({n * 100}/с)
+          </button>
+        ))}
+      </div>
+      <div className={styles.row} role="group" aria-label="Кезек шегі">
+        <button type="button" className="btn" aria-pressed={q.limit === null} onClick={() => dispatch({ type: "queue/set", limit: null })}>
+          Шексіз кезек
+        </button>
+        <button type="button" className="btn" aria-pressed={q.limit === 500} onClick={() => dispatch({ type: "queue/set", limit: 500 })}>
+          Шегі 500, артығы 429
+        </button>
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "queue/run" })}>
+        Толқынды жіберу
+      </button>
+      {last && (
+        <div className={styles.metrics} role="status" aria-label="Кезек нәтижесі">
+          <div>
+            <span>Ең ұзын кезек</span>
+            <strong>{last.maxLength}</strong>
+          </div>
+          <div>
+            <span>Ең ұзақ күту</span>
+            <strong>{last.maxWait} с</strong>
+          </div>
+          <div>
+            <span>429 алды</span>
+            <strong>{last.dropped}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+const ALGOS: [LbAlgo, string][] = [
+  ["round-robin", "Round robin"],
+  ["random", "Кездейсоқ"],
+  ["least-conn", "Least connections"],
+];
+
+export function LbSection({ state, dispatch }: { state: CloudLabState; dispatch: D }) {
+  const l = state.lb;
+  const last = l.last;
+  return (
+    <fieldset className={styles.group}>
+      <legend>Жүктемені тарату · 300 сұраныс, әр 12 мс</legend>
+      <p className={styles.small}>{LB_SERVERS.map((s) => `${s.id}: ${s.ms} мс`).join(" · ")}</p>
+      <div className={styles.row} role="group" aria-label="Алгоритм">
+        {ALGOS.map(([v, label]) => (
+          <button key={v} type="button" className="btn" aria-pressed={l.algo === v} onClick={() => dispatch({ type: "lb/set", algo: v })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "lb/run" })}>
+        Сұраныстарды жіберу
+      </button>
+      {last && (
+        <div className={styles.metrics} role="status" aria-label="Тарату нәтижесі">
+          <div>
+            <span>A / B / C</span>
+            <strong>{last.counts.join(" / ")}</strong>
+          </div>
+          <div>
+            <span>Медиана</span>
+            <strong>{last.p50} мс</strong>
+          </div>
+          <div>
+            <span>p95</span>
+            <strong>{last.p95} мс</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}

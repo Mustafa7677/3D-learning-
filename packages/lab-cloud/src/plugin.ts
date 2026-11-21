@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { runLb, runProbes, runQueue, type LbAlgo, type LbResult, type ProbeResult, type ProbeScenario, type QueueResult } from "./middle-core";
 import {
   BAD_ORDER,
   BUG_RATE,
@@ -21,7 +22,7 @@ import {
   type Strategy,
 } from "./core";
 
-export type CloudMode = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident";
+export type CloudMode = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb";
 
 export interface CloudStats {
   modes: CloudMode[];
@@ -36,6 +37,9 @@ export interface CloudStats {
   availabilityChecks: { replicas: number; zones: number; availability: number }[];
   zoneTests: { replicas: number; zones: number; survived: boolean }[];
   diagnoses: ServiceId[];
+  probeRuns: { scenario: ProbeScenario; readiness: boolean; liveness: boolean; errors: number; restarts: number; deadAtEnd: boolean }[];
+  queueRuns: { consumers: number; limit: number | null; maxWait: number; dropped: number }[];
+  lbRuns: { algo: LbAlgo; p95: number; slowShare: number }[];
 }
 
 export interface CloudLabState {
@@ -49,6 +53,9 @@ export interface CloudLabState {
   release: { strategy: Strategy; step: number; share: number; maxShare: number; done: boolean; rolledBack: boolean };
   availability: { replicas: number; zones: number; zoneDown: boolean };
   incident: { selected: ServiceId | null };
+  probes: { scenario: ProbeScenario; readiness: boolean; liveness: boolean; last: ProbeResult | null };
+  queue: { consumers: number; limit: number | null; last: QueueResult | null };
+  lb: { algo: LbAlgo; last: LbResult | null };
   stats: CloudStats;
 }
 
@@ -69,7 +76,13 @@ export type CloudLabAction =
   | { type: "release/rollback" }
   | { type: "availability/set"; replicas?: number; zones?: number }
   | { type: "availability/zoneDown"; down: boolean }
-  | { type: "incident/select"; service: ServiceId };
+  | { type: "incident/select"; service: ServiceId }
+  | { type: "probes/set"; scenario?: ProbeScenario; readiness?: boolean; liveness?: boolean }
+  | { type: "probes/run" }
+  | { type: "queue/set"; consumers?: number; limit?: number | null }
+  | { type: "queue/run" }
+  | { type: "lb/set"; algo: LbAlgo }
+  | { type: "lb/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -90,6 +103,9 @@ export function initialCloudState(): CloudLabState {
     release: { strategy: "all", step: 0, share: 0, maxShare: 0, done: false, rolledBack: false },
     availability: { replicas: 1, zones: 1, zoneDown: false },
     incident: { selected: null },
+    probes: { scenario: "rollout", readiness: false, liveness: false, last: null },
+    queue: { consumers: 1, limit: null, last: null },
+    lb: { algo: "round-robin", last: null },
     stats: {
       modes: ["image"],
       imageBuilds: [],
@@ -103,6 +119,9 @@ export function initialCloudState(): CloudLabState {
       availabilityChecks: [],
       zoneTests: [],
       diagnoses: [],
+      probeRuns: [],
+      queueRuns: [],
+      lbRuns: [],
     },
   };
 }
@@ -209,6 +228,35 @@ function reduce(s: CloudLabState, a: CloudLabAction): CloudLabState {
 
     case "incident/select":
       return { ...s, incident: { selected: a.service }, stats: { ...st, diagnoses: cap([...st.diagnoses, a.service], 10) } };
+
+    case "probes/set": {
+      const p = s.probes;
+      return { ...s, mode: "probes", probes: { scenario: a.scenario ?? p.scenario, readiness: a.readiness ?? p.readiness, liveness: a.liveness ?? p.liveness, last: null } };
+    }
+    case "probes/run": {
+      const p = s.probes;
+      const r = runProbes(p.scenario, p.readiness, p.liveness);
+      const run = { scenario: p.scenario, readiness: p.readiness, liveness: p.liveness, errors: r.errors, restarts: r.restarts, deadAtEnd: r.timeline.at(-1)!.some((x) => x.phase === "dead") };
+      return { ...s, mode: "probes", probes: { ...p, last: r }, stats: { ...st, probeRuns: cap([...st.probeRuns, run]) } };
+    }
+    case "queue/set": {
+      const q = s.queue;
+      const consumers = a.consumers !== undefined ? Math.round(clamp(a.consumers, 1, 4)) : q.consumers;
+      const limit = a.limit === undefined ? q.limit : a.limit === null ? null : Math.round(clamp(a.limit, 100, 5000));
+      return { ...s, mode: "queue", queue: { consumers, limit, last: null } };
+    }
+    case "queue/run": {
+      const q = s.queue;
+      const r = runQueue(q.consumers, q.limit);
+      return { ...s, mode: "queue", queue: { ...q, last: r }, stats: { ...st, queueRuns: cap([...st.queueRuns, { consumers: q.consumers, limit: q.limit, maxWait: r.maxWait, dropped: r.dropped }]) } };
+    }
+    case "lb/set":
+      return { ...s, mode: "lb", lb: { algo: a.algo, last: null } };
+    case "lb/run": {
+      const r = runLb(s.lb.algo);
+      const total = r.counts.reduce((x, y) => x + y, 0);
+      return { ...s, mode: "lb", lb: { ...s.lb, last: r }, stats: { ...st, lbRuns: cap([...st.lbRuns, { algo: s.lb.algo, p95: r.p95, slowShare: r.counts[2]! / total }]) } };
+    }
   }
 }
 

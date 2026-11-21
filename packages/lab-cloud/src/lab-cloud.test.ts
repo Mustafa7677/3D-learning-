@@ -111,6 +111,34 @@ const scripts: Record<string, Record<string, (d: D, tick: T) => void>> = {
       d({ type: "pipeline/run" });
     },
   },
+  "cloud-10-probes": {
+    readiness: (d) => {
+      d({ type: "probes/run" });
+      d({ type: "probes/set", readiness: true });
+      d({ type: "probes/run" });
+    },
+    liveness: (d) => {
+      d({ type: "probes/run" });
+      d({ type: "probes/set", liveness: true });
+      d({ type: "probes/run" });
+    },
+  },
+  "cloud-11-queues": {
+    burst: (d) => {
+      d({ type: "queue/run" });
+      d({ type: "queue/set", consumers: 2 });
+      d({ type: "queue/run" });
+    },
+    backpressure: (d) => d({ type: "queue/run" }),
+  },
+  "cloud-12-lb": {
+    rr: (d) => {
+      d({ type: "lb/run" });
+      d({ type: "lb/set", algo: "random" });
+      d({ type: "lb/run" });
+    },
+    least: (d) => d({ type: "lb/run" }),
+  },
 };
 
 describe("cloud lessons are completable", () => {

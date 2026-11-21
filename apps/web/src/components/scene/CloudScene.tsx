@@ -22,9 +22,10 @@ import {
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
+import { LbView, ProbesView, QueueView } from "./CloudMiddleViews";
 import { C0, C1 } from "./palette";
 
-export type CloudFocus = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident";
+export type CloudFocus = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb";
 
 const OFF = new Color("#c9d0de");
 const OK = new Color("#17895c");
@@ -267,6 +268,9 @@ function Contents({ state, focus }: { state: CloudLabState; focus: CloudFocus })
     release: { w: 12, h: 10, t: [0, 0, -0.5], d: [0, 1.6, 1] },
     availability: { w: 15, h: 6, t: [0, 1, 0], d: [0, 0.8, 1] },
     incident: { w: 14, h: 8, t: [0, 1, 0], d: [0, 1, 1] },
+    probes: { w: 18, h: 5, t: [0, 0.4, -0.3], d: [0, 1.2, 1] },
+    queue: { w: 17, h: 7, t: [0, 2.4, 0], d: [0, 0.35, 1] },
+    lb: { w: 13, h: 7, t: [0, 1.4, 0], d: [0, 0.8, 1] },
   };
   const f = frames[focus];
   return (
@@ -283,6 +287,9 @@ function Contents({ state, focus }: { state: CloudLabState; focus: CloudFocus })
       {focus === "release" && <ReleaseView state={state} />}
       {focus === "availability" && <AvailabilityView state={state} />}
       {focus === "incident" && <IncidentView state={state} />}
+      {focus === "probes" && <ProbesView state={state} />}
+      {focus === "queue" && <QueueView state={state} />}
+      {focus === "lb" && <LbView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>
