@@ -108,7 +108,8 @@ test("black box on a 320px phone: the device first, then the table and the edito
   await ctx.close();
 });
 
-test("black box by keyboard alone", async ({ page }) => {
+test("black box by keyboard alone", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/blackbox");
   const reach = async (name: RegExp) => {
     for (let i = 0; i < 60; i++) {
@@ -131,4 +132,52 @@ test("black box by keyboard alone", async ({ page }) => {
   await reach(/^Тексеру$/);
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Шам = A AND B" })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("keyboard-320.png") });
+});
+
+test("corridor restores the experiment and accepts the sum-of-products circuit", async ({ page }, testInfo) => {
+  await page.goto("/blackbox");
+  const nav = page.getByRole("navigation", { name: "Жәшіктер" });
+  const corridor = nav.getByRole("button", { name: /Дәліз шамы/ });
+  await corridor.click();
+  const record = page.getByRole("button", { name: "Нәтижені жазу" });
+  await record.click();
+  await sw(page, "A").click();
+  await record.click();
+  const add = (type: string) => page.getByRole("button", { name: type + " элементін қосу" }).click();
+  await add("NOT");
+  await page.getByLabel("Э1: кіріс").selectOption("B");
+  await add("AND");
+  await page.getByRole("button", { name: "Ишара", exact: true }).click();
+  const assertDraft = async () => {
+    await expect(corridor).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("tbody tr")).toHaveCount(2);
+    await expect(page.getByLabel("Э1: кіріс")).toHaveValue("B");
+    await expect(page.getByLabel("Э2: бірінші кіріс")).toHaveValue("g1");
+    await expect(page.getByRole("button", { name: "Тағы бір ишара" })).toBeVisible();
+  };
+  await page.reload();
+  await assertDraft();
+  await nav.getByRole("button", { name: /Қос кілт/ }).click();
+  await corridor.click();
+  await assertDraft();
+  await add("NOT");
+  await page.getByLabel("Э3: кіріс").selectOption("A");
+  await add("AND");
+  await page.getByLabel("Э4: екінші кіріс").selectOption("B");
+  await add("OR");
+  await page.getByLabel("Э5: екінші кіріс").selectOption("g2");
+  await page.getByRole("button", { name: "Тексеру" }).click();
+  await expect(page.getByRole("heading", { name: /A XOR B/ })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("alternate-xor.png") });
+});
+
+test("corrupt saves recover and unknown gates are discarded", async ({ page }) => {
+  await page.goto("/blackbox");
+  for (const raw of ["{", JSON.stringify({current: "alarm", boxes: {alarm: {hint: 1, build: {parts: [{id:"g1",type:"XOR",in:["A","B"]}],out:"g1"}}}})]) {
+    await page.evaluate(value => localStorage.setItem("inside-tech:blackbox", value), raw);
+    await page.reload();
+    await expect(page.getByText("Сенің өрнегің: Шам = A", {exact:true})).toBeVisible();
+    if (raw !== "{") await expect(page.getByRole("button", {name:"Тағы бір ишара"})).toBeVisible();
+  }
 });
