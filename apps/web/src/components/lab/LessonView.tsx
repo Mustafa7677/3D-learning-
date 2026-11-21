@@ -131,6 +131,9 @@ const ALGO_SECTIONS: Record<string, AlgoSection[]> = {
   search: ["search"],
   graph: ["graph"],
   bench: ["bench"],
+  hash: ["hash"],
+  heap: ["heap"],
+  dp: ["dp"],
 };
 
 const KEYS: Record<string, "up" | "down" | "left" | "right"> = {

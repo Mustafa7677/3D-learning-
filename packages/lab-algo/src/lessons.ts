@@ -1,3 +1,4 @@
+import { algoMiddleContent, lessonDp, lessonHash, lessonHeap } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { algoContent } from "./content";
 import { algoDeepDives } from "./deep";
@@ -325,6 +326,18 @@ export const lessonDijkstra: L = {
   ],
 };
 
-export const algoLessons: L[] = [lessonSearch, lessonBubble, lessonQuadratic, lessonBigO, lessonMerge, lessonQuick, lessonGraphs, lessonDijkstra, lessonPsetAlgo].map((l) =>
-  withDeepDives(withContent(l, algoContent[l.id] ?? {}), algoDeepDives[l.id] ?? {}),
-);
+export const algoLessons: L[] = [
+  lessonSearch,
+  lessonBubble,
+  lessonQuadratic,
+  lessonBigO,
+  lessonMerge,
+  lessonQuick,
+  lessonGraphs,
+  lessonDijkstra,
+  lessonPsetAlgo,
+  // Middle level
+  lessonHash,
+  lessonHeap,
+  lessonDp,
+].map((l) => withDeepDives(withContent(l, algoContent[l.id] ?? algoMiddleContent[l.id] ?? {}), algoDeepDives[l.id] ?? {}));

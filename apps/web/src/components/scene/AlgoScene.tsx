@@ -9,8 +9,9 @@ import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
+import { DpView, HashView, HeapView } from "./AlgoDsViews";
 
-export type AlgoFocus = "sort" | "search" | "graph" | "bench";
+export type AlgoFocus = "sort" | "search" | "graph" | "bench" | "hash" | "heap" | "dp";
 
 const BASE = new Color("#9fb0d4");
 const SWAP = new Color("#c23b3b");
@@ -137,6 +138,8 @@ function GraphView({ state }: { state: AlgoLabState }) {
 function Contents({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
   const mode = focus === "bench" ? "sort" : focus;
   const graph = mode === "graph";
+  const ds = mode === "hash" || mode === "heap" || mode === "dp";
+  const frame = mode === "hash" ? { w: 15, h: 6, t: [0, 2.2, 0] as [number, number, number], d: [0, 0.35, 1] as [number, number, number] } : mode === "heap" ? { w: 13, h: 6, t: [0, 2.2, 0] as [number, number, number], d: [0, 0.1, 1] as [number, number, number] } : { w: 13, h: 7, t: [0, 0.8, 0] as [number, number, number], d: [0, 1.1, 1] as [number, number, number] };
   return (
     <>
       <ambientLight intensity={0.8} />
@@ -147,11 +150,15 @@ function Contents({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
       {mode === "sort" && <SortView state={state} />}
       {mode === "search" && <SearchView state={state} />}
       {graph && <GraphView state={state} />}
+      {mode === "hash" && <HashView state={state} />}
+      {mode === "heap" && <HeapView state={state} />}
+      {mode === "dp" && <DpView state={state} />}
       <FitCamera
-        width={graph ? 10.5 : WIDTH + 1}
-        height={graph ? 8 : HEIGHT + 2.5}
-        target={graph ? [0, 0, 0] : [0, HEIGHT / 2, 0]}
-        dir={graph ? [0, 1.6, 1] : [0, 0.45, 1]}
+        key={mode}
+        width={ds ? frame.w : graph ? 10.5 : WIDTH + 1}
+        height={ds ? frame.h : graph ? 8 : HEIGHT + 2.5}
+        target={ds ? frame.t : graph ? [0, 0, 0] : [0, HEIGHT / 2, 0]}
+        dir={ds ? frame.d : graph ? [0, 1.6, 1] : [0, 0.45, 1]}
       />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

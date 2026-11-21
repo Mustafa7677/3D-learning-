@@ -86,6 +86,34 @@ const steps = (d: D, n: number) => {
 };
 
 const scripts: Record<string, Record<string, (d: D, s: () => AlgoLabState) => void>> = {
+  "algo-10-hash": {
+    collide: (d) => {
+      d({ type: "hash/fill", set: "anagrams" });
+      d({ type: "hash/config", fn: "poly" });
+    },
+    load: (d) => {
+      d({ type: "hash/fill", set: "cities" });
+      d({ type: "hash/config", resize: true });
+    },
+  },
+  "algo-11-heap": {
+    push: (d) => {
+      for (let i = 0; i < 9; i++) d({ type: "heap/push" });
+    },
+    pop: (d) => {
+      for (let i = 0; i < 9; i++) d({ type: "heap/pop" });
+    },
+  },
+  "algo-12-dp": {
+    table: (d) => {
+      for (let i = 0; i < 10; i++) d({ type: "dp/step" });
+      d({ type: "dp/finish" });
+    },
+    greedy: (d) => {
+      d({ type: "dp/greedy" });
+      d({ type: "dp/finish" });
+    },
+  },
   "algo-1-search": {
     linear: (d) => {
       d({ type: "search/finish" });

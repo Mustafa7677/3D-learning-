@@ -1,9 +1,19 @@
+import { DP_ITEMS, HASH_WORDS, HEAP_CALLS, LOAD_LIMIT, heapPop, heapPush, insertKey, knapsackGreedy, longestChain, lookupProbes, type DpPreset, type HashFn, type HashTable, type HeapOp } from "./ds";
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { GRAPHS, pathCost, pathTo, traceGraph, type GraphAlg, type GraphPreset, type GraphTrace } from "./graph";
 import { traceSearch, type Probe, type SearchKind } from "./search";
 import { applyOp, countSort, makeArray, traceSort, type ArrayPreset, type Pivot, type SortAlg, type SortOp } from "./sort";
 
-export type AlgoMode = "sort" | "search" | "graph";
+export type AlgoMode = "sort" | "search" | "graph" | "hash" | "heap" | "dp";
+
+/** Middle level: a hash table, a min-heap and the knapsack table. */
+export interface DsView {
+  hash: HashTable;
+  /** The last lookup: which key, how many comparisons, found or not. */
+  lookup: { key: string; probes: number; found: boolean } | null;
+  heap: { arr: number[]; log: HeapOp[]; next: number };
+  dp: { preset: DpPreset; filled: number; manual: number; greedy: { value: number; taken: string[] } | null };
+}
 
 export interface SortView {
   alg: SortAlg;
@@ -83,6 +93,8 @@ export interface AlgoStats {
   graphRuns: { preset: GraphPreset; alg: GraphAlg; start: string; goal: string; path: string[]; cost: number; visited: number }[];
   bench: BenchPoint[];
   modes: AlgoMode[];
+  /** The longest chain seen with each hash function, and the most keys ever in the table. */
+  hashChains: { sum: number; poly: number };
 }
 
 export interface AlgoLabState {
@@ -93,6 +105,7 @@ export interface AlgoLabState {
   sort: SortView;
   search: SearchView;
   graph: GraphView;
+  ds: DsView;
   stats: AlgoStats;
 }
 
@@ -119,7 +132,45 @@ export type AlgoLabAction =
   | { type: "graph/reset" }
   | { type: "graph/finish" }
   | { type: "bench/run"; alg: SortAlg; n: number; preset?: ArrayPreset; pivot?: Pivot }
-  | { type: "bench/clear" };
+  | { type: "bench/clear" }
+  | { type: "hash/config"; fn?: HashFn; capacity?: number; resize?: boolean }
+  | { type: "hash/insert"; key: string }
+  | { type: "hash/fill"; set: keyof typeof HASH_WORDS }
+  | { type: "hash/lookup"; key: string }
+  | { type: "hash/clear" }
+  | { type: "heap/push"; value?: number }
+  | { type: "heap/pop" }
+  | { type: "heap/clear" }
+  | { type: "dp/config"; preset: DpPreset }
+  | { type: "dp/step" }
+  | { type: "dp/finish" }
+  | { type: "dp/greedy" }
+  | { type: "dp/reset" };
+
+export const HASH_CAPACITIES = [8, 17];
+export const dpCells = (p: DpPreset) => DP_ITEMS[p].items.length * (DP_ITEMS[p].capacity + 1);
+
+function freshDs(): DsView {
+  return {
+    hash: { capacity: 17, fn: "sum", resize: false, keys: [], resizes: 0, moved: 0 },
+    lookup: null,
+    heap: { arr: [], log: [], next: 0 },
+    dp: { preset: "trip", filled: 0, manual: 0, greedy: null },
+  };
+}
+
+/** Grow until the load factor is back under the limit (after a config change that turned resizing on). */
+function settle(t: HashTable): HashTable {
+  let n = t;
+  while (n.resize && n.keys.length / n.capacity > LOAD_LIMIT) n = { ...n, capacity: n.capacity * 2, resizes: n.resizes + 1, moved: n.moved + n.keys.length };
+  return n;
+}
+
+function withHash(s: AlgoLabState, hash: HashTable): AlgoLabState {
+  const chain = longestChain(hash);
+  const seen = { ...s.stats.hashChains, [hash.fn]: Math.max(s.stats.hashChains[hash.fn], chain) };
+  return { ...s, mode: "hash", ds: { ...s.ds, hash, lookup: null }, stats: { ...s.stats, hashChains: seen } };
+}
 
 export const SORT_N = { min: 4, max: 48 };
 export const SEARCH_N = { min: 8, max: 128 };
@@ -273,7 +324,8 @@ export function initialAlgoState(seed: number): AlgoLabState {
     sort: freshSort({ alg: "bubble", pivot: "last", preset: "random", n: 12, seed: (seed % 997) + 1 }),
     search: freshSearch({ kind: "linear", n: 32, sorted: true, target: 47 }),
     graph: freshGraph({ preset: "roads", alg: "bfs", start: "A", goal: "H" }),
-    stats: { manualSortSteps: 0, sortRuns: [], searches: [], graphRuns: [], bench: [], modes: ["sort"] },
+    ds: freshDs(),
+    stats: { manualSortSteps: 0, sortRuns: [], searches: [], graphRuns: [], bench: [], modes: ["sort"], hashChains: { sum: 0, poly: 0 } },
   };
 }
 
@@ -355,6 +407,57 @@ function reduce(s: AlgoLabState, a: AlgoLabAction): AlgoLabState {
     }
     case "bench/clear":
       return { ...s, stats: { ...s.stats, bench: [] } };
+
+    case "hash/config": {
+      const h = s.ds.hash;
+      const capacity = a.capacity !== undefined && HASH_CAPACITIES.includes(a.capacity) ? a.capacity : h.capacity;
+      // A new size or a switched-off growth starts the table again at that size; the keys stay.
+      const resize = a.resize ?? h.resize;
+      const base = a.capacity !== undefined || (a.resize === false && h.resize) ? { capacity, resizes: 0, moved: 0 } : {};
+      return withHash(s, settle({ ...h, fn: a.fn ?? h.fn, resize, ...base }));
+    }
+    case "hash/insert":
+      return withHash(s, insertKey(s.ds.hash, a.key.trim().slice(0, 24)));
+    case "hash/fill":
+      return withHash(s, HASH_WORDS[a.set].reduce(insertKey, s.ds.hash));
+    case "hash/clear":
+      return withHash(s, { ...s.ds.hash, keys: [], resizes: 0, moved: 0, capacity: s.ds.hash.resize ? 8 : s.ds.hash.capacity });
+    case "hash/lookup": {
+      const key = a.key.trim().slice(0, 24);
+      return { ...s, mode: "hash", ds: { ...s.ds, lookup: { key, ...lookupProbes(s.ds.hash, key) } } };
+    }
+
+    case "heap/push": {
+      const h = s.ds.heap;
+      const value = a.value ?? HEAP_CALLS[h.next % HEAP_CALLS.length]!;
+      const r = heapPush(h.arr, Math.round(clamp(value, 0, 99)));
+      const next = a.value === undefined ? h.next + 1 : h.next;
+      return { ...s, mode: "heap", ds: { ...s.ds, heap: { arr: r.arr.slice(0, 31), log: [...h.log, { kind: "push" as const, value, swaps: r.swaps }].slice(-60), next } } };
+    }
+    case "heap/pop": {
+      const h = s.ds.heap;
+      const r = heapPop(h.arr);
+      if (r.value === undefined) return s;
+      return { ...s, mode: "heap", ds: { ...s.ds, heap: { ...h, arr: r.arr, log: [...h.log, { kind: "pop" as const, value: r.value, swaps: r.swaps }].slice(-60) } } };
+    }
+    case "heap/clear":
+      return { ...s, mode: "heap", ds: { ...s.ds, heap: { arr: [], log: [], next: 0 } } };
+
+    case "dp/config":
+      return { ...s, mode: "dp", ds: { ...s.ds, dp: { preset: a.preset, filled: 0, manual: 0, greedy: null } } };
+    case "dp/reset":
+      return { ...s, mode: "dp", ds: { ...s.ds, dp: { ...s.ds.dp, filled: 0, manual: 0, greedy: null } } };
+    case "dp/step": {
+      const d = s.ds.dp;
+      if (d.filled >= dpCells(d.preset)) return s;
+      return { ...s, mode: "dp", ds: { ...s.ds, dp: { ...d, filled: d.filled + 1, manual: d.manual + 1 } } };
+    }
+    case "dp/finish":
+      return { ...s, mode: "dp", ds: { ...s.ds, dp: { ...s.ds.dp, filled: dpCells(s.ds.dp.preset) } } };
+    case "dp/greedy": {
+      const p = DP_ITEMS[s.ds.dp.preset];
+      return { ...s, mode: "dp", ds: { ...s.ds, dp: { ...s.ds.dp, greedy: knapsackGreedy(p.items, p.capacity) } } };
+    }
   }
 }
 
@@ -379,7 +482,7 @@ export const algoLabPlugin: SimulationPlugin<AlgoLabState, AlgoLabAction> = {
   initialize: initialAlgoState,
   dispatch: reduce,
   step(s, dt) {
-    const playing = s.mode === "sort" ? s.sort.playing : s.mode === "search" ? s.search.playing : s.graph.playing;
+    const playing = s.mode === "sort" ? s.sort.playing : s.mode === "search" ? s.search.playing : s.mode === "graph" ? s.graph.playing : false;
     if (!playing) return s;
     const acc = s.acc + dt * s.speed;
     const whole = Math.floor(acc);
