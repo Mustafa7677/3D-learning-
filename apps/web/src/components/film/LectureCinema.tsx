@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Prose } from "../lab/Prose";
 import { useWebGL } from "@/lib/useWebGL";
 import styles from "./lecture.module.css";
@@ -63,7 +64,9 @@ export function LectureCinema({ labId, stepTitle, body, onClose }: { labId: stri
     };
   }, [go, onClose]);
 
-  return (
+  // Rendered on <body>: a panel with backdrop-filter would otherwise trap this
+  // fixed overlay inside its own box (that is what clipped it to the sidebar).
+  return createPortal(
     <div
       className={styles.cinema}
       role="dialog"
@@ -150,6 +153,7 @@ export function LectureCinema({ labId, stepTitle, body, onClose }: { labId: stri
           Келесі
         </button>
       </nav>
-    </div>
+    </div>,
+    document.body,
   );
 }
