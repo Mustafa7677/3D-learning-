@@ -45,6 +45,18 @@ jobs:
           PGTEST_PASSWORD: postgres
       - run: pnpm --filter @inside-tech/web build
       - run: pnpm --filter @inside-tech/web exec playwright install --with-deps chromium
-      - run: pnpm --filter @inside-tech/web e2e
+      - name: Independent black box review
+        run: pnpm --filter @inside-tech/web e2e e2e/blackbox.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blackbox-review
+          path: apps/web/test-results/**/*.png
+      - name: Three complete Playwright runs
+        run: |
+          for run in 1 2 3; do
+            echo "Full Playwright run $run"
+            pnpm --filter @inside-tech/web e2e || exit 1
+          done
         env:
           CI: "true"
