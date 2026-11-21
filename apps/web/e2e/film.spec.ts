@@ -64,30 +64,59 @@ test("home: the live AI demo trains in the browser", async ({ page }) => {
   await expect(ai.getByRole("button", { name: "XOR" })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("phone 360px: the tools menu is reachable, the headline fits, a lab and its first lesson open", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
-  const page = await ctx.newPage();
-  await page.goto("/");
-  await expect(page.getByText("Құралдар")).toBeVisible();
-  const h1 = await page.getByRole("heading", { level: 1 }).evaluate((e) => [...e.querySelectorAll("span")].map((s) => s.getBoundingClientRect().right));
-  for (const right of h1) expect(right).toBeLessThanOrEqual(360);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
-  await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("button", { name: "Зертханалар" }).click();
-  await page.getByRole("link", { name: /^Cybersecurity:/ }).click();
-  await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
-  await page.getByRole("link", { name: "Бірінші сабақтан бастау" }).click();
-  await expect(page).toHaveURL(/\/labs\/sec\/.+/, { timeout: 20000 });
-  await ctx.close();
-});
+for (const width of [320, 360]) {
+  test(`phone ${width}px: the headline fits, the tools menu opens, a lab and its first lesson open`, async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width, height: 700 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    // The text itself, not the box around it, must stay inside the screen.
+    const rights = await page.getByRole("heading", { level: 1 }).evaluate((h) =>
+      [...h.querySelectorAll("span")].map((s) => {
+        const r = document.createRange();
+        r.selectNodeContents(s);
+        return r.getBoundingClientRect().right;
+      }),
+    );
+    for (const right of rights) expect(right).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+    await page.getByText("Құралдар").click();
+    const create = page.getByRole("link", { name: "Сабақ жасау" });
+    await expect(create).toBeVisible();
+    const box = (await create.boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    await create.click();
+    await expect(page).toHaveURL(/\/create$/, { timeout: 20000 });
+    await page.goto("/");
+    await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("button", { name: "Зертханалар" }).click();
+    await expect(page.locator("#labs li")).toHaveCount(10);
+    expect(await page.evaluate(() => [...document.querySelectorAll("#labs li")].filter((l) => l.getBoundingClientRect().right > innerWidth + 1).length)).toBe(0);
+    await page.getByRole("link", { name: /^Cybersecurity:/ }).click();
+    await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
+    await page.getByRole("link", { name: "Бірінші сабақтан бастау" }).click();
+    await expect(page).toHaveURL(/\/labs\/sec\/.+/, { timeout: 20000 });
+    await ctx.close();
+  });
+}
 
-test("keyboard: tab reaches a lab tile and Enter opens it", async ({ page }) => {
+test("keyboard: Tab alone leads from the page start to a lab tile and, on the lab page, to the first lesson", async ({ page }) => {
+  const reach = async (name: RegExp | string) => {
+    for (let i = 0; i < 80; i++) {
+      await page.keyboard.press("Tab");
+      const hit = await page.evaluate((src) => {
+        const el = document.activeElement as HTMLElement | null;
+        const label = el?.getAttribute("aria-label") ?? el?.textContent ?? "";
+        return new RegExp(src).test(label.trim());
+      }, name instanceof RegExp ? name.source : `^${name}$`);
+      if (hit) return;
+    }
+    throw new Error(`Tab never reached ${String(name)}`);
+  };
   await page.goto("/");
-  const tile = page.getByRole("link", { name: /^Cybersecurity:/ });
-  await tile.focus();
+  await reach(/^Cybersecurity:/);
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
-  const start = page.getByRole("link", { name: "Бірінші сабақтан бастау" });
-  await start.focus();
+  await reach("Бірінші сабақтан бастау");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/labs\/sec\/.+/, { timeout: 20000 });
 });

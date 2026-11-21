@@ -142,7 +142,7 @@ function Rig({ progress, n, still }: { progress: MutableRefObject<number>; n: nu
     const pos = close.pos.clone().lerp(wide.pos, t);
     const at = close.at.clone().lerp(wide.at, t);
     if (size.width < size.height) {
-      pos.multiplyScalar(1 + t * 0.55);
+      pos.multiplyScalar(1 + t * (size.width < 400 ? 1.05 : 0.7));
       at.y -= 1.5;
     } else {
       // Keep the world right of the text column.
