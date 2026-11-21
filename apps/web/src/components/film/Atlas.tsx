@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { openLabs } from "@/lib/catalog";
 import { lessonsForLab } from "@/lib/lessons";
 import { usePlayer } from "@/lib/xp";
+import { KeyArt, hasKeyArt } from "./KeyArt";
 import styles from "./landing.module.css";
 
 /** Each lab's own identity: a field, an accent and a line glyph. */
@@ -167,7 +168,7 @@ export function Atlas({ id = "labs" }: { id?: string }) {
   return (
     <section className={styles.atlas} aria-labelledby="atlas-title" id={id}>
       <div className={styles.atlasHead}>
-        <p className={styles.micro}>06 / 10 ЗЕРТХАНА</p>
+        <p className={styles.micro}>10 ЗЕРТХАНА</p>
         <h2 id="atlas-title" className={styles.h2}>
           Зертханалар атласы
         </h2>
@@ -180,7 +181,8 @@ export function Atlas({ id = "labs" }: { id?: string }) {
           const done = player?.doneByLab[lab.id] ?? 0;
           return (
             <li key={lab.id} className={styles[`tile_${lab.id}`]} style={{ ["--accent" as string]: look.accent }}>
-              <Link href={lab.href!} className={styles.tile} aria-label={`${lab.title}: ${done} сабақ аяқталды, барлығы ${total}`}>
+              <Link href={lab.href!} className={styles.tile} data-art={hasKeyArt(lab.id) || undefined} aria-label={`${lab.title}: ${done} сабақ аяқталды, барлығы ${total}`}>
+                <KeyArt labId={lab.id} />
                 <span className={styles.tileTop}>
                   <span className={styles.tileNum}>
                     {String(i + 1).padStart(2, "0")} / {look.field}

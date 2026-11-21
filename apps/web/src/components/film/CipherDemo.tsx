@@ -11,7 +11,7 @@ const KEY = 11;
 const CIPHER = caesar(PLAIN, KEY);
 
 /** Break a Caesar cipher over the 42-letter Kazakh alphabet by turning the key. */
-export function CipherDemo() {
+export function CipherDemo({ micro = "SECURITY / CHALLENGE" }: { micro?: string }) {
   const [k, setK] = useState(0);
   const [hint, setHint] = useState(false);
   const [won, setWon] = useState(false);
@@ -26,7 +26,7 @@ export function CipherDemo() {
   return (
     <section className={styles.cipher} aria-labelledby="cipher-title" id="cipher-demo">
       <div className={styles.cipherInner}>
-        <p className={styles.micro}>05 / SECURITY / CHALLENGE</p>
+        <p className={styles.micro}>{micro}</p>
         <h2 id="cipher-title" className={styles.h2}>
           Шифрды бұз.
         </h2>

@@ -13,7 +13,7 @@ const Y = (x: number) => H - 20 - Math.max(-0.2, Math.min(1.7, x)) * ((H - 40) /
 const X = (i: number, n: number) => 40 + (i / (n - 1)) * (W - 56);
 
 /** A lift held at 1 m by a PID controller, on paper: drag the gains, watch the curve and the cabin. */
-export function PidDemo() {
+export function PidDemo({ micro = "ROBOTICS / CONTROL" }: { micro?: string }) {
   const [kp, setKp] = useState(10);
   const [ki, setKi] = useState(0);
   const [kd, setKd] = useState(0);
@@ -57,7 +57,7 @@ export function PidDemo() {
     <section className={styles.paper} aria-labelledby="pid-title" id="pid-demo">
       <div className={styles.paperInner}>
         <div className={styles.paperText}>
-          <p className={styles.micro}>04 / ROBOTICS / CONTROL</p>
+          <p className={styles.micro}>{micro}</p>
           <h2 id="pid-title" className={styles.h2}>
             Бұрап көр.
           </h2>

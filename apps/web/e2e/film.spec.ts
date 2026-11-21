@@ -29,19 +29,30 @@ test("home: explore the chip and open a lab from it", async ({ page }) => {
   await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
 });
 
-test("home: the PID and cipher challenges are solved on the page", async ({ page }) => {
-  await page.goto("/");
+test("labs: the PID warm-up on Robotics and the cipher on Cybersecurity pay XP", async ({ page }) => {
+  await page.goto("/labs/iot");
   const pid = page.locator("#pid-demo");
   await pid.scrollIntoViewIfNeeded();
   await pid.getByLabel(/^Kp/).fill("10");
   await pid.getByLabel(/^Ki/).fill("5");
   await pid.getByLabel(/^Kd/).fill("4");
   await expect(pid.getByText("Тапсырма орындалды: +20 XP")).toBeVisible();
+  await page.goto("/labs/sec");
   const cipher = page.locator("#cipher-demo");
+  await cipher.scrollIntoViewIfNeeded();
   await cipher.getByLabel(/Кілт/).fill("11");
   await expect(cipher.getByText(/Бұзылды!/)).toBeVisible();
   await expect(cipher.getByText("технологияның ішіне кір: оны өз қолыңмен зертте")).toBeAttached();
   await expect(page.getByRole("group", { name: /Деңгей 1, 40 XP/ })).toBeAttached();
+});
+
+test("home: one story, the world finale leads to the courses", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#pid-demo, #cipher-demo")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Сигнал AI блогына кірді." })).toBeAttached();
+  await page.locator("#world").scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "Курсты таңда" }).click();
+  await expect(page.getByRole("heading", { name: "Зертханалар атласы", level: 2 })).toBeInViewport();
 });
 
 test("home: the live AI demo trains in the browser", async ({ page }) => {
@@ -98,6 +109,7 @@ test("finishing a lesson pays XP and lights a star on the course card", async ({
   await reward.getByRole("button", { name: "Жабу" }).click();
   await expect(reward).toHaveCount(0);
   await page.goto("/");
-  await expect(page.getByRole("group", { name: /Деңгей 1, 1\d0 XP/ })).toBeAttached();
   await expect(page.getByRole("link", { name: /^Cloud & DevOps: 1 сабақ аяқталды/ })).toBeAttached();
+  await page.goto("/labs/cloud");
+  await expect(page.getByRole("group", { name: /Деңгей 1, 1\d0 XP/ })).toBeAttached();
 });

@@ -89,7 +89,7 @@ export function AiDemo() {
   return (
     <section ref={box} className={styles.ai} aria-labelledby="ai-title" id="ai-demo">
       <div className={styles.aiText}>
-        <p className={styles.micro}>03 / AI LAB / LIVE SIMULATION</p>
+        <p className={styles.micro}>АКТ II / AI БЛОГЫНЫҢ ІШІ / LIVE</p>
         <h2 id="ai-title" className={styles.h2}>
           Нейрон қалай үйренеді?
         </h2>

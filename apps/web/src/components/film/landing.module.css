@@ -120,8 +120,8 @@
 /* ---------- the film: sticky chip under two chapters ---------- */
 .film {
   position: relative;
-  height: 260vh;
-  height: 260svh;
+  height: 300vh;
+  height: 300svh;
 }
 .stage {
   position: sticky;
@@ -171,7 +171,8 @@
   visibility: hidden;
 }
 .hero,
-.exploded {
+.exploded,
+.dive {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -180,18 +181,67 @@
   padding: 120px var(--gutter) 72px;
 }
 .hero > *,
-.exploded > * {
+.exploded > *,
+.dive > *,
+.worldBeat > * {
   pointer-events: auto;
 }
 .hero {
   min-height: 100vh;
   min-height: 100svh;
 }
-.exploded {
-  min-height: 160vh;
-  min-height: 160svh;
-  justify-content: flex-start;
-  padding-top: 30vh;
+.exploded,
+.dive {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* ---------- ACT III: the world ---------- */
+.world {
+  position: relative;
+  height: 240vh;
+  height: 240svh;
+}
+.worldPoster {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 62% 58%, #1c2a4a 0%, rgb(9 15 27 / 0) 70%),
+    radial-gradient(22% 22% at 62% 60%, rgb(221 163 110 / 0.14), transparent 70%),
+    var(--void);
+}
+.worldCanvas {
+  position: absolute;
+  inset: 0;
+}
+.worldCanvas > div {
+  position: absolute !important;
+  inset: 0;
+}
+.worldShade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(9 15 27 / 0.88) 0%, rgb(9 15 27 / 0.35) 32%, rgb(9 15 27 / 0) 52%),
+    linear-gradient(180deg, var(--void) 0%, rgb(9 15 27 / 0) 14%, rgb(9 15 27 / 0) 86%, var(--void) 100%);
+}
+.worldBeat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 1440px;
+  min-height: 120vh;
+  min-height: 120svh;
+  margin: 0 auto;
+  padding: 120px var(--gutter) 72px;
+}
+.worldBeat .primary {
+  align-self: flex-start;
+}
+.worldEnd {
+  justify-content: flex-end;
+  padding-bottom: 18vh;
 }
 .exploded .secondary {
   align-self: flex-start;
@@ -638,61 +688,7 @@
   cursor: pointer;
 }
 
-/* ---------- journey band ---------- */
-.journeyBand {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 var(--gutter) clamp(48px, 6vw, 80px);
-}
-.journey {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 24px;
-  padding: 26px 30px;
-  border-radius: 20px;
-  text-decoration: none;
-  color: var(--ice);
-  background: linear-gradient(100deg, var(--surface), #1a2950);
-  transition: background 0.3s;
-}
-.journey:hover,
-.journey:focus-visible {
-  background: linear-gradient(100deg, var(--surface-2), #22336a);
-}
-.journeyKey {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 58px;
-  border-radius: 12px;
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--copper);
-  background: linear-gradient(180deg, #fbfcff, #d6dcea);
-  box-shadow: inset 0 -5px 0 #b6bed3, 0 6px 0 #8d96b5;
-}
-.journeyText {
-  display: grid;
-  gap: 4px;
-}
-.journeyText strong {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 500;
-}
-.journeyText span {
-  color: var(--dim);
-}
-.journeyGo {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--copper);
-}
-
-/* ---------- 06: atlas (bento) ---------- */
+/* ---------- atlas (bento) ---------- */
 .atlas {
   max-width: 1440px;
   margin: 0 auto;
@@ -793,6 +789,116 @@
 }
 .glyphHot {
   fill: var(--accent);
+}
+
+/* key art: the featured labs get a scene instead of a glyph */
+.keyArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.4s;
+  opacity: 0.85;
+}
+.tile:hover .keyArt,
+.tile:focus-visible .keyArt {
+  transform: scale(1.04);
+  opacity: 1;
+}
+.tile[data-art] {
+  background: #0d1526;
+}
+.tile[data-art]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(9 15 27 / 0.9) 0%, rgb(9 15 27 / 0.55) 40%, rgb(9 15 27 / 0) 75%), linear-gradient(0deg, rgb(9 15 27 / 0.75) 0%, rgb(9 15 27 / 0) 45%);
+}
+.tile[data-art] > :not(.keyArt) {
+  position: relative;
+  z-index: 1;
+}
+.tile[data-art] .glyph {
+  visibility: hidden;
+}
+.tile[data-art] .tileBody {
+  max-width: 34ch;
+}
+.kaLine {
+  stroke: #7696ff;
+  stroke-opacity: 0.18;
+  stroke-width: 1;
+}
+.kaHot {
+  stroke: #9db4ff;
+  stroke-opacity: 0.8;
+  stroke-width: 1.4;
+}
+.kaNode {
+  fill: #2a3a5e;
+  stroke: #7696ff;
+  stroke-opacity: 0.6;
+}
+.kaNodeHot {
+  fill: #c9d6ff;
+  filter: drop-shadow(0 0 6px #7696ff);
+}
+.kaCipher,
+.kaPlain {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+.kaCipher {
+  fill: #b07cff;
+  fill-opacity: 0.32;
+}
+.kaPlain {
+  fill: #efe4ff;
+  font-weight: 600;
+  filter: drop-shadow(0 0 6px #b07cff);
+}
+.kaGear {
+  fill: none;
+  stroke: #f2c14e;
+  stroke-opacity: 0.4;
+  stroke-width: 1.5;
+}
+.kaGearHot {
+  fill: rgb(242 193 78 / 0.08);
+  stroke: #f2c14e;
+  stroke-width: 1.8;
+}
+.kaArm {
+  fill: none;
+  stroke: #e8edf6;
+  stroke-opacity: 0.7;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.kaArm circle {
+  fill: #f2c14e;
+  stroke: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kaGear,
+  .kaGearHot {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ka-spin 24s linear infinite;
+  }
+  .kaGearHot {
+    animation-direction: reverse;
+    animation-duration: 16s;
+  }
+}
+@keyframes ka-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .tile_ai .glyph {
   width: min(320px, 70%);
@@ -905,11 +1011,15 @@
   .cssDie {
     margin-left: 0;
   }
-  .journey {
-    grid-template-columns: auto 1fr;
+  .worldShade {
+    background: linear-gradient(0deg, rgb(9 15 27 / 0.95) 0%, rgb(9 15 27 / 0.4) 50%, rgb(9 15 27 / 0) 70%), linear-gradient(180deg, var(--void) 0%, rgb(9 15 27 / 0) 14%);
   }
-  .journeyGo {
-    grid-column: 1 / -1;
+  .worldBeat {
+    justify-content: flex-end;
+  }
+  .exploded,
+  .dive {
+    justify-content: flex-end;
   }
   .plot {
     grid-template-columns: 36px 1fr;

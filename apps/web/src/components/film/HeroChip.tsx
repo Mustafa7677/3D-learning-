@@ -25,7 +25,11 @@ export const blockPos = (i: number): [number, number, number] => [-2.6 + (i % 5)
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 /** How far the layers have come apart for a scroll progress (0 assembled, 1 fully exploded). */
-export const explodeAt = (p: number) => smooth(clamp01((p - 0.22) / 0.5));
+export const explodeAt = (p: number) => smooth(clamp01((p - 0.15) / 0.3));
+/** How far the camera has dived into the AI block (ACT II): 0 outside, 1 at the block. */
+export const diveAt = (p: number) => smooth(clamp01((p - 0.55) / 0.3));
+/** The block the signal leads to. */
+const AI_INDEX = 0;
 
 const GOLD = "#d9b35a";
 
@@ -257,16 +261,20 @@ function Rig({ progress, mode, selected, still }: RigProps) {
       if (portrait) pos.multiplyScalar(1.6);
     } else {
       const e = explodeAt(progress.current);
+      const d = diveAt(progress.current);
       const hero = { pos: new Vector3(6.6, 5.6, 10.8), at: new Vector3(0.3, 0.3, 0) };
       const side = { pos: new Vector3(10.6, 5.2, 11.6), at: new Vector3(0.6, 1.9, 0) };
-      pos = hero.pos.clone().lerp(side.pos, e);
-      at = hero.at.clone().lerp(side.at, e);
+      // The AI block on the lifted die.
+      const b = new Vector3(...blockPos(AI_INDEX)).add(new Vector3(0, 1.35, 0));
+      const dive = { pos: b.clone().add(new Vector3(1.7, 1.25, 2.9)), at: b.clone().add(new Vector3(0, 0.45, 0)) };
+      pos = hero.pos.clone().lerp(side.pos, e).lerp(dive.pos, d);
+      at = hero.at.clone().lerp(side.at, e).lerp(dive.at, d);
       if (portrait) {
         pos.multiplyScalar(Math.min(2.2, Math.max(1.3, (0.95 * size.height) / size.width)));
         at.y -= 1.2;
       } else {
         // The headline sits on the left: keep the chip in the right 55% of the frame.
-        const shift = 2.6 - e * 0.8;
+        const shift = (2.6 + e * 1.2) * (1 - d * 0.55);
         pos.x -= shift;
         at.x -= shift;
       }
@@ -290,18 +298,26 @@ function Layers({ progress, mode, blocks, selected, onSelect, onOpen, still }: R
   const notes = useRef<Group>(null);
   const lidMat = useRef<MeshStandardMaterial>(null);
   const shown = useRef(0);
+  const dived = useRef(0);
+  const [focus, setFocus] = useState<number | null>(null);
   const silk = useSilkscreen();
   useFrame((_, dt) => {
     const explore = mode === "explore";
     const target = explore ? 0 : explodeAt(progress.current);
     shown.current += (target - shown.current) * (still ? 1 : 1 - Math.exp(-dt * 6));
     const e = shown.current;
+    dived.current += ((explore ? 0 : diveAt(progress.current)) - dived.current) * (still ? 1 : 1 - Math.exp(-dt * 6));
+    const d = dived.current;
+    // The signal reaches the AI block: it lights up.
+    const want = !explore && d > 0.45 ? AI_INDEX : null;
+    if (want !== focus) setFocus(want);
     if (die.current) die.current.position.y = e * 1.35;
-    if (bus.current) bus.current.position.y = e * 2.7;
+    // Upper layers move out of the camera's way during the dive.
+    if (bus.current) bus.current.position.y = e * 2.7 + d * 2.2;
     if (wires.current) wires.current.visible = e < 0.03;
-    if (notes.current) notes.current.visible = !explore && e > 0.7;
+    if (notes.current) notes.current.visible = !explore && e > 0.7 && d < 0.15;
     if (lid.current && lidMat.current) {
-      const lift = explore ? 9 : e * 3.3;
+      const lift = explore ? 9 : e * 3.3 + d * 4;
       lid.current.position.y += (0.85 + lift - lid.current.position.y) * (still ? 1 : 1 - Math.exp(-dt * 6));
       lid.current.rotation.x = -e * 0.12;
       lid.current.visible = lid.current.position.y < 7;
@@ -316,7 +332,7 @@ function Layers({ progress, mode, blocks, selected, onSelect, onOpen, still }: R
       </group>
       <group ref={die}>
         <DieSurface />
-        <Blocks blocks={blocks} selected={selected} explore={mode === "explore"} onSelect={onSelect} onOpen={onOpen} still={still} />
+        <Blocks blocks={blocks} selected={mode === "explore" ? selected : focus} explore={mode === "explore"} onSelect={onSelect} onOpen={onOpen} still={still} />
       </group>
       <group ref={bus}>
         <Interconnect count={blocks.length} still={still} />
@@ -353,6 +369,7 @@ function Ready({ onReady }: { onReady(): void }) {
 
 export default function HeroChip({
   progress,
+  active = true,
   blocks,
   mode,
   selected,
@@ -363,6 +380,8 @@ export default function HeroChip({
   quality,
 }: {
   progress: MutableRefObject<number>;
+  /** Render frames only while the chip is on screen. */
+  active?: boolean;
   blocks: ChipBlock[];
   mode: HeroMode;
   selected: number | null;
@@ -380,7 +399,7 @@ export default function HeroChip({
     if (!document.fonts) setFonts(true);
   }, []);
   return (
-    <Canvas camera={{ position: [3, 4.4, 8.4], fov: 38, near: 0.1, far: 100 }} dpr={q.dpr} gl={{ antialias: true, alpha: true }} aria-hidden onPointerMissed={() => mode === "explore" && onSelect(null)}>
+    <Canvas camera={{ position: [3, 4.4, 8.4], fov: 38, near: 0.1, far: 100 }} dpr={q.dpr} frameloop={active ? "always" : "never"} gl={{ antialias: true, alpha: true }} aria-hidden onPointerMissed={() => mode === "explore" && onSelect(null)}>
       <ambientLight intensity={0.3} />
       {/* key, fill and rim */}
       <directionalLight position={[6, 9, 6]} intensity={1.6} />

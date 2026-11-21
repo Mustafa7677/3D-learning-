@@ -7,7 +7,7 @@ import styles from "./film.module.css";
  * Header of the dark pages: wordmark, two primary destinations, the player
  * badge, and the teacher/author tools tucked into one menu.
  */
-export function FilmHeader({ lead }: { lead?: ReactNode }) {
+export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: boolean }) {
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand} aria-label="INSIDE TECH, басты бет">
@@ -24,7 +24,7 @@ export function FilmHeader({ lead }: { lead?: ReactNode }) {
         </Link>
       </nav>
       <div className={styles.headerEnd}>
-        <PlayerBadge />
+        {badge && <PlayerBadge />}
         <details className={styles.tools}>
           <summary>Құралдар</summary>
           <div className={styles.toolsMenu}>

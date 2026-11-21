@@ -10,12 +10,11 @@ import { useScrollProgress } from "@/lib/useScrollProgress";
 import { useWebGL } from "@/lib/useWebGL";
 import { AiDemo } from "./AiDemo";
 import { Atlas } from "./Atlas";
-import { CipherDemo } from "./CipherDemo";
 import { FilmHeader } from "./FilmHeader";
 import type { ChipBlock, HeroMode } from "./HeroChip";
-import { PidDemo } from "./PidDemo";
 import film from "./film.module.css";
 import styles from "./landing.module.css";
+import { WorldFinale } from "./WorldFinale";
 
 const HeroChip = dynamic(() => import("./HeroChip"), { ssr: false });
 
@@ -37,7 +36,8 @@ function CssDie({ blocks }: { blocks: ChipBlock[] }) {
 export function HomeFilm() {
   const filmEl = useRef<HTMLDivElement>(null);
   const chapter2 = useRef<HTMLElement>(null);
-  const { progress } = useScrollProgress(filmEl, 2);
+  const { progress } = useScrollProgress(filmEl, 3);
+  const [onStage, setOnStage] = useState(true);
   const webgl = useWebGL();
   const quality = useQuality();
   const [still, setStill] = useState(false);
@@ -45,6 +45,14 @@ export function HomeFilm() {
   const [mode, setMode] = useState<HeroMode>("cinematic");
   const [selected, setSelected] = useState<number | null>(null);
   useEffect(() => setStill(prefersReducedMotion()), []);
+  // The chip stops rendering once the film has scrolled away.
+  useEffect(() => {
+    const node = filmEl.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setOnStage(e!.isIntersecting));
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
 
   const blocks: ChipBlock[] = useMemo(() => openLabs.map((l) => ({ id: l.id, title: l.title, inside: l.inside, href: l.href! })), []);
 
@@ -72,6 +80,7 @@ export function HomeFilm() {
   return (
     <div className={`${film.page} ${styles.landing}`}>
       <FilmHeader
+        badge={false}
         lead={
           <button type="button" className={film.menuLink} onClick={() => scrollToEl(document.getElementById("labs"))}>
             Зертханалар
@@ -97,6 +106,7 @@ export function HomeFilm() {
                   onReady={() => setReady(true)}
                   still={still}
                   quality={quality}
+                  active={onStage || mode === "explore"}
                 />
               </div>
             )
@@ -132,7 +142,7 @@ export function HomeFilm() {
 
         <div className={styles.chapters}>
           <section className={styles.hero} aria-labelledby="hero-title">
-            <p className={styles.micro}>01 / ТЕХНОЛОГИЯНЫ ІШІНЕН ҮЙРЕН</p>
+            <p className={styles.micro}>АКТ I / ОБЪЕКТ</p>
             <h1 id="hero-title" className={styles.h1}>
               <span>Технологияның</span>
               <span>ішіне кір.</span>
@@ -147,39 +157,31 @@ export function HomeFilm() {
               </button>
             </div>
             <p className={styles.scroll} aria-hidden>
-              <span>SCROLL</span> 01 / 06
+              <span>SCROLL</span> ішіне қарай
             </p>
           </section>
 
           <section ref={chapter2} className={styles.exploded} aria-labelledby="layers-title">
-            <p className={styles.micro}>02 / ҚАБАТТАР</p>
+            <p className={styles.micro}>АКТ II / ІШКІ ӘЛЕМ</p>
             <h2 id="layers-title" className={styles.h2}>
               Бәрі сен ойлағаннан терең.
             </h2>
-            <p className={styles.line}>Қақпақ, мыс байланыс, кристалл, негіз. Он курс: кристалдағы он блок. Кез келгенін бас.</p>
-            <button type="button" className={styles.secondary} onClick={() => (webgl === false ? scrollToEl(document.getElementById("labs")) : explore())}>
-              Чипті зертте
-            </button>
+            <p className={styles.line}>Қақпақ, мыс байланыс, кристалл, негіз. Кристалда он блок бар, әрқайсысы бір курс.</p>
+          </section>
+
+          <section className={styles.dive} aria-labelledby="dive-title">
+            <p className={styles.micro}>АКТ II / СИГНАЛ</p>
+            <h2 id="dive-title" className={styles.h2}>
+              Сигнал AI блогына кірді.
+            </h2>
+            <p className={styles.line}>Енді оның ішінде не болып жатқанын көр: төменде нейрон желісі дәл қазір сенің браузеріңде үйреніп жатыр.</p>
           </section>
         </div>
       </div>
 
       <AiDemo />
-      <PidDemo />
-      <CipherDemo />
 
-      <section className={styles.journeyBand} aria-label="Саяхат">
-        <Link href="/journey" className={styles.journey}>
-          <span className={styles.journeyKey} aria-hidden>
-            ↵
-          </span>
-          <span className={styles.journeyText}>
-            <strong>Бір басудың саяхаты</strong>
-            <span>Enter басқаннан бет ашылғанға дейінгі 185 миллисекунд: он курс бір сұраныстың ішінде.</span>
-          </span>
-          <span className={styles.journeyGo}>Саяхатқа шығу</span>
-        </Link>
-      </section>
+      <WorldFinale onChoose={() => scrollToEl(document.getElementById("labs"))} />
 
       <Atlas />
 

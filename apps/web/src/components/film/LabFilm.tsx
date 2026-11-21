@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { LessonDefinition, LessonProgress } from "@inside-tech/lesson-engine";
 import type { LabInfo } from "@/lib/catalog";
 import { lessonsForLab } from "@/lib/lessons";
@@ -26,7 +26,7 @@ export function completion(lesson: LessonDefinition<unknown, unknown>, p?: Lesso
   return total ? done / total : 0;
 }
 
-export function LabFilm({ lab }: { lab: LabInfo }) {
+export function LabFilm({ lab, warmup }: { lab: LabInfo; warmup?: ReactNode }) {
   const lessons = useMemo(() => lessonsForLab(lab.id).map((e) => e.lesson), [lab.id]);
   const film = useRef<HTMLDivElement>(null);
   const items = useRef<(HTMLElement | null)[]>([]);
@@ -115,6 +115,7 @@ export function LabFilm({ lab }: { lab: LabInfo }) {
           </ol>
         </div>
       </div>
+      {warmup}
       <footer className={styles.footer}>INSIDE TECH: технологияны ішінен үйрену</footer>
     </div>
   );

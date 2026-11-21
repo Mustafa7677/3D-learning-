@@ -26,8 +26,8 @@ test("the journey: Enter starts it, answers pay XP, the finale adds up to 185 ms
   await expect(page.getByRole("region", { name: "Пернетақта" }).getByRole("button", { name: "8 мс" })).toBeDisabled();
 });
 
-test("the home page invites to the journey", async ({ page }) => {
+test("the header leads to the journey", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /Бір басудың саяхаты/ }).click();
+  await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("link", { name: "Саяхат" }).click();
   await expect(page).toHaveURL(/\/journey$/);
 });
