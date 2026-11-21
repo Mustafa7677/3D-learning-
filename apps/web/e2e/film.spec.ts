@@ -133,7 +133,7 @@ test("home works without WebGL", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Технологияның");
   await expect(page.locator("#labs li")).toHaveCount(10);
   await page.goto("/labs/net");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
 });
 
 test("course page: start link and the stations", async ({ page }) => {
