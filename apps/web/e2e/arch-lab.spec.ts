@@ -34,6 +34,7 @@ test("lesson 4: completing the half adder turns the truth table green", async ({
 test("lesson 6: a program written by the learner passes the hidden tests", async ({ page }) => {
   await page.goto("/labs/arch/arch-6-asm");
   const src = page.getByLabel(/Ассемблер/);
+  await expect(src).toHaveValue(/^; mem\[0\] \+ mem\[1\]/);
   await src.fill("LI R0, 5\nOUT R0\nHALT");
   await page.getByRole("button", { name: "Жинау (assemble)" }).click();
   await page.getByRole("button", { name: "Соңына дейін" }).click();
