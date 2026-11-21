@@ -176,6 +176,9 @@ export function Passport() {
               <h2 id="pp-log" className={styles.logTitle}>
                 Аяқталған сабақтар
               </h2>
+              <p className={styles.logEmpty}>
+                <Link href="/sky">Осы прогресті жұлдызды аспан ретінде көру →</Link>
+              </p>
               {data.finished.length === 0 ? (
                 <p className={styles.logEmpty}>Әзірге бос. Аяқталған әр сабақ осында күнімен жазылады.</p>
               ) : (

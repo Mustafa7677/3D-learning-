@@ -58,6 +58,6 @@ test("cards on a 320px phone, and the shelf on the home page", async ({ browser 
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Сабақтан басқа да жол бар." })).toBeAttached();
-  await expect(page.getByRole("region", { name: "Сабақтан басқа да жол бар." }).getByRole("link")).toHaveCount(6);
+  await expect(page.getByRole("region", { name: "Сабақтан басқа да жол бар." }).getByRole("link")).toHaveCount(7);
   await ctx.close();
 });
