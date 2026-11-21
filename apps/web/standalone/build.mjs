@@ -41,8 +41,8 @@ await build({ ...common, entryPoints: { app: resolve(here, "main.tsx") }, outdir
 await build({ ...common, entryPoints: { "ai-lab-worker": resolve(root, "src/workers/ai-lab.worker.ts") }, outdir: out });
 
 const css = await readFile(resolve(out, "app.css"), "utf8");
-const html = `<title>INSIDE TECH</title>
-<meta name="description" content="IT технологияларын 3D симуляциялар арқылы зерттеуге арналған платформа: AI LAB.">
+const html = `<title>INSIDE TECH: технологияның ішіне кір</title>
+<meta name="description" content="IT технологияларын 3D симуляциялар арқылы зерттеуге, өзгертуге және өз қолыңмен жасауға арналған платформа.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@500;600&display=swap">
