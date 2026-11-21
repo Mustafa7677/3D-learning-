@@ -2,8 +2,25 @@ import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { crack, login, strength, isXss, type LoginResult, type Storage } from "./attacks";
 import { bitDistance, caesar, modPow, rsaKeys, sha256, utf8, xorBytes, type RsaKeys } from "./crypto";
 import { CHALLENGES, type ChallengeId } from "./text";
+import {
+  BLOCK_KEY,
+  DH_LARGE,
+  DH_SMALL,
+  FIXED_IV,
+  blocksOf,
+  deliver,
+  dhExchange,
+  encryptBlocks,
+  eveBruteForce,
+  picture,
+  randomIv,
+  type BlockMode,
+  type Delivery,
+  type DhExchange,
+  type MacScheme,
+} from "./middle-core";
 
-export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack";
+export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh";
 
 export interface SecStats {
   modes: SecMode[];
@@ -27,6 +44,10 @@ export interface SecStats {
   decryptions: { n: number; c: number; m: number }[];
   logins: { ok: boolean; injected: boolean; parameterized: boolean; as: string | null; quote: boolean }[];
   comments: { attack: boolean; escaped: boolean }[];
+  blockRuns: { mode: BlockMode; iv: "fixed" | "random"; distinct: number; first: number }[];
+  macRuns: { scheme: MacScheme; tampered: boolean; recomputed: boolean; accepted: boolean }[];
+  dhRuns: { p: number; match: boolean; mitm: boolean; signed: boolean; aborted: boolean }[];
+  eveRuns: { p: number; found: boolean; tries: number }[];
 }
 
 export interface SecLabState {
@@ -37,6 +58,9 @@ export interface SecLabState {
   passwords: { storage: Storage; lastCrack: { storage: Storage; cracked: { name: string; password: string }[]; work: number; same: string[][] } | null; candidate: string };
   rsa: { p: number; q: number; e: number; keys: RsaKeys | null; error: string | null; message: number; cipher: number | null; decrypted: number | null; signature: number | null; verified: number | null };
   attack: { user: string; pass: string; parameterized: boolean; last: LoginResult | null; comment: string; escape: boolean; posted: { text: string; escaped: boolean }[] };
+  blocks: { mode: BlockMode; iv: "fixed" | "random"; runs: number; last: { mode: BlockMode; iv: number; cipher: number[] } | null };
+  mac: { scheme: MacScheme; last: Delivery | null };
+  dh: { big: boolean; a: number; b: number; mitm: boolean; signed: boolean; last: DhExchange | null; eve: { p: number; found: number | null; tries: number } | null };
   stats: SecStats;
 }
 
@@ -62,7 +86,14 @@ export type SecLabAction =
   | { type: "attack/param"; on: boolean }
   | { type: "attack/comment"; text: string }
   | { type: "attack/escape"; on: boolean }
-  | { type: "attack/post" };
+  | { type: "attack/post" }
+  | { type: "blocks/set"; mode?: BlockMode; iv?: "fixed" | "random" }
+  | { type: "blocks/encrypt" }
+  | { type: "mac/scheme"; scheme: MacScheme }
+  | { type: "mac/send"; tamper: boolean; recompute: boolean }
+  | { type: "dh/set"; big?: boolean; a?: number; b?: number; mitm?: boolean; signed?: boolean }
+  | { type: "dh/exchange" }
+  | { type: "dh/eve" };
 
 const uniq = <T>(xs: T[], x: T, max = 60) => (xs.includes(x) ? xs : [...xs, x].slice(-max));
 const mod = (k: number, n: number) => ((Math.round(k) % n) + n) % n;
@@ -108,6 +139,9 @@ export function initialSecState(): SecLabState {
     passwords: { storage: "plain", lastCrack: null, candidate: "" },
     rsa: { p: 61, q: 53, e: 17, keys: null, error: null, message: 65, cipher: null, decrypted: null, signature: null, verified: null },
     attack: { user: "", pass: "", parameterized: false, last: null, comment: "", escape: false, posted: [] },
+    blocks: { mode: "ecb", iv: "fixed", runs: 0, last: null },
+    mac: { scheme: "none", last: null },
+    dh: { big: false, a: 6, b: 15, mitm: false, signed: false, last: null, eve: null },
     stats: {
       modes: ["cipher"],
       ownShifts: [],
@@ -126,6 +160,10 @@ export function initialSecState(): SecLabState {
       decryptions: [],
       logins: [],
       comments: [],
+      blockRuns: [],
+      macRuns: [],
+      dhRuns: [],
+      eveRuns: [],
     },
   };
 }
@@ -239,6 +277,55 @@ function reduce(s: SecLabState, a: SecLabAction): SecLabState {
         attack: { ...s.attack, posted: cap([...s.attack.posted, { text, escaped: s.attack.escape }], 6), comment: "" },
         stats: { ...st, comments: cap([...st.comments, { attack: isXss(text), escaped: s.attack.escape }]) },
       };
+    }
+
+    case "blocks/set":
+      return { ...s, mode: "blocks", blocks: { ...s.blocks, mode: a.mode ?? s.blocks.mode, iv: a.iv ?? s.blocks.iv } };
+    case "blocks/encrypt": {
+      const b = s.blocks;
+      const iv = b.iv === "fixed" ? FIXED_IV : randomIv(b.runs);
+      const cipher = encryptBlocks(blocksOf(picture()), b.mode, BLOCK_KEY, iv);
+      return {
+        ...s,
+        mode: "blocks",
+        blocks: { ...b, runs: b.runs + 1, last: { mode: b.mode, iv, cipher } },
+        stats: { ...st, blockRuns: cap([...st.blockRuns, { mode: b.mode, iv: b.iv, distinct: new Set(cipher).size, first: cipher[0]! }]) },
+      };
+    }
+
+    case "mac/scheme":
+      return { ...s, mode: "mac", mac: { scheme: a.scheme, last: null } };
+    case "mac/send": {
+      const d = deliver(s.mac.scheme, a.tamper, a.recompute);
+      return { ...s, mode: "mac", mac: { ...s.mac, last: d }, stats: { ...st, macRuns: cap([...st.macRuns, { scheme: s.mac.scheme, tampered: d.tampered, recomputed: d.recomputed, accepted: d.accepted }]) } };
+    }
+
+    case "dh/set": {
+      const d = s.dh;
+      const big = a.big ?? d.big;
+      const p = (big ? DH_LARGE : DH_SMALL).p;
+      const pick = (v: number | undefined, old: number) => Math.round(Math.min(p - 2, Math.max(2, v ?? old)));
+      const a2 = a.big !== undefined && a.big !== d.big ? (big ? 123_456_789 : 6) : pick(a.a, d.a);
+      const b2 = a.big !== undefined && a.big !== d.big ? (big ? 987_654_321 : 15) : pick(a.b, d.b);
+      return { ...s, mode: "dh", dh: { ...d, big, a: a2, b: b2, mitm: a.mitm ?? d.mitm, signed: a.signed ?? d.signed, last: null, eve: a.big !== undefined && a.big !== d.big ? null : d.eve } };
+    }
+    case "dh/exchange": {
+      const d = s.dh;
+      const { p, g } = d.big ? DH_LARGE : DH_SMALL;
+      const x = dhExchange(p, g, d.a, d.b, d.mitm, d.signed);
+      return {
+        ...s,
+        mode: "dh",
+        dh: { ...d, last: x },
+        stats: { ...st, dhRuns: cap([...st.dhRuns, { p, match: !x.aborted && x.alice === x.bob, mitm: d.mitm, signed: d.signed, aborted: x.aborted }]) },
+      };
+    }
+    case "dh/eve": {
+      const d = s.dh;
+      if (!d.last) return s;
+      const { p, g } = d.big ? DH_LARGE : DH_SMALL;
+      const r = eveBruteForce(p, g, d.last.A);
+      return { ...s, dh: { ...d, eve: { p, ...r } }, stats: { ...st, eveRuns: cap([...st.eveRuns, { p, found: r.found !== null, tries: r.tries }]) } };
     }
   }
 }

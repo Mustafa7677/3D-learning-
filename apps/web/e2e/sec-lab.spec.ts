@@ -8,10 +8,44 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("cybersecurity lab page lists eight lessons and the problem set", async ({ page }) => {
+test("cybersecurity lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/sec");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cybersecurity");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+});
+
+test("Middle 10: ECB keeps the picture's 10 distinct blocks, CBC makes all 64 different", async ({ page }) => {
+  await page.goto("/labs/sec/sec-10-modes");
+  const result = page.getByRole("status", { name: "Шифрлау нәтижесі" });
+  await page.getByRole("button", { name: "Суретті шифрлау" }).click();
+  await expect(result).toContainText("10 / 64");
+  await page.getByRole("button", { name: "CBC: тізбек" }).click();
+  await page.getByRole("button", { name: "Суретті шифрлау" }).click();
+  await expect(result).toContainText("64 / 64");
+  await expect(objective(page, "CBC режимінде")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 11: a recomputed SHA-256 tag lets a forged payment through, HMAC does not", async ({ page }) => {
+  await page.goto("/labs/sec/sec-11-hmac");
+  const bank = page.getByRole("status", { name: "Банктің шешімі" });
+  await page.getByRole("button", { name: "SHA-256 тегі" }).click();
+  await page.getByRole("button", { name: "Шабуыл: соманы өзгертіп, тегті қайта есептеу" }).click();
+  await expect(bank).toContainText("жалған төлем өтті");
+  await page.getByRole("button", { name: "HMAC-SHA256" }).click();
+  await page.getByRole("button", { name: "Шабуыл: соманы өзгертіп, тегті қайта есептеу" }).click();
+  await expect(bank).toContainText("қабылдамады");
+});
+
+test("Middle 12: both sides get key 2; Eve finds a = 6 in the small group", async ({ page }) => {
+  await page.goto("/labs/sec/sec-12-dh");
+  const out = page.getByRole("status", { name: "Алмасу нәтижесі" });
+  await page.getByRole("button", { name: "Кілт алмасу" }).click();
+  await expect(out).toContainText("A = 8, B = 19");
+  await expect(out).toContainText("2 ✓ бірдей");
+  await page.getByRole("button", { name: "Ева: дискретті логарифм іздеу" }).click();
+  await expect(out).toContainText("a = 6 табылды");
+  await expect(objective(page, "p = 23 топта")).toHaveAttribute("data-done", "true");
 });
 
 test("lesson 2: the most frequent letter gives the key away", async ({ page }) => {

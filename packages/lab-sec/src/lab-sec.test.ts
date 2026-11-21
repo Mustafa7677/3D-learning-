@@ -139,6 +139,47 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "attack/login" });
     },
   },
+  "sec-10-modes": {
+    ecb: (d) => {
+      d({ type: "blocks/encrypt" });
+      d({ type: "blocks/set", mode: "cbc" });
+      d({ type: "blocks/encrypt" });
+    },
+    iv: (d) => {
+      d({ type: "blocks/encrypt" });
+      d({ type: "blocks/encrypt" });
+      d({ type: "blocks/set", iv: "random" });
+      d({ type: "blocks/encrypt" });
+      d({ type: "blocks/encrypt" });
+    },
+  },
+  "sec-11-hmac": {
+    hash: (d) => {
+      d({ type: "mac/send", tamper: true, recompute: false });
+      d({ type: "mac/scheme", scheme: "hash" });
+      d({ type: "mac/send", tamper: true, recompute: false });
+      d({ type: "mac/send", tamper: true, recompute: true });
+    },
+    hmac: (d) => {
+      d({ type: "mac/send", tamper: false, recompute: false });
+      d({ type: "mac/send", tamper: true, recompute: true });
+    },
+  },
+  "sec-12-dh": {
+    exchange: (d) => {
+      d({ type: "dh/exchange" });
+      d({ type: "dh/eve" });
+      d({ type: "dh/set", big: true });
+      d({ type: "dh/exchange" });
+      d({ type: "dh/eve" });
+    },
+    mitm: (d) => {
+      d({ type: "dh/set", mitm: true });
+      d({ type: "dh/exchange" });
+      d({ type: "dh/set", signed: true });
+      d({ type: "dh/exchange" });
+    },
+  },
 };
 
 describe("cybersecurity lessons are completable", () => {
