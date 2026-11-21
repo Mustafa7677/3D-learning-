@@ -3,8 +3,24 @@ import { addTrace, toSigned, type AddTrace } from "./bits";
 import { simulateCache, type Access, type CacheConfig, type Pattern } from "./cache";
 import { assemble, resetCpu, run, tick, MEM_SIZE, type CpuState, type Instr } from "./cpu";
 import { CIRCUITS, GATE_TYPES, inputRows, solves, type CircuitId, type GateType } from "./logic";
+import {
+  PIPE_PROGRAM,
+  assocAddresses,
+  branchOutcomes,
+  canSwap,
+  predictBranches,
+  runAssoc,
+  runPipeline,
+  type AssocPattern,
+  type AssocResult,
+  type BranchPattern,
+  type BranchRun,
+  type PipeMode,
+  type PipeResult,
+  type Predictor,
+} from "./middle-core";
 
-export type ArchMode = "bits" | "gates" | "cpu" | "cache";
+export type ArchMode = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc";
 
 export interface CpuRun {
   source: string;
@@ -30,6 +46,9 @@ export interface ArchStats {
   manualStages: number;
   cpuRuns: CpuRun[];
   cacheRuns: { pattern: Pattern; lines: number; lineSize: number; hits: number; misses: number; cycles: number }[];
+  pipeRuns: { mode: PipeMode; cycles: number; stalls: number; order: string }[];
+  branchRuns: { pattern: BranchPattern; predictor: Predictor; misses: number; total: number }[];
+  assocRuns: { pattern: AssocPattern; ways: number; hits: number; misses: number }[];
 }
 
 export interface ArchLabState {
@@ -40,6 +59,9 @@ export interface ArchLabState {
   gates: { circuit: CircuitId; inputs: Record<string, number>; types: Record<string, GateType> };
   cpu: { source: string; program: Instr[]; errors: { line: number; message: string }[]; initialMem: number[]; state: CpuState; running: boolean };
   cache: { pattern: Pattern; lines: number; lineSize: number; cursor: number; running: boolean };
+  pipe: { mode: PipeMode; order: string[]; last: PipeResult | null };
+  branch: { pattern: BranchPattern; predictor: Predictor; last: BranchRun | null };
+  assoc: { pattern: AssocPattern; ways: number; last: AssocResult | null };
   stats: ArchStats;
 }
 
@@ -66,7 +88,15 @@ export type ArchLabAction =
   | { type: "cache/play" }
   | { type: "cache/pause" }
   | { type: "cache/finish" }
-  | { type: "cache/reset" };
+  | { type: "cache/reset" }
+  | { type: "pipe/mode"; mode: PipeMode }
+  | { type: "pipe/swap"; index: number }
+  | { type: "pipe/restore" }
+  | { type: "pipe/run" }
+  | { type: "branch/set"; pattern?: BranchPattern; predictor?: Predictor }
+  | { type: "branch/run" }
+  | { type: "assoc/set"; pattern?: AssocPattern; ways?: number }
+  | { type: "assoc/run" };
 
 export const CACHE_LINES = [1, 2, 4, 8, 16];
 export const LINE_SIZES = [4, 8, 16, 32, 64];
@@ -169,7 +199,25 @@ export function initialArchState(): ArchLabState {
     gates: { circuit: "single", inputs: { A: 0, B: 0 }, types: {} },
     cpu: { source: "", program: [], errors: [], initialMem: [], state: resetCpu(), running: false },
     cache: { pattern: "row", lines: 4, lineSize: 16, cursor: 0, running: false },
-    stats: { modes: ["bits"], bitToggles: 0, values: [0], signedValues: [], additions: [], rowsTried: {}, gateTypesTried: [], solved: [], manualStages: 0, cpuRuns: [], cacheRuns: [] },
+    pipe: { mode: "off", order: PIPE_PROGRAM.map((p) => p.id), last: null },
+    branch: { pattern: "loop", predictor: "1bit", last: null },
+    assoc: { pattern: "two", ways: 1, last: null },
+    stats: {
+      modes: ["bits"],
+      bitToggles: 0,
+      values: [0],
+      signedValues: [],
+      additions: [],
+      rowsTried: {},
+      gateTypesTried: [],
+      solved: [],
+      manualStages: 0,
+      cpuRuns: [],
+      cacheRuns: [],
+      pipeRuns: [],
+      branchRuns: [],
+      assocRuns: [],
+    },
   };
   return loadSource(base, PROGRAMS.first!.source);
 }
@@ -262,6 +310,45 @@ function reduce(s: ArchLabState, a: ArchLabAction): ArchLabState {
     }
     case "cache/reset":
       return { ...s, cache: { ...s.cache, cursor: 0, running: false } };
+
+    case "pipe/mode":
+      return { ...s, mode: "pipe", pipe: { ...s.pipe, mode: a.mode, last: null } };
+    case "pipe/swap": {
+      const o = s.pipe.order;
+      const i = Math.round(a.index);
+      if (i < 0 || i + 1 >= o.length) return s;
+      const at = (id: string) => PIPE_PROGRAM.find((p) => p.id === id)!;
+      if (!canSwap(at(o[i]!), at(o[i + 1]!))) return s;
+      const order = [...o];
+      [order[i], order[i + 1]] = [order[i + 1]!, order[i]!];
+      return { ...s, mode: "pipe", pipe: { ...s.pipe, order, last: null } };
+    }
+    case "pipe/restore":
+      return { ...s, pipe: { ...s.pipe, order: PIPE_PROGRAM.map((p) => p.id), last: null } };
+    case "pipe/run": {
+      const program = s.pipe.order.map((id) => PIPE_PROGRAM.find((p) => p.id === id)!);
+      const r = runPipeline(program, s.pipe.mode);
+      const run = { mode: s.pipe.mode, cycles: r.cycles, stalls: r.stalls, order: s.pipe.order.join(",") };
+      return { ...s, mode: "pipe", pipe: { ...s.pipe, last: r }, stats: { ...s.stats, pipeRuns: [...s.stats.pipeRuns, run].slice(-40) } };
+    }
+
+    case "branch/set":
+      return { ...s, mode: "branch", branch: { pattern: a.pattern ?? s.branch.pattern, predictor: a.predictor ?? s.branch.predictor, last: null } };
+    case "branch/run": {
+      const r = predictBranches(s.branch.predictor, branchOutcomes(s.branch.pattern));
+      const run = { pattern: s.branch.pattern, predictor: s.branch.predictor, misses: r.misses, total: r.outcomes.length };
+      return { ...s, mode: "branch", branch: { ...s.branch, last: r }, stats: { ...s.stats, branchRuns: [...s.stats.branchRuns, run].slice(-40) } };
+    }
+
+    case "assoc/set": {
+      const ways = a.ways !== undefined && [1, 2, 4].includes(a.ways) ? a.ways : s.assoc.ways;
+      return { ...s, mode: "assoc", assoc: { pattern: a.pattern ?? s.assoc.pattern, ways, last: null } };
+    }
+    case "assoc/run": {
+      const r = runAssoc(assocAddresses(s.assoc.pattern), s.assoc.ways);
+      const run = { pattern: s.assoc.pattern, ways: s.assoc.ways, hits: r.hits, misses: r.misses };
+      return { ...s, mode: "assoc", assoc: { ...s.assoc, last: r }, stats: { ...s.stats, assocRuns: [...s.stats.assocRuns, run].slice(-40) } };
+    }
     case "cache/step":
       return advanceCache({ ...s, cache: { ...s.cache, running: false } }, 1);
     case "cache/play":

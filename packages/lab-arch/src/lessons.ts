@@ -1,3 +1,4 @@
+import { archMiddleContent, lessonAssoc, lessonBranch, lessonPipeline } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { addTrace } from "./bits";
 import { archContent } from "./content";
@@ -304,6 +305,18 @@ export const lessonCache: L = {
   ],
 };
 
-export const archLessons: L[] = [lessonBinary, lessonArith, lessonGates, lessonAdder, lessonCpu, lessonAsm, lessonMemory, lessonCache, lessonPsetArch].map((l) =>
-  withDeepDives(withContent(l, archContent[l.id] ?? {}), archDeepDives[l.id] ?? {}),
-);
+export const archLessons: L[] = [
+  lessonBinary,
+  lessonArith,
+  lessonGates,
+  lessonAdder,
+  lessonCpu,
+  lessonAsm,
+  lessonMemory,
+  lessonCache,
+  lessonPsetArch,
+  // Middle level
+  lessonPipeline,
+  lessonBranch,
+  lessonAssoc,
+].map((l) => withDeepDives(withContent(l, archContent[l.id] ?? archMiddleContent[l.id] ?? {}), archDeepDives[l.id] ?? {}));

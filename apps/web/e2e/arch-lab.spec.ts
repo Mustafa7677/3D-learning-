@@ -8,10 +8,11 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("architecture lab page lists eight lessons and the problem set", async ({ page }) => {
+test("architecture lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/arch");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Architecture");
-  await expect(page.locator("ol li")).toHaveCount(9);
+  await expect(page.locator("ol li")).toHaveCount(12);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
 });
 
 test("lesson 1: switching bits on builds 42", async ({ page }) => {
@@ -52,4 +53,41 @@ test("lesson 8: column order thrashes the cache", async ({ page }) => {
   await page.goto("/labs/arch/arch-8-cache");
   await page.getByRole("button", { name: "Соңына дейін" }).click();
   await expect(page.getByRole("status").filter({ hasText: "1648" })).toBeVisible();
+});
+
+test("Middle 10: forwarding leaves one load-use stall; moving the independent ADD up reaches 9 cycles", async ({ page }) => {
+  await page.goto("/labs/arch/arch-10-pipeline");
+  const result = page.getByRole("status", { name: "Конвейер нәтижесі" });
+  await page.getByRole("button", { name: "Бағдарламаны орындау" }).click();
+  await expect(result).toContainText("25");
+  await page.getByRole("button", { name: "Конвейер, forwarding-сіз" }).click();
+  await page.getByRole("button", { name: "Бағдарламаны орындау" }).click();
+  await expect(result).toContainText("15");
+  await page.getByRole("button", { name: "Конвейер + forwarding" }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "ADD r4, r5, r6: жоғары жылжыту" }).click();
+  await expect(page.getByRole("list", { name: "Бағдарлама" }).locator("li").nth(1)).toContainText("ADD r4, r5, r6");
+  await page.getByRole("button", { name: "Бағдарламаны орындау" }).click();
+  await expect(result).toContainText("9");
+  await expect(result).toContainText("0");
+});
+
+test("Middle 11: a sorted array makes the branch predictable", async ({ page }) => {
+  await page.goto("/labs/arch/arch-11-branch");
+  const result = page.getByRole("status", { name: "Болжау нәтижесі" });
+  await page.getByRole("button", { name: "Болжап көру" }).click();
+  await expect(result).toContainText("19 / 40");
+  await page.getByRole("button", { name: "2 биттік" }).click();
+  await page.getByRole("button", { name: "Болжап көру" }).click();
+  await expect(result).toContainText("10 / 40");
+});
+
+test("Middle 12: two arrays a cache apart thrash a direct-mapped cache, not a 2-way one", async ({ page }) => {
+  await page.goto("/labs/arch/arch-12-assoc");
+  const result = page.getByRole("status", { name: "Кэш нәтижесі" });
+  await page.getByRole("button", { name: "Оқуды бастау" }).click();
+  await expect(result).toContainText("Hit0");
+  await page.getByRole("button", { name: "2 жолды" }).click();
+  await page.getByRole("button", { name: "Оқуды бастау" }).click();
+  await expect(result).toContainText("Hit48");
+  await expect(objective(page, "2 жолды кэшпен")).toHaveAttribute("data-done", "true");
 });

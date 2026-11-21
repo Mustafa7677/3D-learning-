@@ -112,6 +112,43 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "cache/finish" });
     },
   },
+  "arch-10-pipeline": {
+    stages: (d) => {
+      d({ type: "pipe/run" });
+      d({ type: "pipe/mode", mode: "stall" });
+      d({ type: "pipe/run" });
+    },
+    forward: (d) => {
+      d({ type: "pipe/run" });
+      // i5 climbs above i4, i3 and i2 to sit right behind the load.
+      for (const i of [3, 2, 1]) d({ type: "pipe/swap", index: i });
+      d({ type: "pipe/run" });
+    },
+  },
+  "arch-11-branch": {
+    loop: (d) => {
+      d({ type: "branch/run" });
+      d({ type: "branch/set", predictor: "2bit" });
+      d({ type: "branch/run" });
+    },
+    data: (d) => {
+      d({ type: "branch/run" });
+      d({ type: "branch/set", pattern: "sorted" });
+      d({ type: "branch/run" });
+    },
+  },
+  "arch-12-assoc": {
+    conflict: (d) => {
+      d({ type: "assoc/run" });
+      d({ type: "assoc/set", ways: 2 });
+      d({ type: "assoc/run" });
+    },
+    lru: (d) => {
+      d({ type: "assoc/run" });
+      d({ type: "assoc/set", ways: 4 });
+      d({ type: "assoc/run" });
+    },
+  },
 };
 
 describe("architecture lessons are completable", () => {
