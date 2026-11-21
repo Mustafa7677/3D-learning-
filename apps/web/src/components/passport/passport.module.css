@@ -1,0 +1,380 @@
+/* The learning passport: an open booklet on the dark desk.
+   Left page: the holder and the next step. Right page: one stamp cell per lab. */
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 112px var(--gutter, 24px) 96px;
+}
+.loading {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
+}
+
+.spread {
+  --paper: #f3efe4;
+  --paper-2: #ebe5d5;
+  --ink: #18223a;
+  --ink-dim: #5d6680;
+  --rule: rgb(24 34 58 / 0.14);
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  border-radius: 20px;
+  overflow: hidden;
+  color: var(--ink);
+  box-shadow: 0 40px 80px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.04);
+}
+.holder,
+.visas {
+  position: relative;
+  padding: 40px 40px 32px;
+  background:
+    repeating-radial-gradient(circle at 20% 0%, transparent 0 14px, rgb(24 34 58 / 0.025) 14px 15px),
+    linear-gradient(180deg, var(--paper), var(--paper-2));
+}
+/* the fold between the two pages */
+.holder {
+  box-shadow: inset -28px 0 36px -30px rgb(24 34 58 / 0.45);
+  display: flex;
+  flex-direction: column;
+}
+.visas {
+  box-shadow: inset 28px 0 36px -30px rgb(24 34 58 / 0.45);
+}
+.issuer {
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: #9a6a3c;
+}
+.title {
+  margin: 0 0 28px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(34px, 4.2vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.facts {
+  display: grid;
+  margin: 0 0 28px;
+  border-top: 1px solid var(--rule);
+}
+.facts > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.facts dt {
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+.facts dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 16px;
+}
+.facts b {
+  font-size: 22px;
+}
+.next {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  padding: 22px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #eef1f8;
+}
+.nextKicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+.nextTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.nextMeta {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #aab3c9;
+}
+.next :global(a) {
+  font-size: 15px;
+  padding: 13px 22px;
+}
+.mrz {
+  margin: auto 0 0;
+  padding-top: 28px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: rgb(24 34 58 / 0.45);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.visasTitle {
+  margin: 0 0 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9a6a3c;
+}
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.visa {
+  --accent: #dda36e;
+}
+.visaLink {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  height: 100%;
+  padding: 14px 92px 14px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgb(24 34 58 / 0.25);
+  color: var(--ink);
+  text-decoration: none;
+  background: rgb(255 255 255 / 0.35);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.visa[data-stamped="true"] .visaLink {
+  border-style: solid;
+  border-color: rgb(24 34 58 / 0.18);
+}
+.visaLink:hover,
+.visaLink:focus-visible {
+  background: rgb(255 255 255 / 0.75);
+  border-color: var(--ink);
+}
+.visaLink:focus-visible {
+  outline: 3px solid #2f5bea;
+  outline-offset: 2px;
+}
+.visaTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.visaGlyph {
+  width: 30px;
+  height: 25px;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.visaGlyph [class] {
+  fill: var(--ink);
+}
+.visaNum {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+}
+.visaTitle {
+  font-size: 17px;
+  line-height: 1.2;
+}
+.visaCount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.visaCount b {
+  color: var(--ink);
+  font-size: 15px;
+}
+.bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(24 34 58 / 0.1);
+  overflow: hidden;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+.visaNext {
+  display: grid;
+  gap: 1px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2f5bea;
+}
+.visaNext span {
+  font-weight: 400;
+  color: var(--ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* stamps: inked circles, a little crooked, like a real border post */
+.stamp,
+.stampEmpty {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 72px;
+  height: 72px;
+  margin-top: -36px;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+.stamp {
+  color: color-mix(in srgb, var(--accent) 55%, #3a1f0a);
+  border: 3px double currentColor;
+  transform: rotate(-14deg);
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+  animation: pp-stamp 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.stampCode {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  max-width: 58px;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1;
+}
+.stampWord {
+  font-family: inherit;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin: 3px 0 2px;
+}
+.stampDate {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+}
+.stampEmpty {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: rgb(24 34 58 / 0.3);
+  border: 1.5px dashed rgb(24 34 58 / 0.22);
+}
+@keyframes pp-stamp {
+  from {
+    transform: rotate(-14deg) scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* ---------- finished lessons ---------- */
+.log {
+  margin-top: 40px;
+}
+.logTitle {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+.logEmpty {
+  margin: 0;
+  color: var(--dim);
+}
+.logList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.logList li {
+  display: grid;
+  grid-template-columns: 110px 220px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.logList time {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--copper);
+}
+.logLab {
+  color: var(--dim);
+  font-size: 14px;
+}
+.logList a {
+  color: var(--ice);
+}
+
+@media (max-width: 1000px) {
+  .spread {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .holder {
+    box-shadow: inset 0 -28px 36px -30px rgb(24 34 58 / 0.45);
+  }
+  .visas {
+    box-shadow: inset 0 28px 36px -30px rgb(24 34 58 / 0.45);
+  }
+}
+@media (max-width: 620px) {
+  .page {
+    padding-top: 124px;
+  }
+  .holder,
+  .visas {
+    padding: 24px 16px;
+  }
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .visaLink {
+    padding-right: 84px;
+  }
+  .stamp,
+  .stampEmpty {
+    width: 64px;
+    height: 64px;
+    margin-top: -32px;
+    right: 10px;
+  }
+  .logList li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stamp {
+    animation: none;
+  }
+  .visaLink {
+    transition: none;
+  }
+}

@@ -22,6 +22,9 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
         <Link href="/journey" className={styles.menuLink}>
           Саяхат
         </Link>
+        <Link href="/passport" className={styles.menuLink}>
+          Паспорт
+        </Link>
       </nav>
       <div className={styles.headerEnd}>
         {badge && (

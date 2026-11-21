@@ -9,7 +9,7 @@ import { KeyArt, hasKeyArt } from "./KeyArt";
 import styles from "./landing.module.css";
 
 /** Each lab's own identity: a field, an accent and a line glyph. */
-const LOOK: Record<string, { field: string; accent: string; glyph: ReactNode }> = {
+export const LOOK: Record<string, { field: string; accent: string; glyph: ReactNode }> = {
   ai: {
     field: "MACHINE LEARNING",
     accent: "#7696ff",
