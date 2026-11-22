@@ -361,6 +361,9 @@ export function Focus() {
               </span>
               <span className={styles.clockSub}>демал</span>
             </BigRing>
+            <p className={styles.tip}>
+              Үзілістен кейін: <Link href="/recall">Бос парақта</Link> жаңа ғана оқығаныңды есіңнен жазып көр.
+            </p>
             <ul className={styles.restTips}>
               <li>
                 <b>20-20-20:</b> терезеден алысқа, кемінде 6 метрге 20 секунд қара.

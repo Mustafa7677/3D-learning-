@@ -12,6 +12,7 @@ import { dailyProblem, loadProblems, streakLength } from "@/lib/problems";
 import { progressStore } from "@/lib/progress";
 import { GOALS, activeThisWeek, greeting, heatmap, loadGoal, mastery, saveGoal, todayPlan, type PlanItem } from "@/lib/today";
 import { XP_EVENT, usePlayer } from "@/lib/xp";
+import { loadRecall, suggestions } from "@/lib/recall";
 import { FOCUS_EVENT, focusWeek, loadActive, loadHistory, type FocusSession } from "@/lib/focus";
 import { FilmHeader } from "../film/FilmHeader";
 import film from "../film/film.module.css";
@@ -49,6 +50,7 @@ interface Data {
   cardsDue: number;
   mistakesDue: number;
   streak: number;
+  recallDue?: { title: string; count: number };
 }
 
 /** Бүгін: the learner's daily plan, week and progress, built from their own saved work. */
@@ -83,7 +85,9 @@ export function Today() {
       .then((progress) => {
         const ms = collectMistakes(lessonEntries, progress);
         const r = schedule(review, ms, t.getTime());
-        setData({ progress, activity: loadActivity(), cardsDue, mistakesDue: dueMistakes(r, ms, t.getTime()).length, streak: streakLength(problems.streak, t) });
+        const studied = progress.filter((p) => Object.values(p.completed).some((x) => x.length > 0) || p.completedAt).map((p) => ({ lessonId: p.lessonId, updatedAt: p.updatedAt }));
+        const due = suggestions(lessonEntries, studied, loadRecall(), t.getTime()).filter((x) => x.due);
+        setData({ progress, activity: loadActivity(), cardsDue, mistakesDue: dueMistakes(r, ms, t.getTime()).length, streak: streakLength(problems.streak, t), recallDue: due.length ? { title: due[0]!.entry.lesson.title, count: due.length } : undefined });
       });
   }, []);
 
@@ -99,7 +103,7 @@ export function Today() {
     };
   }, [load]);
 
-  const plan: PlanItem[] = now && data ? todayPlan({ entries: lessonEntries, progress: data.progress, activity: data.activity, cardsDue: data.cardsDue, mistakesDue: data.mistakesDue, daily: dailyProblem(now), now }) : [];
+  const plan: PlanItem[] = now && data ? todayPlan({ entries: lessonEntries, progress: data.progress, activity: data.activity, cardsDue: data.cardsDue, mistakesDue: data.mistakesDue, recallDue: data.recallDue, daily: dailyProblem(now), now }) : [];
   const planDone = plan.filter((x) => x.done).length;
   const week = now && data ? activeThisWeek(data.activity, now) : 0;
   const heat = now && data ? heatmap(data.activity, now, 16) : [];

@@ -36,6 +36,11 @@ describe("the plan", () => {
     expect(plan[0]!.title).toBe("4 карточканы қайтала");
     expect(plan[2]!.href).toBe("/problems?p=bdp");
   });
+  it("a due free recall comes before cards, mistakes before both", () => {
+    const due = { title: "Векторлар", count: 2 };
+    expect(todayPlan({ ...base, recallDue: due, activity: { days: {} } })[0]).toMatchObject({ href: "/recall", title: "Бос парақ: Векторлар" });
+    expect(todayPlan({ ...base, recallDue: due, mistakesDue: 1, activity: { days: {} } })[0]).toMatchObject({ href: "/notebook" });
+  });
   it("mistakes come before cards", () => {
     expect(todayPlan({ ...base, mistakesDue: 2, activity: { days: {} } })[0]).toMatchObject({ href: "/notebook", title: "2 қатені қайта шеш" });
   });

@@ -40,6 +40,8 @@ export function todayPlan(input: {
   activity: ActivityLog;
   cardsDue: number;
   mistakesDue: number;
+  /** The topic whose free recall is due, if any. */
+  recallDue?: { title: string; count: number };
   daily: { id: string; title: string };
   now: Date;
 }): PlanItem[] {
@@ -48,7 +50,9 @@ export function todayPlan(input: {
   const review: PlanItem =
     input.mistakesDue > 0
       ? { id: "review", kicker: "1 · ЕСКЕ ТҮСІР", title: `${input.mistakesDue} қатені қайта шеш`, detail: "Қателер дәптері: кешегі қатенің бүгінгі жауабы ең берік есте қалады.", href: "/notebook", done: (today.review ?? 0) > 0 }
-      : { id: "review", kicker: "1 · ЕСКЕ ТҮСІР", title: input.cardsDue > 0 ? `${input.cardsDue} карточканы қайтала` : "Карточкалармен жылыну", detail: "Еске түсіру жаңа нәрсені үйренуге ми дайындайды: бес минут жеткілікті.", href: "/cards", done: (today.review ?? 0) > 0 };
+      : input.recallDue && input.recallDue.count > 0
+        ? { id: "review", kicker: "1 · ЕСКЕ ТҮСІР", title: `Бос парақ: ${input.recallDue.title}`, detail: "Кітапты жауып, есіңде қалғанды жаз: еске түсірудің ең мықты түрі.", href: "/recall", done: (today.review ?? 0) > 0 }
+        : { id: "review", kicker: "1 · ЕСКЕ ТҮСІР", title: input.cardsDue > 0 ? `${input.cardsDue} карточканы қайтала` : "Карточкалармен жылыну", detail: "Еске түсіру жаңа нәрсені үйренуге ми дайындайды: бес минут жеткілікті.", href: "/cards", done: (today.review ?? 0) > 0 };
   const learn: PlanItem = next
     ? { id: "learn", kicker: "2 · ЖАҢА МАТЕРИАЛ", title: next.entry.lesson.title, detail: next.resume ? "Тоқтаған жеріңнен жалғастыр." : "Келесі сабақ сені күтіп тұр.", href: `/labs/${next.entry.labId}/${next.entry.lesson.id}`, done: (today.lesson ?? 0) > 0 }
     : { id: "learn", kicker: "2 · ЖАҢА МАТЕРИАЛ", title: "Барлық сабақ аяқталды", detail: "Енді Тактика алаңында өзіңді сына.", href: "/tactics", done: true };
