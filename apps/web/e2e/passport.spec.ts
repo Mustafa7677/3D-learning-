@@ -26,7 +26,7 @@ test("passport: an empty passport earns nothing and points at the first lesson",
   await expect(page).toHaveURL(/\/passport$/);
   await expect(page.getByRole("heading", { name: "Оқу паспорты", level: 1 })).toBeVisible();
   await expect(page.getByText("Паспорт әлі таза")).toBeVisible();
-  await expect(visas(page)).toHaveCount(10);
+  await expect(visas(page)).toHaveCount(11);
   for (const v of await visas(page).all()) await expect(v).toHaveAttribute("aria-label", /: 0 \/ \d+ сабақ аяқталды\. Мөр әлі жоқ\./);
   await expect(page.getByText("Әзірге бос.")).toBeVisible();
   const start = page.getByRole("link", { name: /^Алғашқы сабақты бастау:/ });
@@ -91,7 +91,7 @@ for (const width of [320, 1440]) {
     const page = await ctx.newPage();
     await page.goto("/passport");
     await page.evaluate(() => document.fonts.ready);
-    await expect(visas(page)).toHaveCount(10);
+    await expect(visas(page)).toHaveCount(11);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
     const right = await visas(page).evaluateAll((els) => Math.max(...els.map((e) => e.getBoundingClientRect().right)));
     expect(right).toBeLessThanOrEqual(width);

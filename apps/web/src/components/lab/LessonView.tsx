@@ -15,6 +15,8 @@ import type { OptimLabAction, OptimLabState } from "@inside-tech/lab-ai";
 import { OptimControlPanel, type OptimFocus } from "./OptimControlPanel";
 import type { CloudLabAction, CloudLabState } from "@inside-tech/lab-cloud";
 import type { IotLabAction, IotLabState } from "@inside-tech/lab-iot";
+import type { MathLabAction, MathLabState, MathMode } from "@inside-tech/lab-math";
+import { MathControlPanel } from "./MathControlPanel";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
 import { useWebGL } from "@/lib/useWebGL";
@@ -51,6 +53,7 @@ const WebScene = dynamic(() => import("../scene/WebScene"), { ssr: false, loadin
 const GameScene = dynamic(() => import("../scene/GameScene"), { ssr: false, loading: sceneLoading });
 const AlgoScene = dynamic(() => import("../scene/AlgoScene"), { ssr: false, loading: sceneLoading });
 const ArchScene = dynamic(() => import("../scene/ArchScene"), { ssr: false, loading: sceneLoading });
+const MathScene = dynamic(() => import("../scene/MathScene"), { ssr: false, loading: sceneLoading });
 const SecScene = dynamic(() => import("../scene/SecScene"), { ssr: false, loading: sceneLoading });
 const DbScene = dynamic(() => import("../scene/DbScene"), { ssr: false, loading: sceneLoading });
 const OptimScene = dynamic(() => import("../scene/OptimScene"), { ssr: false, loading: sceneLoading });
@@ -401,6 +404,7 @@ export function LessonView({ lessonId }: { lessonId: string }) {
   if (entry.kind === "net") return <NetLesson {...props} />;
   if (entry.kind === "cloud") return <CloudLesson {...props} />;
   if (entry.kind === "iot") return <IotLesson {...props} />;
+  if (entry.kind === "math") return <MathLesson {...props} />;
   return <GameLesson {...props} />;
 }
 
@@ -422,6 +426,7 @@ export function SpecLessonView({ spec, preview = false }: { spec: LessonSpec; pr
   if (spec.kind === "net") return <NetLesson {...(props as LessonProps<NetLabState, NetLabAction>)} />;
   if (spec.kind === "cloud") return <CloudLesson {...(props as LessonProps<CloudLabState, CloudLabAction>)} />;
   if (spec.kind === "iot") return <IotLesson {...(props as LessonProps<IotLabState, IotLabAction>)} />;
+  if (spec.kind === "math") return <MathLesson {...(props as LessonProps<MathLabState, MathLabAction>)} />;
   return <GameLesson {...(props as LessonProps<GameLabState, GameLabAction>)} />;
 }
 
@@ -617,6 +622,30 @@ function IotLesson({ labId, lesson, nextLessonId, persist }: LessonProps<IotLabS
         </div>
       }
       controls={state && <IotControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+    />
+  );
+}
+
+const MATH_FOCI: MathMode[] = ["vectors", "dot", "gauss", "matrix", "inverse", "det", "basis", "eigen"];
+
+function MathLesson({ labId, lesson, nextLessonId, persist }: LessonProps<MathLabState, MathLabAction>) {
+  const session = useLabSession(lesson, "math", { persist });
+  const webgl = useWebGL();
+  const { state, step } = session;
+  const focus = (MATH_FOCI.includes(step?.focus as MathMode) ? step!.focus : "vectors") as MathMode;
+  return (
+    <LabShell
+      labId={labId}
+      preview={persist === false}
+      lesson={lesson}
+      nextLessonId={nextLessonId}
+      session={session as LabSession<unknown, unknown>}
+      stage={
+        <div className={styles.stageInner}>
+          {state && webgl !== false ? <MathScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+        </div>
+      }
+      controls={state && <MathControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
     />
   );
 }

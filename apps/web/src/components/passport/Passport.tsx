@@ -11,7 +11,7 @@ import film from "../film/film.module.css";
 import landing from "../film/landing.module.css";
 import styles from "./passport.module.css";
 
-const CODE: Record<string, string> = { ai: "AI", web: "WEB", game: "GAME", net: "NET", db: "DB", arch: "ARCH", cloud: "CLOUD", sec: "SEC", algo: "ALGO", iot: "IOT" };
+const CODE: Record<string, string> = { ai: "AI", web: "WEB", game: "GAME", net: "NET", db: "DB", arch: "ARCH", cloud: "CLOUD", sec: "SEC", algo: "ALGO", iot: "IOT", math: "MATH" };
 
 function Stamp({ lab }: { lab: PassportLab }) {
   if (!lab.stamp) {

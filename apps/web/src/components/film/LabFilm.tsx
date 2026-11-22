@@ -10,6 +10,8 @@ import { levelOf } from "@/lib/levels";
 import { prefersReducedMotion } from "@/lib/nav";
 import { progressStore } from "@/lib/progress";
 import { LevelPath } from "./LevelPath";
+import { MathCourseMap } from "./MathCourseMap";
+import { subjectOfOrder } from "@inside-tech/lab-math";
 import { useScrollProgress } from "@/lib/useScrollProgress";
 import { useWebGL } from "@/lib/useWebGL";
 import { FilmHeader } from "./FilmHeader";
@@ -92,7 +94,7 @@ export function LabFilm({ lab, warmup, extra }: { lab: LabInfo; warmup?: ReactNo
                 </Link>
               )}
             </div>
-            <LevelPath orders={lessons.map((l) => l.order)} done={done} onJump={jump} />
+            {lab.id === "math" ? <MathCourseMap done={Object.fromEntries(lessons.map((l, i) => [l.id, done[i]!]))} /> : <LevelPath orders={lessons.map((l) => l.order)} done={done} onJump={jump} />}
             <p className={styles.scrollHint} aria-hidden>
               {lessons.length} сабақ · төмен айналдыр: жол бойымен жүреміз
             </p>
@@ -103,10 +105,10 @@ export function LabFilm({ lab, warmup, extra }: { lab: LabInfo; warmup?: ReactNo
               const c = completion(l, prog[l.id]);
               const isPset = l.title.startsWith("Problem Set");
               return (
-                <li key={l.id} ref={(n) => void (items.current[i] = n)} className={styles.station} data-active={chapter - 1 === i} data-level={levelOf(l.order)}>
+                <li key={l.id} ref={(n) => void (items.current[i] = n)} className={styles.station} data-active={chapter - 1 === i} data-level={lab.id === "math" ? "Math" : levelOf(l.order)}>
                   <Link href={`/labs/${lab.id}/${l.id}`} className={styles.stationCard}>
                     <span className={styles.stationNum}>
-                      <b className={styles.level}>{levelOf(l.order)}</b> {isPset ? "Есептер" : `${l.order}-сабақ`}
+                      <b className={styles.level}>{lab.id === "math" ? subjectOfOrder(l.order)?.title : levelOf(l.order)}</b> {isPset ? "Есептер" : `${l.order}-сабақ`}
                     </span>
                     <h2>{l.title}</h2>
                     <p>{l.summary}</p>

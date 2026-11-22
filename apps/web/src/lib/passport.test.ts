@@ -13,7 +13,7 @@ describe("learning passport", () => {
     expect(pp.resume).toBeUndefined();
     expect(pp.stamps).toBe(0);
     expect(pp.lessonsDone).toBe(0);
-    expect(pp.labs).toHaveLength(10);
+    expect(pp.labs).toHaveLength(11);
     expect(pp.first.href).toBe(`/labs/ai/${id("ai", 0)}`);
     expect(pp.lessonsTotal).toBe(pp.labs.reduce((n, l) => n + l.total, 0));
   });

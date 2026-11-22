@@ -1550,3 +1550,56 @@ div.walkSteps {
 .calibTable th {
   font-weight: 600;
 }
+
+/* ---------- mathematics ---------- */
+.mathVec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mathVec b {
+  min-width: 2.6em;
+  font-family: var(--font-serif);
+}
+.mathNum {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.mathNum input,
+.mathMatrix input {
+  width: 4.2em;
+  padding: 4px 6px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 4px;
+}
+.mathMatrix {
+  margin: 4px 0 10px;
+  border-collapse: separate;
+  border-spacing: 4px 3px;
+  font-variant-numeric: tabular-nums;
+  border-left: 2px solid var(--muted);
+  border-right: 2px solid var(--muted);
+  padding: 0 4px;
+}
+.mathMatrix th {
+  padding-right: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.mathMatrix td {
+  min-width: 2.6em;
+  text-align: right;
+}
+.mathMatrix td[data-rhs] {
+  padding-left: 10px;
+  border-left: 1px dashed var(--muted);
+}

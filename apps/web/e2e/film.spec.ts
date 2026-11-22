@@ -13,7 +13,7 @@ test("home: the start button dives in, the atlas has every lab", async ({ page }
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
   await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("button", { name: "Зертханалар" }).click();
   await expect(page.getByRole("heading", { name: "Зертханалар атласы", level: 2 })).toBeInViewport();
-  await expect(page.locator("#labs li")).toHaveCount(10);
+  await expect(page.locator("#labs li")).toHaveCount(11);
   await page.getByRole("link", { name: /^Robotics & IoT:/ }).click();
   await expect(page).toHaveURL(/\/labs\/iot$/, { timeout: 20000 });
 });
@@ -89,7 +89,7 @@ for (const width of [320, 360]) {
     await expect(page).toHaveURL(/\/create$/, { timeout: 20000 });
     await page.goto("/");
     await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("button", { name: "Зертханалар" }).click();
-    await expect(page.locator("#labs li")).toHaveCount(10);
+    await expect(page.locator("#labs li")).toHaveCount(11);
     expect(await page.evaluate(() => [...document.querySelectorAll("#labs li")].filter((l) => l.getBoundingClientRect().right > innerWidth + 1).length)).toBe(0);
     await page.getByRole("link", { name: /^Cybersecurity:/ }).click();
     await expect(page).toHaveURL(/\/labs\/sec$/, { timeout: 20000 });
@@ -131,7 +131,7 @@ test("home works without WebGL", async ({ page }) => {
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Технологияның");
-  await expect(page.locator("#labs li")).toHaveCount(10);
+  await expect(page.locator("#labs li")).toHaveCount(11);
   await page.goto("/labs/net");
   await expect(page.locator("ol li")).toHaveCount(15);
 });

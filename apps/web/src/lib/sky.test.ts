@@ -8,7 +8,7 @@ const p = (lessonId: string, o: Partial<LessonProgress> = {}): LessonProgress =>
 describe("the sky of knowledge", () => {
   it("every lesson is one star, every lab one constellation", () => {
     const sky = buildSky([]);
-    expect(sky.constellations).toHaveLength(10);
+    expect(sky.constellations).toHaveLength(11);
     expect(sky.constellations.reduce((n, c) => n + c.stars.length, 0)).toBe(lessonEntries.length);
   });
 

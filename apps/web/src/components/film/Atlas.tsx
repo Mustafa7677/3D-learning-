@@ -137,6 +137,17 @@ export const LOOK: Record<string, { field: string; accent: string; glyph: ReactN
       </g>
     ),
   },
+  math: {
+    field: "MATHEMATICS",
+    accent: "#7aa2ff",
+    glyph: (
+      <g>
+        <path d="M20 80 L100 80 M28 88 L28 14" />
+        <path d="M28 80 L62 46 L96 52 L62 86 Z" />
+        <path d="M28 80 L62 46" className={styles.glyphHot} />
+      </g>
+    ),
+  },
   iot: {
     field: "ROBOTICS",
     accent: "#f2c14e",
@@ -168,11 +179,11 @@ export function Atlas({ id = "labs" }: { id?: string }) {
   return (
     <section className={styles.atlas} aria-labelledby="atlas-title" id={id}>
       <div className={styles.atlasHead}>
-        <p className={styles.micro}>10 ЗЕРТХАНА</p>
+        <p className={styles.micro}>11 ЗЕРТХАНА</p>
         <h2 id="atlas-title" className={styles.h2}>
           Зертханалар атласы
         </h2>
-        <p className={styles.line}>Әр зертханада Junior деңгейінің 8 сабағы, есептер жиыны және нақты есептейтін симуляция. Middle және Senior деңгейлері қосылып жатыр.</p>
+        <p className={styles.line}>Он IT зертханасында Junior мен Middle деңгейлері, есептер жиыны және нақты есептейтін симуляция. Жаңа Математика зертханасы: университеттің 1-курсы ретімен.</p>
       </div>
       <ul className={styles.bento}>
         {openLabs.map((lab, i) => {

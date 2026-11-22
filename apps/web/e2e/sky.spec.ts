@@ -13,7 +13,7 @@ test("sky: an empty sky points the North Star at the first lesson; a finished le
   const north = page.getByRole("complementary", { name: "Таңдалған жұлдыз" });
   await expect(north.getByText("ТЕМІРҚАЗЫҚ КӨРСЕТЕДІ")).toBeVisible();
   await expect(north.getByRole("link", { name: "Сол жаққа бару →" })).toHaveAttribute("href", "/labs/ai/ai-1-data");
-  await expect(page.getByRole("region", { name: "Шоқжұлдыздар" }).locator("details")).toHaveCount(10);
+  await expect(page.getByRole("region", { name: "Шоқжұлдыздар" }).locator("details")).toHaveCount(11);
   await expect(page.getByText("Ұғым көпірлері")).toBeVisible();
   await expect(page.getByText(/Дейкстра:/)).toBeVisible();
 
@@ -46,7 +46,7 @@ test("sky without WebGL: the same sky as a list", async ({ page }) => {
   });
   await page.goto("/sky");
   await expect(page.locator("canvas")).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Шоқжұлдыздар" }).locator("details")).toHaveCount(10);
+  await expect(page.getByRole("region", { name: "Шоқжұлдыздар" }).locator("details")).toHaveCount(11);
   await expect(page.getByRole("link", { name: "Сол жаққа бару →" })).toBeVisible();
 });
 

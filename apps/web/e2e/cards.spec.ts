@@ -12,8 +12,8 @@ test("cards: flip, knew moves a card up, not knowing brings it back today, the b
   await page.goto("/");
   await page.getByRole("link", { name: /Есте сақтау/ }).click();
   await expect(page).toHaveURL(/\/cards$/);
-  await expect(box(page, 1)).toHaveText("20");
-  await expect(page.getByText("Бүгін қалды: 20")).toBeVisible();
+  await expect(box(page, 1)).toHaveText("22");
+  await expect(page.getByText("Бүгін қалды: 22")).toBeVisible();
 
   const card = page.getByRole("button", { name: /^Сұрақ: / });
   const first = (await card.getAttribute("aria-label"))!.replace(/^Сұрақ: (.*?)\. Аудару.*$/, "$1");
@@ -21,30 +21,30 @@ test("cards: flip, knew moves a card up, not knowing brings it back today, the b
   await expect(page.getByRole("button", { name: /^Жауабы: / })).toBeVisible();
   await page.getByRole("button", { name: /^Білдім/ }).click();
   await expect(box(page, 2)).toHaveText("1");
-  await expect(page.getByText("Бүгін қалды: 19 · білдім: 1")).toBeVisible();
+  await expect(page.getByText("Бүгін қалды: 21 · білдім: 1")).toBeVisible();
 
   // Not knowing keeps the count: the card goes to the end of today's pile.
   await page.getByRole("button", { name: "Жауабын көру" }).click();
   await page.getByRole("button", { name: /^Білмедім/ }).click();
-  await expect(page.getByText("Бүгін қалды: 19 · білдім: 1 · қайталаймын: 1")).toBeVisible();
+  await expect(page.getByText("Бүгін қалды: 21 · білдім: 1 · қайталаймын: 1")).toBeVisible();
 
   await page.reload();
   await expect(box(page, 2)).toHaveText("1");
-  await expect(box(page, 1)).toHaveText("19");
+  await expect(box(page, 1)).toHaveText("21");
   // The known card is not due today any more.
-  await expect(page.getByText("Бүгін қалды: 19")).toBeVisible();
+  await expect(page.getByText("Бүгін қалды: 21")).toBeVisible();
   expect(first.length).toBeGreaterThan(0);
 });
 
 test("cards by keyboard: Space flips, 2 means knew, until the day is done", async ({ page }) => {
   await page.goto("/cards");
-  await expect(page.getByText("Бүгін қалды: 20")).toBeVisible();
-  for (let i = 0; i < 20; i++) {
+  await expect(page.getByText("Бүгін қалды: 22")).toBeVisible();
+  for (let i = 0; i < 22; i++) {
     await page.locator("body").press("Space");
     await page.locator("body").press("2");
   }
   await expect(page.getByText("БҮГІНГЕ БІТТІ")).toBeVisible();
-  await expect(box(page, 2)).toHaveText("20");
+  await expect(box(page, 2)).toHaveText("22");
   await expect(page.getByText(/Келесі карточкалар \d\d\.\d\d\.\d{4} күні оралады/)).toBeVisible();
 });
 

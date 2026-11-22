@@ -8,7 +8,7 @@ const opened = (id: string): LessonProgress => ({ lessonId: id, stepIndex: 0, co
 describe("exam ticket", () => {
   it("a new learner gets questions from the first lessons of every lab", () => {
     const pool = questionPool(lessonEntries, []);
-    expect(new Set(pool.map((q) => q.labId)).size).toBe(10);
+    expect(new Set(pool.map((q) => q.labId)).size).toBe(11);
     expect(pool.every((q) => lessonEntries.find((e) => e.lesson.id === q.lessonId)!.lesson.order <= 2)).toBe(true);
   });
   it("otherwise only from opened lessons", () => {

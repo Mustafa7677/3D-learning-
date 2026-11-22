@@ -232,7 +232,24 @@ function Iot() {
   );
 }
 
-const EMBLEMS: Record<string, () => React.JSX.Element> = { ai: Ai, web: Web, game: Game, net: Net, db: Db, arch: Arch, cloud: Cloud, sec: Sec, algo: Algo, iot: Iot };
+function MathEmblem() {
+  // Three axes and a sheared box: a matrix acting on space.
+  return (
+    <group>
+      <Rod a={[-0.7, 0, 0]} b={[0.8, 0, 0]} r={0.035} color={FILM.dieEdge} />
+      <Rod a={[0, 0, 0.6]} b={[0, 0, -0.8]} r={0.035} color={FILM.dieEdge} />
+      <Rod a={[0, 0, 0]} b={[0, 1.2, 0]} r={0.035} color={FILM.dieEdge} />
+      <Rod a={[0, 0, 0]} b={[0.6, 0.15, 0]} r={0.07} color={FILM.cobalt} />
+      <Rod a={[0, 0, 0]} b={[0.35, 0.75, 0]} r={0.07} color={FILM.copper} />
+      <mesh position={[0.32, 0.42, 0]} rotation={[0, 0, -0.45]}>
+        <boxGeometry args={[0.5, 0.62, 0.35]} />
+        <M color={FILM.cobalt} />
+      </mesh>
+    </group>
+  );
+}
+
+const EMBLEMS: Record<string, () => React.JSX.Element> = { ai: Ai, web: Web, game: Game, net: Net, db: Db, arch: Arch, cloud: Cloud, sec: Sec, algo: Algo, iot: Iot, math: MathEmblem };
 
 /** The 3D sign of a lab. `spin` turns it slowly (off for reduced motion). */
 export function Emblem({ labId, spin = false, scale = 1 }: { labId: string; spin?: boolean; scale?: number }) {

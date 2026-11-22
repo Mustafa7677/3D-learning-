@@ -3,7 +3,7 @@ import { openLabs } from "@/lib/catalog";
 import styles from "./home.module.css";
 
 /** Short menu names: "Computer Networks" and "Computer Architecture" must not both read "Computer". */
-const SHORT: Record<string, string> = { ai: "AI", web: "Web", game: "Game", net: "Networks", db: "Databases", arch: "Architecture", cloud: "Cloud", sec: "Security", algo: "Algorithms", iot: "IoT" };
+const SHORT: Record<string, string> = { ai: "AI", web: "Web", game: "Game", net: "Networks", db: "Databases", arch: "Architecture", cloud: "Cloud", sec: "Security", algo: "Algorithms", iot: "IoT", math: "Math" };
 
 /** Top navigation shared by the home, lab, account, teacher and creator pages. */
 export function SiteHeader({ current }: { current?: string }) {

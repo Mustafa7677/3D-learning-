@@ -9,11 +9,12 @@ import { dbLabPlugin } from "@inside-tech/lab-db";
 import { netLabPlugin } from "@inside-tech/lab-net";
 import { cloudLabPlugin } from "@inside-tech/lab-cloud";
 import { iotLabPlugin } from "@inside-tech/lab-iot";
+import { mathLabPlugin } from "@inside-tech/lab-math";
 import { spawnWorker } from "./spawnWorker";
 
 export const LAB_SEED = 20261120;
 
-export type LabKind = "classifier" | "language" | "optim" | "web" | "game" | "algo" | "arch" | "sec" | "db" | "net" | "cloud" | "iot";
+export type LabKind = "classifier" | "language" | "optim" | "web" | "game" | "algo" | "arch" | "sec" | "db" | "net" | "cloud" | "iot" | "math";
 
 export interface LabPort {
   port: MessagePortLike;
@@ -54,6 +55,7 @@ export function pluginFor(kind: string): SimulationPlugin<unknown, unknown> | un
     net: netLabPlugin as never,
     cloud: cloudLabPlugin as never,
     iot: iotLabPlugin as never,
+    math: mathLabPlugin as never,
   };
   return all[kind] as SimulationPlugin<unknown, unknown> | undefined;
 }
@@ -75,6 +77,7 @@ export function createLabPort(kind: LabKind): LabPort {
   if (kind === "net") return inThread(netLabPlugin);
   if (kind === "cloud") return inThread(cloudLabPlugin);
   if (kind === "iot") return inThread(iotLabPlugin);
+  if (kind === "math") return inThread(mathLabPlugin);
   try {
     const worker = spawnWorker();
     return { port: worker as unknown as MessagePortLike, dispose: () => worker.terminate() };

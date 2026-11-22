@@ -6,17 +6,17 @@ const NOW = Date.UTC(2026, 10, 21, 9);
 const DAY = 86_400_000;
 
 describe("memory cards (Leitner)", () => {
-  it("twenty cards, unique ids, every lab covered, no long dashes", () => {
-    expect(CARDS).toHaveLength(20);
-    expect(new Set(CARDS.map((c) => c.id)).size).toBe(20);
+  it("twenty-two cards, unique ids, every lab covered, no long dashes", () => {
+    expect(CARDS).toHaveLength(22);
+    expect(new Set(CARDS.map((c) => c.id)).size).toBe(22);
     for (const l of openLabs) expect(CARDS.some((c) => c.lab === l.id), l.id).toBe(true);
     expect(JSON.stringify(CARDS)).not.toMatch(/[—–]|CS50/);
   });
 
   it("a new deck has every card due today in box 1", () => {
     const d = newDeck(NOW);
-    expect(dueCards(d, NOW)).toHaveLength(20);
-    expect(boxCounts(d)).toEqual([20, 0, 0, 0, 0]);
+    expect(dueCards(d, NOW)).toHaveLength(22);
+    expect(boxCounts(d)).toEqual([22, 0, 0, 0, 0]);
   });
 
   it("knowing a card moves it up and away; not knowing brings it back now", () => {
@@ -58,7 +58,7 @@ describe("memory cards (Leitner)", () => {
     expect(d.dns).toEqual({ box: 1, due: NOW });
     expect(d.tcp!.box).toBe(3);
     expect(d.tcp!.due).toBe(NOW + 30 * DAY);
-    expect(Object.keys(d)).toHaveLength(20);
+    expect(Object.keys(d)).toHaveLength(22);
     expect(sanitizeDeck("junk", NOW)).toEqual(newDeck(NOW));
   });
 });

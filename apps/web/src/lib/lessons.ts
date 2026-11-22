@@ -9,6 +9,7 @@ import { dbLessons } from "@inside-tech/lab-db";
 import { netLessons } from "@inside-tech/lab-net";
 import { cloudLessons } from "@inside-tech/lab-cloud";
 import { iotLessons } from "@inside-tech/lab-iot";
+import { mathLessons } from "@inside-tech/lab-math";
 import type { LabKind } from "./labPort";
 
 export interface LessonEntry {
@@ -36,6 +37,7 @@ export const lessonEntries: LessonEntry[] = [
   ...netLessons.map((lesson) => ({ labId: "net", kind: "net" as const, lesson })).sort(byOrder),
   ...cloudLessons.map((lesson) => ({ labId: "cloud", kind: "cloud" as const, lesson })).sort(byOrder),
   ...iotLessons.map((lesson) => ({ labId: "iot", kind: "iot" as const, lesson })).sort(byOrder),
+  ...mathLessons.map((lesson) => ({ labId: "math", kind: "math" as const, lesson })).sort(byOrder),
 ];
 
 export const lessonsForLab = (labId: string) => lessonEntries.filter((e) => e.labId === labId);

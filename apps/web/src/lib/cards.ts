@@ -1,4 +1,4 @@
-/** Есте сақтау карточкалары: twenty cards from the ten labs, scheduled by the Leitner boxes. */
+/** Есте сақтау карточкалары: twenty-two cards from the eleven labs, scheduled by the Leitner boxes. */
 
 export interface Card {
   id: string;
@@ -26,6 +26,8 @@ export const CARDS: Card[] = [
   { id: "container", lab: "cloud", front: "Контейнер", back: "Қолданбаны барлық тәуелділігімен бірге оқшау іске қосатын пакет." },
   { id: "canary", lab: "cloud", front: "Canary релиз", back: "Жаңа нұсқаны алдымен пайдаланушылардың аз бөлігіне шығарып, сосын ғана бәріне тарату." },
   { id: "pid", lab: "iot", front: "PID басқарушы", back: "Қатені пропорционал (P), интеграл (I) және туынды (D) бойынша түзетеді." },
+  { id: "det", lab: "math", front: "Анықтауыш", back: "Матрица көлемді неше есе өзгертетінін айтатын сан. Нөл болса, кеңістік жаншылады да, кері матрица жоқ." },
+  { id: "eigen", lab: "math", front: "Меншікті вектор", back: "Матрица бұрмай, тек созатын бағыт: A·v = λ·v. λ: меншікті мән." },
   { id: "alias", lab: "iot", front: "Алиасинг", back: "Сигналды тым сирек өлшегенде жиілігі бұрмаланады. Найквист: жиіліктен кемінде екі есе жиі өлше." },
   { id: "dt", lab: "game", front: "Delta time", back: "Қозғалысты кадр жиілігіне тәуелсіз ету үшін өткен уақытқа көбейту." },
 ];

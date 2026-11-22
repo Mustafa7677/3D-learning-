@@ -6,7 +6,7 @@ const DASH = /[–—]/;
 
 describe("Parsons problems", () => {
   it("one puzzle per lab, every lab real, no long dashes in the text", () => {
-    expect(new Set(PARSONS.map((p) => p.labId)).size).toBe(10);
+    expect(new Set(PARSONS.map((p) => p.labId)).size).toBe(11);
     for (const p of PARSONS) {
       expect(findLab(p.labId), p.id).toBeDefined();
       const all = [p.title, p.task, p.explain, ...p.lines, ...p.distractors.flatMap((d) => [d.text, d.why])].join(" ");

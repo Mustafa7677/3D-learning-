@@ -69,6 +69,9 @@ importers:
       '@inside-tech/lab-iot':
         specifier: workspace:*
         version: link:../../packages/lab-iot
+      '@inside-tech/lab-math':
+        specifier: workspace:*
+        version: link:../../packages/lab-math
       '@inside-tech/lab-net':
         specifier: workspace:*
         version: link:../../packages/lab-net
@@ -180,6 +183,15 @@ importers:
         version: link:../sim-core
 
   packages/lab-iot:
+    dependencies:
+      '@inside-tech/lesson-engine':
+        specifier: workspace:*
+        version: link:../lesson-engine
+      '@inside-tech/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+
+  packages/lab-math:
     dependencies:
       '@inside-tech/lesson-engine':
         specifier: workspace:*

@@ -24,6 +24,7 @@
     "@inside-tech/lab-db": "workspace:*",
     "@inside-tech/lab-game": "workspace:*",
     "@inside-tech/lab-iot": "workspace:*",
+    "@inside-tech/lab-math": "workspace:*",
     "@inside-tech/lab-net": "workspace:*",
     "@inside-tech/lab-sec": "workspace:*",
     "@inside-tech/lab-web": "workspace:*",
