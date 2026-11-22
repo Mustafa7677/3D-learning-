@@ -39,7 +39,12 @@ export interface Server {
   etag?: boolean;
   /** Origins allowed to read responses from scripts (Access-Control-Allow-Origin). */
   corsOrigins?: string[];
+  /** Requests allowed per caller (token, or anonymous) in any 60 s window; 0 or absent: no limit. */
+  rateLimit?: number;
 }
+
+/** Sliding window of the rate limiter. */
+export const RATE_WINDOW_MS = 60_000;
 
 export interface DnsRecord {
   name: string;
@@ -78,6 +83,8 @@ export interface Response {
   corsBlocked?: boolean;
   /** A CORS preflight (OPTIONS) went out before the request. */
   preflight?: boolean;
+  /** 429: seconds until the limiter lets this caller in again. */
+  retryAfter?: number;
 }
 
 export interface CacheEntry {
@@ -101,6 +108,8 @@ export interface World {
   clock: number;
   /** Incremented on every deploy so stale cache entries are detectable. */
   deployVersion: number;
+  /** Rate limiter log: "ip|caller" → times of accepted requests. */
+  rateLog?: Record<string, number[]>;
 }
 
 export interface Resolution {
@@ -119,6 +128,7 @@ export const STATUS_TEXT: Record<number, string> = {
   401: "Unauthorized",
   403: "Forbidden",
   404: "Not Found",
+  429: "Too Many Requests",
   500: "Internal Server Error",
   502: "Bad Gateway",
   503: "Service Unavailable",
@@ -269,6 +279,23 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
     }
     return finishCors(status, body, contentType, next, {}, query);
   };
+
+  // Rate limiter: in front of everything else, counted per caller in a sliding 60 s window.
+  if (server.rateLimit) {
+    const caller = req.token || "anon";
+    const key = `${server.ip}|${caller}`;
+    const now = world.clock + t;
+    const log = (w.rateLog?.[key] ?? []).filter((x) => x > now - RATE_WINDOW_MS);
+    if (log.length >= server.rateLimit) {
+      const retryAfter = Math.max(1, Math.ceil((log[0]! + RATE_WINDOW_MS - now) / 1000));
+      add({ kind: "route", from: "server", to: "server", dur: 1, title: "Rate limiter", detail: `${caller}: 60 с ішінде ${log.length}/${server.rateLimit}, шек толды`, ok: false });
+      w = { ...w, rateLog: { ...w.rateLog, [key]: log } };
+      add({ kind: "response", from: "server", to: "browser", dur: lat, title: "429 Too Many Requests", detail: `Retry-After: ${retryAfter}`, ok: false });
+      return finishCors(429, JSON.stringify({ error: "too many requests", retryAfter }), "json", w, { retryAfter });
+    }
+    w = { ...w, rateLog: { ...w.rateLog, [key]: [...log, now] } };
+    add({ kind: "route", from: "server", to: "server", dur: 1, title: "Rate limiter", detail: `${caller}: 60 с ішінде ${log.length + 1}/${server.rateLimit}`, ok: true });
+  }
 
   const match = matchRoute(server.routes, req.method, url.path);
   if (!match) {

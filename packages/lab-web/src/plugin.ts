@@ -85,6 +85,8 @@ export interface WebStats {
   calls: Record<string, number>;
   /** Requests sent by a page's script: from which origin, and what the browser let it read. */
   corsRuns?: { origin: string; method: string; status: number; blocked: boolean; preflight: boolean }[];
+  /** Requests to a rate-limited server: who called, the status, and the clock when sent. */
+  rateRuns?: { caller: string; status: number; at: number; retryAfter?: number }[];
 }
 
 export interface WebLabState {
@@ -113,7 +115,7 @@ export type WebLabAction =
   | { type: "speed/set"; speed: number }
   | { type: "dns/set"; name: string; ip: string }
   | { type: "dns/remove"; name: string }
-  | { type: "server/set"; ip: string; patch: Partial<Pick<Server, "up" | "https" | "latency" | "maxAge" | "etag" | "corsOrigins">> }
+  | { type: "server/set"; ip: string; patch: Partial<Pick<Server, "up" | "https" | "latency" | "maxAge" | "etag" | "corsOrigins" | "rateLimit">> }
   | { type: "route/add"; ip: string; route: Omit<Route, "id"> }
   | { type: "route/update"; ip: string; id: number; patch: Partial<Omit<Route, "id">> }
   | { type: "route/remove"; ip: string; id: number }
@@ -225,6 +227,7 @@ function finishTrace(s: WebLabState): WebLabState {
     cache: tr.nextWorld.cache,
     dnsCache: { ...s.world.dnsCache, ...tr.nextWorld.dnsCache },
     db: wrote ? tr.nextWorld.db : s.world.db,
+    rateLog: tr.nextWorld.rateLog,
     clock: s.world.clock + res.ms,
   };
   const serving = world.servers.find((sv) => sv.host === url?.host);
@@ -251,6 +254,7 @@ function finishTrace(s: WebLabState): WebLabState {
   st.stageKinds = [...new Set([...st.stageKinds, ...tr.stages.filter((x) => x.ok).map((x) => x.kind)])];
   if (url?.protocol === "https" && !res.fromCache && res.status > 0) st.httpsRequests++;
   if (url?.protocol === "http" && !res.fromCache && res.status > 0) st.httpRequests++;
+  if (serving?.rateLimit && res.status > 0 && !res.fromCache) st.rateRuns = [...(st.rateRuns ?? []), { caller: tr.spec.token || "anon", status: res.status, at: s.world.clock, ...(res.retryAfter ? { retryAfter: res.retryAfter } : {}) }].slice(-60);
   if (tr.spec.origin) st.corsRuns = [...(st.corsRuns ?? []), { origin: tr.spec.origin, method: tr.spec.method, status: res.status, blocked: !!res.corsBlocked, preflight: !!res.preflight }].slice(-40);
   if (res.fromCache) st.cacheHits++;
   if (tr.stages.some((x) => x.title === "DNS (кэш)")) st.dnsCacheHits++;
@@ -354,6 +358,7 @@ function reduce(s: WebLabState, a: WebLabAction): WebLabState {
           ...(a.patch.latency !== undefined ? { latency: clamp(a.patch.latency, 1, 1000) } : {}),
           ...(a.patch.maxAge !== undefined ? { maxAge: clamp(a.patch.maxAge, 0, 3600) } : {}),
           ...(a.patch.etag !== undefined ? { etag: !!a.patch.etag } : {}),
+          ...(a.patch.rateLimit !== undefined ? { rateLimit: clamp(Math.round(a.patch.rateLimit), 0, 100) } : {}),
           ...(a.patch.corsOrigins !== undefined ? { corsOrigins: a.patch.corsOrigins.filter((o) => o === "*" || ORIGINS.includes(o)).slice(0, 5) } : {}),
         })),
         stats: { ...s.stats, latencyChanged: s.stats.latencyChanged || a.patch.latency !== undefined },

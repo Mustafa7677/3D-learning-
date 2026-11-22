@@ -24,7 +24,7 @@ import styles from "./lab.module.css";
 import lang from "./lang.module.css";
 import web from "./web.module.css";
 
-export type WebSection = "request" | "server" | "dns" | "routes" | "cache" | "html" | "deploy" | "box" | "flex" | "loop" | "sql" | "cors";
+export type WebSection = "request" | "server" | "dns" | "routes" | "cache" | "html" | "deploy" | "box" | "flex" | "loop" | "sql" | "cors" | "rate";
 
 interface Props {
   state: WebLabState;
@@ -369,6 +369,45 @@ function CorsSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
   );
 }
 
+function RateSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
+  const api = state.world.servers.find((s) => s.host === "api.inside.kz");
+  if (!api) return null;
+  const limit = api.rateLimit ?? 0;
+  const now = state.world.clock;
+  const callers = ["anon", api.token].filter(Boolean);
+  const runs = state.stats.rateRuns ?? [];
+  return (
+    <fieldset className={styles.group}>
+      <legend>api.inside.kz: rate limiter</legend>
+      <Range id="rate-limit" label="Шек: 60 с ішінде" value={limit} min={0} max={10} step={1} fmt={(v) => (v ? `${v} сұраныс` : "шек жоқ")} onChange={(v) => dispatch({ type: "server/set", ip: api.ip, patch: { rateLimit: v } })} />
+      <ul className={web.list} aria-label="Терезедегі сұраныстар">
+        {callers.map((c) => {
+          const used = (state.world.rateLog?.[`${api.ip}|${c}`] ?? []).filter((x) => x > now - 60_000).length;
+          const last = [...runs].reverse().find((r) => r.caller === c);
+          return (
+            <li key={c}>
+              <span className={web.grow}>{c === "anon" ? "Анонимді (token жоқ)" : `token ${c}`}</span>
+              <span className={styles.small}>
+                {limit ? `${used}/${limit}` : used}
+                {last?.status === 429 ? ` · 429, Retry-After ${last.retryAfter} с` : ""}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className={styles.row}>
+        <button type="button" className="btn" onClick={() => dispatch({ type: "clock/advance", ms: 10_000 })}>
+          Уақыт +10 с
+        </button>
+        <button type="button" className="btn" onClick={() => dispatch({ type: "clock/advance", ms: 60_000 })}>
+          Уақыт +60 с
+        </button>
+      </div>
+      <p className={styles.small}>Терезе сырғиды: әр сұраныс 60 секундтан кейін санаудан шығады.</p>
+    </fieldset>
+  );
+}
+
 function CacheSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
   const mine = state.world.servers.find((s) => s.host === "mysite.kz") ?? state.world.servers[0]!;
   return (
@@ -662,6 +701,7 @@ export function WebControlPanel({ state, sections, focus, dispatch, canUndo, onU
       {has("server") && <ServerSection state={state} dispatch={dispatch} />}
       {has("cache") && <CacheSection state={state} dispatch={dispatch} />}
       {has("cors") && <CorsSection state={state} dispatch={dispatch} />}
+      {has("rate") && <RateSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

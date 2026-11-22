@@ -193,6 +193,16 @@ const scripts: Record<string, Record<string, (d: D, s: () => WebLabState, tick: 
       send(d, t, { origin: "https://shop.kz" });
     },
   },
+  "web-14-ratelimit": {
+    limit: (d, _s, t) => {
+      for (let i = 0; i < 6; i++) send(d, t);
+    },
+    retry: (d, _s, t) => {
+      send(d, t, { token: "secret-123" });
+      d({ type: "clock/advance", ms: 60_000 });
+      send(d, t, { token: "" });
+    },
+  },
   "web-1-internet": {
     journey: (d, _s, t) => send(d, t),
     "dns-cache": (d, _s, t) => send(d, t),

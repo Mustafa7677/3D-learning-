@@ -3,7 +3,7 @@ import { answerQuiz, nextStep } from "./helpers";
 
 const objective = (page: Page, text: string) => page.locator("li[data-done]", { hasText: text });
 const send = async (page: Page) => {
-  await page.getByRole("button", { name: "Жіберу" }).click();
+  await page.getByRole("button", { name: "Жіберу", exact: true }).click();
   // "Соңына өту" shows only while a trace runs and vanishes when it ends, which can
   // happen between the check and the click: never wait the default 30 s for it.
   const skip = page.getByRole("button", { name: "Соңына өту" });
@@ -18,11 +18,11 @@ test.beforeEach(async ({ page }) => {
 
 test("web lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/web");
-  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator("ol li")).toHaveCount(14);
   const path = page.getByRole("navigation", { name: "Деңгей жолы" });
-  await expect(path.getByRole("button", { name: "Middle: 0/4 сабақ" })).toBeVisible();
+  await expect(path.getByRole("button", { name: "Middle: 0/5 сабақ" })).toBeVisible();
   await expect(path.getByRole("button", { name: "Senior: жақында" })).toBeDisabled();
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("predict, observe, explain: the guess is locked, then revealed after the experiment", async ({ page }) => {
@@ -151,4 +151,28 @@ test("Middle 13: CORS hides a cross-origin answer but the POST still lands; a to
   await page.getByRole("combobox", { name: /Origin/ }).selectOption("https://shop.kz");
   await send(page);
   await expect(objective(page, "shop.kz-ке рұқсат бер")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+});
+
+test("Middle 14: five pass, the sixth is 429; another caller and waiting both get through", async ({ page }) => {
+  await page.goto("/labs/web/web-14-ratelimit");
+  const limiter = page.getByRole("group", { name: "api.inside.kz: rate limiter" });
+  for (let i = 1; i <= 5; i++) {
+    await send(page);
+    await expect(limiter).toContainText(`${i}/5`);
+  }
+  await expect(objective(page, "бәрі 200")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await send(page);
+  await expect(limiter).toContainText("429, Retry-After");
+  await expect(objective(page, "Алтыншысы")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await nextStep(page);
+  const token = page.getByLabel("Authorization: Bearer (token)");
+  await token.fill("secret-123");
+  await token.blur();
+  await send(page);
+  await expect(objective(page, "secret-123")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await token.fill("");
+  await token.blur();
+  await limiter.getByRole("button", { name: "Уақыт +60 с" }).click();
+  await send(page);
+  await expect(objective(page, "Retry-After уақыты өткенше")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
 });
