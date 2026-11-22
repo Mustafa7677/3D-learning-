@@ -1,5 +1,6 @@
 import { HttpProgressStore, KeyValueProgressStore, MemoryProgressStore, type LessonProgress, type ProgressStore } from "@inside-tech/lesson-engine";
 import { API_URL, apiEnabled } from "./api";
+import { recordActivity } from "./activity";
 
 let store: ProgressStore | undefined;
 
@@ -33,6 +34,25 @@ class SyncedProgressStore implements ProgressStore {
   }
 }
 
+/** How much work a record holds: objectives, right answers, a finished lesson. */
+const work = (p?: LessonProgress) => (p ? Object.values(p.completed).reduce((n, xs) => n + xs.length, 0) + Object.values(p.answers ?? {}).reduce((n, xs) => n + xs.length, 0) + (p.completedAt ? 1 : 0) : 0);
+
+/** Notes a day of study whenever a save holds more work than the one before it (opening a lesson is not studying). */
+class ActivityProgressStore implements ProgressStore {
+  constructor(private readonly inner: ProgressStore) {}
+  load(id: string) {
+    return this.inner.load(id);
+  }
+  list() {
+    return this.inner.list();
+  }
+  async save(p: LessonProgress) {
+    const before = await this.inner.load(p.lessonId).catch(() => undefined);
+    await this.inner.save(p);
+    if (work(p) > work(before)) recordActivity("lesson");
+  }
+}
+
 /** Browser progress store. Falls back to memory when localStorage is blocked. */
 export function progressStore(): ProgressStore {
   if (store) return store;
@@ -44,6 +64,6 @@ export function progressStore(): ProgressStore {
   } catch {
     local = new MemoryProgressStore();
   }
-  store = apiEnabled ? new SyncedProgressStore(local, new HttpProgressStore(API_URL)) : local;
+  store = new ActivityProgressStore(apiEnabled ? new SyncedProgressStore(local, new HttpProgressStore(API_URL)) : local);
   return store;
 }

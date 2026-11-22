@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { recordActivity } from "@/lib/activity";
 import { useEffect, useMemo, useState } from "react";
 import { findLab } from "@/lib/catalog";
 import { lessonEntries } from "@/lib/lessons";
@@ -101,6 +102,7 @@ export function Notebook() {
   const answer = (right: boolean) => {
     if (!current) return;
     setReview((r) => gradeMistake(r, current.key, right, Date.now()));
+    recordActivity("review");
     setSession((s) => (right ? { ...s, right: s.right + 1 } : { ...s, wrong: s.wrong + 1 }));
     setQueue((q) => (right ? q.slice(1) : [...q.slice(1), q[0]!]));
   };

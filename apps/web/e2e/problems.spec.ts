@@ -54,7 +54,7 @@ test("a hard problem: watch the analysis, choose the strategy, solve the twin yo
   await page.goto("/");
   const banner = page.getByRole("region", { name: "Бүгінгі қиын есеп" });
   await expect(banner).toContainText("1 күн қатарынан");
-  await expect(banner.getByRole("link")).toHaveText("Тағы бір есеп");
+  await expect(banner.getByRole("link", { name: "Тағы бір есеп" })).toBeVisible();
 });
 
 test("a hint costs a star; the daily problem is marked", async ({ page }) => {

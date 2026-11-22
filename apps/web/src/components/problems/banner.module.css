@@ -76,6 +76,21 @@
   background: #f0b54a;
   border-color: #f0b54a;
 }
+.actions {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+.plan {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ece4cf;
+  text-decoration: none;
+  opacity: 0.85;
+}
+.plan:hover {
+  color: #f0b54a;
+}
 .go {
   padding: 12px 18px;
   font-weight: 700;
@@ -92,8 +107,10 @@
     margin: 32px 16px;
     padding: 18px;
   }
-  .go {
+  .actions {
     grid-column: 1 / -1;
+  }
+  .go {
     text-align: center;
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/lib/nav";
+import { recordActivity } from "@/lib/activity";
 import {
   CARDS,
   FN_LEVELS,
@@ -420,7 +421,8 @@ export function Tactics() {
   useEffect(() => setResults(load()), []);
   const total = Object.values(results).reduce((a, b) => a + b, 0);
 
-  const done = (id: string) => (stars: number) =>
+  const done = (id: string) => (stars: number) => {
+    recordActivity("problem");
     setResults((r) => {
       const next = { ...r, [id]: Math.max(stars, r[id] ?? 0) };
       try {
@@ -430,6 +432,7 @@ export function Tactics() {
       }
       return next;
     });
+  };
 
   const levels = game === "nav" ? NAV_LEVELS : FN_LEVELS;
   const current = game === "nav" ? navId : fnId;

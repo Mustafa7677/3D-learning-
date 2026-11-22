@@ -1,0 +1,430 @@
+/* Бүгін: a calm morning desk. Deep ink background, three coloured rings like instruments,
+   large plan cards, and a quiet heatmap that fills in day by day. */
+.page {
+  --ink: #0b0f17;
+  --card: #141b28;
+  --card-2: #1a2334;
+  --paper: #ece4cf;
+  --muted: rgb(236 228 207 / 0.65);
+  --line: rgb(236 228 207 / 0.12);
+  --amber: #f0b54a;
+  --teal: #5fd4c4;
+  --ember: #e0624f;
+  --good: #6fd08f;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 108px var(--gutter, 24px) 96px;
+  color: var(--paper);
+}
+
+.hero {
+  margin-bottom: 26px;
+}
+.date {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 6vw, 64px);
+  line-height: 1.02;
+}
+.lede {
+  max-width: 62ch;
+  margin: 12px 0 0;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.5;
+  color: #d9ccae;
+}
+.h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+}
+
+/* ---------- rings ---------- */
+.rings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 30px;
+}
+.ring,
+.level {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: 18px 14px 14px;
+  background: linear-gradient(180deg, var(--card-2), var(--card));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.ring svg {
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg);
+}
+.ringTrack {
+  fill: none;
+  stroke: rgb(236 228 207 / 0.08);
+  stroke-width: 9;
+}
+.ringBar {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s ease;
+}
+.ring[data-tone="amber"] .ringBar {
+  stroke: var(--amber);
+  filter: drop-shadow(0 0 6px rgb(240 181 74 / 0.6));
+}
+.ring[data-tone="teal"] .ringBar {
+  stroke: var(--teal);
+  filter: drop-shadow(0 0 6px rgb(95 212 196 / 0.6));
+}
+.ring[data-tone="ember"] .ringBar {
+  stroke: var(--ember);
+  filter: drop-shadow(0 0 6px rgb(224 98 79 / 0.6));
+}
+.ringText {
+  position: absolute;
+  top: 18px;
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  align-content: center;
+  text-align: center;
+}
+.ringText strong {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1;
+}
+.ringText small {
+  font-size: 16px;
+  color: var(--muted);
+}
+.ringLabel {
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ring[data-tone="amber"] .ringLabel {
+  color: var(--amber);
+}
+.ring[data-tone="teal"] .ringLabel {
+  color: var(--teal);
+}
+.ring[data-tone="ember"] .ringLabel {
+  color: var(--ember);
+}
+.ringSub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  text-align: center;
+  color: var(--muted);
+}
+.level {
+  align-content: center;
+  text-align: center;
+}
+.levelNum {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 64px;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffe3a1, var(--amber));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.levelLabel {
+  margin: 2px 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.levelBar {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  background: rgb(236 228 207 / 0.08);
+  border-radius: 999px;
+}
+.levelBar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ember), var(--amber));
+  border-radius: inherit;
+}
+.levelSub {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- plan ---------- */
+.plan {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 30px;
+  padding: 0;
+  list-style: none;
+}
+.planCard {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  height: 100%;
+  min-height: 190px;
+  padding: 18px 18px 54px;
+  color: var(--paper);
+  text-decoration: none;
+  background: radial-gradient(120% 100% at 100% 0%, rgb(240 181 74 / 0.12), transparent 60%), var(--card);
+  border: 1px solid rgb(240 181 74 / 0.3);
+  border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+.planCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--amber);
+}
+.plan li[data-done="true"] .planCard {
+  background: radial-gradient(120% 100% at 100% 0%, rgb(111 208 143 / 0.14), transparent 60%), var(--card);
+  border-color: rgb(111 208 143 / 0.5);
+}
+.planKicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--amber);
+}
+.plan li[data-done="true"] .planKicker {
+  color: var(--good);
+}
+.planCard strong {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  line-height: 1.25;
+}
+.planDetail {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.planGo {
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1b1410;
+  background: var(--amber);
+  border-radius: 999px;
+}
+.plan li[data-done="true"] .planGo {
+  color: var(--good);
+  background: rgb(111 208 143 / 0.12);
+}
+
+/* ---------- panels ---------- */
+.panel {
+  margin-bottom: 22px;
+  padding: 20px 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.goals {
+  display: flex;
+  gap: 6px;
+}
+.goals button {
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid rgb(95 212 196 / 0.4);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.goals button[aria-pressed="true"] {
+  color: #08201d;
+  background: var(--teal);
+  border-color: var(--teal);
+}
+.note {
+  margin: 4px 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.heat {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.heatRows {
+  display: grid;
+  grid-template-rows: repeat(7, 18px);
+  gap: 5px;
+  font-size: 10px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.heatGrid {
+  display: flex;
+  gap: 5px;
+}
+.heatCol {
+  display: grid;
+  grid-template-rows: repeat(7, 18px);
+  gap: 5px;
+}
+.heatCol i,
+.heatLegend i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  background: rgb(236 228 207 / 0.07);
+  border-radius: 3px;
+}
+.heatCol i[data-future] {
+  background: transparent;
+  outline: 1px dashed rgb(236 228 207 / 0.08);
+}
+.heatCol i[data-level="1"],
+.heatLegend i[data-level="1"] {
+  background: rgb(95 212 196 / 0.3);
+}
+.heatCol i[data-level="2"],
+.heatLegend i[data-level="2"] {
+  background: rgb(95 212 196 / 0.55);
+}
+.heatCol i[data-level="3"],
+.heatLegend i[data-level="3"] {
+  background: rgb(95 212 196 / 0.8);
+}
+.heatCol i[data-level="4"],
+.heatLegend i[data-level="4"] {
+  background: var(--teal);
+  box-shadow: 0 0 8px rgb(95 212 196 / 0.6);
+}
+.heatLegend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---------- mastery ---------- */
+.mastery {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.masteryRow {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px;
+  color: var(--paper);
+  text-decoration: none;
+  border-radius: 8px;
+}
+.masteryRow:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+.masteryName {
+  font-size: 14px;
+  font-weight: 700;
+}
+.masteryBar {
+  height: 8px;
+  overflow: hidden;
+  background: rgb(236 228 207 / 0.08);
+  border-radius: 999px;
+}
+.masteryBar span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: linear-gradient(90deg, var(--teal), var(--amber));
+  border-radius: inherit;
+}
+.masteryNum {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.masteryNum small {
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .rings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plan {
+    grid-template-columns: 1fr;
+  }
+  .planCard {
+    min-height: 0;
+  }
+}
+@media (max-width: 560px) {
+  .masteryRow {
+    grid-template-columns: 1fr auto;
+  }
+  .masteryBar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .ring svg,
+  .ringText {
+    width: 96px;
+    height: 96px;
+  }
+  .ringText strong {
+    font-size: 26px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ringBar,
+  .planCard {
+    transition: none;
+  }
+}

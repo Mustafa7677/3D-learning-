@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { findLab } from "@/lib/catalog";
 import { optionOrder } from "@/lib/shuffle";
 import { announceXp } from "@/lib/xp";
+import { recordActivity } from "@/lib/activity";
 import {
   PROBLEMS,
   XP_PER_STAR,
@@ -199,6 +200,7 @@ export function Problems() {
       saveProblems(next);
       return next;
     });
+    recordActivity("problem");
     setTimeout(announceXp, 0);
   };
 

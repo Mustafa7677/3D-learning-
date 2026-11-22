@@ -1,5 +1,6 @@
 "use client";
 
+import { recordActivity } from "@/lib/activity";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BOXES, CARDS, INTERVAL_DAYS, boxCounts, dueCards, grade, newDeck, nextDue, sanitizeDeck, type Card, type Deck } from "@/lib/cards";
@@ -52,6 +53,7 @@ export function Cards() {
   const answer = (knew: boolean) => {
     if (!card) return;
     setDeck((d) => grade(d, card.id, knew, Date.now()));
+    recordActivity("review");
     setStats((s) => (knew ? { ...s, knew: s.knew + 1 } : { ...s, again: s.again + 1 }));
     // A card you did not know comes back at the end of today's pile.
     if (!knew) setQueue((q) => [...q, card]);

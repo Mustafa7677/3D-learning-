@@ -37,9 +37,14 @@ export function DailyBanner() {
           </span>
         </div>
       </div>
-      <Link href={`/problems?p=${p.id}`} className={styles.go}>
-        {solvedToday ? "Тағы бір есеп" : streak > 0 ? "Серияны жалғастыр" : "Талдап, өзің шығар"}
-      </Link>
+      <div className={styles.actions}>
+        <Link href={`/problems?p=${p.id}`} className={styles.go}>
+          {solvedToday ? "Тағы бір есеп" : streak > 0 ? "Серияны жалғастыр" : "Талдап, өзің шығар"}
+        </Link>
+        <Link href="/today" className={styles.plan}>
+          Бүгінгі жоспарым →
+        </Link>
+      </div>
     </section>
   );
 }
