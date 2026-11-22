@@ -1,6 +1,6 @@
 "use client";
 
-import { DH_LARGE, DH_SMALL, FORGED, PAYMENT, type MacScheme, type SecLabAction, type SecLabState } from "@inside-tech/lab-sec";
+import { DH_LARGE, DH_SMALL, FAULTS, FORGED, PAYMENT, type Fault, type MacScheme, type SecLabAction, type SecLabState } from "@inside-tech/lab-sec";
 import styles from "./lab.module.css";
 
 type D = (a: SecLabAction) => void;
@@ -188,6 +188,57 @@ export function DhSection({ state, dispatch }: { state: SecLabState; dispatch: D
             </>
           )}
         </dl>
+      )}
+    </fieldset>
+  );
+}
+
+const FAULT_NAME: Record<Fault, string> = {
+  none: "Дұрыс тізбек",
+  missingIntermediate: "Аралық жоқ",
+  expired: "Мерзімі өткен",
+  wrongHost: "Басқа доменге берілген",
+  selfSigned: "Өзін-өзі қолтаңбалаған",
+  tampered: "Шабуылшы өзгерткен",
+  untrustedRoot: "Түбір қоймада жоқ",
+};
+
+const ERROR_TEXT: Record<string, string> = {
+  NAME_MISMATCH: "NET::ERR_CERT_COMMON_NAME_INVALID",
+  EXPIRED: "NET::ERR_CERT_DATE_INVALID",
+  BAD_SIGNATURE: "NET::ERR_CERT_INVALID (қолтаңба)",
+  SELF_SIGNED: "NET::ERR_CERT_AUTHORITY_INVALID (self-signed)",
+  UNKNOWN_ISSUER: "NET::ERR_CERT_AUTHORITY_INVALID",
+};
+
+export function CertsSection({ state, dispatch }: { state: SecLabState; dispatch: D }) {
+  const c = state.certs ?? { fault: "none" as Fault, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>https://inside.kz · сервер не жібереді?</legend>
+      <div className={styles.row} role="group" aria-label="Сертификат">
+        {FAULTS.map((f) => (
+          <button key={f} type="button" className="btn" aria-pressed={c.fault === f} onClick={() => dispatch({ type: "certs/fault", fault: f })}>
+            {FAULT_NAME[f]}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "certs/connect" })}>
+        Сайтқа қосылу
+      </button>
+      {c.last && (
+        <div role="status" aria-label="Браузердің шешімі">
+          <p className={styles.small}>
+            <strong>{c.last.ok ? "🔒 Байланыс қауіпсіз" : `⚠ ${ERROR_TEXT[c.last.error ?? ""] ?? c.last.error}`}</strong>
+          </p>
+          <ol className={styles.notes}>
+            {c.last.checks.map((k, i) => (
+              <li key={i}>
+                {k.ok ? "✓" : "✗"} {k.subject}: {k.what}
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </fieldset>
   );

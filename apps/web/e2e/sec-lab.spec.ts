@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("cybersecurity lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/sec");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cybersecurity");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("Middle 10: ECB keeps the picture's 10 distinct blocks, CBC makes all 64 different", async ({ page }) => {
@@ -83,4 +83,15 @@ test("lesson 8: SQL injection gets in; parameters stop it", async ({ page }) => 
   await page.getByRole("button", { name: "Кіру", exact: true }).click();
   await expect(page.getByText("Кірді: admin: құпиясөзсіз (injection)!")).toBeVisible();
   await expect(objective(page, "admin болып кір")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 13: a missing intermediate breaks the chain; a tampered certificate fails its signature", async ({ page }) => {
+  await page.goto("/labs/sec/sec-13-certs");
+  const verdict = page.getByRole("status", { name: "Браузердің шешімі" });
+  await page.getByRole("button", { name: "Сайтқа қосылу" }).click();
+  await expect(verdict).toContainText("Байланыс қауіпсіз");
+  await page.getByRole("button", { name: "Аралық жоқ" }).click();
+  await page.getByRole("button", { name: "Сайтқа қосылу" }).click();
+  await expect(verdict).toContainText("ERR_CERT_AUTHORITY_INVALID");
+  await expect(objective(page, "аралық сертификатты жібермесін")).toHaveAttribute("data-done", "true");
 });

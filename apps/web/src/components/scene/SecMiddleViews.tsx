@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Color } from "three";
-import { BLOCK, IMG, picture, type SecLabState } from "@inside-tech/lab-sec";
+import { BLOCK, IMG, ROOT, picture, scenarioChain, type SecLabState } from "@inside-tech/lab-sec";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -121,6 +121,41 @@ export function DhView({ state }: { state: SecLabState }) {
           </mesh>
         </>
       )}
+    </group>
+  );
+}
+
+export function CertsView({ state }: { state: SecLabState }) {
+  const c = state.certs ?? { fault: "none" as const, last: null };
+  const { chain } = scenarioChain(c.fault);
+  const plaques = [...chain.map((x) => x.subject), ...(chain.some((x) => x.subject === ROOT.subject) ? [] : [ROOT.subject])];
+  const bad = new Set((c.last?.checks ?? []).filter((k) => !k.ok).map((k) => k.subject));
+  const seen = new Set((c.last?.checks ?? []).map((k) => k.subject));
+  const inStore = c.fault !== "untrustedRoot";
+  return (
+    <group>
+      {plaques.map((name, i) => {
+        const y = 0.6 + i * 1.6;
+        const sent = i < chain.length;
+        const color = !c.last ? OFF : bad.has(name) ? BAD : seen.has(name) ? OK : OFF;
+        return (
+          <group key={name + i} position={[0, y, 0]}>
+            <mesh>
+              <boxGeometry args={[5.2, 1, 0.25]} />
+              <meshStandardMaterial color={color} metalness={0.2} roughness={0.5} />
+            </mesh>
+            <Label text={name} position={[0, 0.15, 0.3]} size={0.42} />
+            <Label text={sent ? (i === 0 ? "сайттың сертификаты" : "сервер жіберді") : inStore ? "браузердің сенім қоймасында" : "қоймада жоқ"} position={[0, -0.28, 0.3]} size={0.26} />
+            {i > 0 && (
+              <mesh position={[0, -0.8, 0]}>
+                <boxGeometry args={[0.12, 0.6, 0.12]} />
+                <meshStandardMaterial color={c.last ? (bad.has(plaques[i - 1]!) ? BAD : C1) : C1} />
+              </mesh>
+            )}
+          </group>
+        );
+      })}
+      <Label text={c.last ? (c.last.ok ? "Тізбек түбірге жетті: сенімді" : "Тізбек үзілді: сенуге болмайды") : "Сайтқа қосыл"} position={[0, 0.6 + plaques.length * 1.6, 0]} size={0.55} />
     </group>
   );
 }

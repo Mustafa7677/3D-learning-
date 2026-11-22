@@ -165,6 +165,20 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "mac/send", tamper: true, recompute: true });
     },
   },
+  "sec-13-certs": {
+    chain: (d) => {
+      d({ type: "certs/connect" });
+      d({ type: "certs/fault", fault: "missingIntermediate" });
+      d({ type: "certs/connect" });
+    },
+    attacks: (d) => {
+      d({ type: "certs/connect" });
+      for (const fault of ["selfSigned", "expired"] as const) {
+        d({ type: "certs/fault", fault });
+        d({ type: "certs/connect" });
+      }
+    },
+  },
   "sec-12-dh": {
     exchange: (d) => {
       d({ type: "dh/exchange" });

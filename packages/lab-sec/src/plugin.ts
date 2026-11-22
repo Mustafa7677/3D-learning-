@@ -2,6 +2,7 @@ import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { crack, login, strength, isXss, type LoginResult, type Storage } from "./attacks";
 import { bitDistance, caesar, modPow, rsaKeys, sha256, utf8, xorBytes, type RsaKeys } from "./crypto";
 import { CHALLENGES, type ChallengeId } from "./text";
+import { FAULTS, scenarioChain, verifyChain, type CertError, type Fault, type Verdict } from "./certs";
 import {
   BLOCK_KEY,
   DH_LARGE,
@@ -20,7 +21,7 @@ import {
   type MacScheme,
 } from "./middle-core";
 
-export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh";
+export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs";
 
 export interface SecStats {
   modes: SecMode[];
@@ -48,6 +49,7 @@ export interface SecStats {
   macRuns: { scheme: MacScheme; tampered: boolean; recomputed: boolean; accepted: boolean }[];
   dhRuns: { p: number; match: boolean; mitm: boolean; signed: boolean; aborted: boolean }[];
   eveRuns: { p: number; found: boolean; tries: number }[];
+  certRuns?: { fault: Fault; ok: boolean; error: CertError }[];
 }
 
 export interface SecLabState {
@@ -61,6 +63,7 @@ export interface SecLabState {
   blocks: { mode: BlockMode; iv: "fixed" | "random"; runs: number; last: { mode: BlockMode; iv: number; cipher: number[] } | null };
   mac: { scheme: MacScheme; last: Delivery | null };
   dh: { big: boolean; a: number; b: number; mitm: boolean; signed: boolean; last: DhExchange | null; eve: { p: number; found: number | null; tries: number } | null };
+  certs?: { fault: Fault; last: Verdict | null };
   stats: SecStats;
 }
 
@@ -93,7 +96,9 @@ export type SecLabAction =
   | { type: "mac/send"; tamper: boolean; recompute: boolean }
   | { type: "dh/set"; big?: boolean; a?: number; b?: number; mitm?: boolean; signed?: boolean }
   | { type: "dh/exchange" }
-  | { type: "dh/eve" };
+  | { type: "dh/eve" }
+  | { type: "certs/fault"; fault: Fault }
+  | { type: "certs/connect" };
 
 const uniq = <T>(xs: T[], x: T, max = 60) => (xs.includes(x) ? xs : [...xs, x].slice(-max));
 const mod = (k: number, n: number) => ((Math.round(k) % n) + n) % n;
@@ -164,7 +169,9 @@ export function initialSecState(): SecLabState {
       macRuns: [],
       dhRuns: [],
       eveRuns: [],
+      certRuns: [],
     },
+    certs: { fault: "none", last: null },
   };
 }
 
@@ -319,6 +326,14 @@ function reduce(s: SecLabState, a: SecLabAction): SecLabState {
         dh: { ...d, last: x },
         stats: { ...st, dhRuns: cap([...st.dhRuns, { p, match: !x.aborted && x.alice === x.bob, mitm: d.mitm, signed: d.signed, aborted: x.aborted }]) },
       };
+    }
+    case "certs/fault":
+      return FAULTS.includes(a.fault) ? { ...s, mode: "certs", certs: { fault: a.fault, last: null } } : s;
+    case "certs/connect": {
+      const fault = s.certs?.fault ?? "none";
+      const { chain, trust } = scenarioChain(fault);
+      const v = verifyChain(chain, trust, "inside.kz");
+      return { ...s, mode: "certs", certs: { fault, last: v }, stats: { ...st, certRuns: cap([...(st.certRuns ?? []), { fault, ok: v.ok, error: v.error }]) } };
     }
     case "dh/eve": {
       const d = s.dh;

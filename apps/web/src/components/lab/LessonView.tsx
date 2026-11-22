@@ -471,7 +471,7 @@ function ArchLesson({ labId, lesson, nextLessonId, persist }: LessonProps<ArchLa
   );
 }
 
-const SEC_FOCI: SecFocus[] = ["cipher", "xor", "hash", "passwords", "strength", "rsa", "attack", "blocks", "mac", "dh"];
+const SEC_FOCI: SecFocus[] = ["cipher", "xor", "hash", "passwords", "strength", "rsa", "attack", "blocks", "mac", "dh", "certs"];
 
 function SecLesson({ labId, lesson, nextLessonId, persist }: LessonProps<SecLabState, SecLabAction>) {
   const session = useLabSession(lesson, "sec", { persist });
