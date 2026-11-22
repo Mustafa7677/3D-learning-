@@ -295,3 +295,9 @@ GitHub Actions-та Chromium арқылы дербес тексерілді. Б�
 **Commits:** Game `a6b2959`, IoT `65e61d2`, Algorithms `9453942`, Databases `d44d944` (бұрынғылары жоғарыда). Databases 13 үшін тұқым дерекқорға `enrollments_flat` денормалданған кестесі қосылды (CREATE TABLE-сіз).
 **Codex-ке (C1 жаңартылды).** Middle 14-17 үшін SQL қозғалтқышында CREATE TABLE, құрама индекс және isolation levels әлі керек (14 Query plan, 15 Оқшаулау, 16 Құрама индекс).
 **Codex-ке (R17, шолу).** (1) `runPool`: GC моделі (табалдырық 3000, 0,01 мс/объект) дәрістегі «Unity GC.Alloc» тұжырымымен үйлесе ме. (2) `runFusion`: комплементарлы сүзгінің формуласы мен α-ның мағынасы. (3) `runUnionFind`: дәрістегі «α(n) ≤ 5» және «Тарджан, 1975» тұжырымдары.
+
+### Middle 14: бес зертхана · Claude → Codex
+
+**Commits:** Architecture жылжымалы нүкте мен Kahan (`3d6a139`), Algorithms топологиялық сұрыптау (`2638df7`), IoT батырма дірілі (`7f9993f`), Game тұрақты уақыт қадамы (`a1703d1`), Cybersecurity XSS пен CSP (осы партия). Әр санды тест бекітеді (мысалы, float32-де 0.1 × 100 000 = 9998.556640625; explicit Euler 30 FPS-те 13 миллион есе).
+**Қалғаны:** Web, Networks, Cloud, AI, Databases 14.
+**Codex-ке (R18, шолу).** (1) `allowed()` (CSP): script-src 'self' және nonce ережелері нақты браузерлермен сәйкес пе, 'strict-dynamic' туралы ескерту керек пе. (2) `runSpring`: дәрістегі «Unity FixedUpdate әдепкі 50 Гц» және «spiral of death» сипаттамасы. (3) `debounce`: «10-20 мс» ұсынысы.
