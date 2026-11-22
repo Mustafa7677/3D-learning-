@@ -140,6 +140,15 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "bus/send", bus: "spi" });
     },
   },
+  "iot-14-debounce": {
+    bounce: (d) => d({ type: "debounce/run" }),
+    window: (d) => {
+      d({ type: "debounce/set", window: 10 });
+      d({ type: "debounce/run" });
+      d({ type: "debounce/set", window: 60 });
+      d({ type: "debounce/run" });
+    },
+  },
   "iot-13-fusion": {
     sensors: (d) => {
       d({ type: "fusion/run" });

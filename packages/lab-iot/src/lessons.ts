@@ -1,4 +1,4 @@
-import { iotMiddleContent, lessonBuses, lessonFusion, lessonPwm, lessonRtos } from "./middle";
+import { iotMiddleContent, lessonBuses, lessonDebounce, lessonFusion, lessonPwm, lessonRtos } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { iotContent } from "./content";
 import { minBitsFor } from "./core";
@@ -248,4 +248,5 @@ export const iotLessons: L[] = [
   lessonBuses,
   lessonRtos,
   lessonFusion,
+  lessonDebounce,
 ].map((l) => withDeepDives(withContent(l, iotContent[l.id] ?? iotMiddleContent[l.id] ?? {}), iotDeepDives[l.id] ?? {}));

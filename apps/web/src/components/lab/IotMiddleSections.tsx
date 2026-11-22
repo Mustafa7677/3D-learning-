@@ -210,3 +210,38 @@ export function FusionSection({ state, dispatch }: { state: IotLabState; dispatc
     </fieldset>
   );
 }
+
+export function DebounceSection({ state, dispatch }: { state: IotLabState; dispatch: D }) {
+  const d = state.debounce ?? { window: 0, counted: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Батырма · 1 кГц, 1 секунд, 3 нақты басу</legend>
+      <div className={styles.row} role="group" aria-label="Debounce терезесі">
+        {[0, 2, 10, 60].map((w) => (
+          <button key={w} type="button" className="btn" aria-pressed={d.window === w} onClick={() => dispatch({ type: "debounce/set", window: w })}>
+            {w === 0 ? "Debounce жоқ" : `${w} мс`}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "debounce/run" })}>
+        Басуларды санау
+      </button>
+      {d.counted !== null && (
+        <div className={styles.metrics} role="status" aria-label="Басу саны">
+          <div>
+            <span>Саналды</span>
+            <strong>{d.counted}</strong>
+          </div>
+          <div>
+            <span>Шын мәнінде</span>
+            <strong>3</strong>
+          </div>
+          <div>
+            <span>Кешігу</span>
+            <strong>{d.window} мс</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}

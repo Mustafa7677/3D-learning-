@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { countPresses } from "./debounce";
 import { runFusion, type FusionMode, type FusionRun } from "./fusion";
 import { TASKS, dec, enc, i2cRead, pwm, schedule, transferTime, uartReceive, type Bus, type PwmResult, type Schedule, type Scheduler } from "./middle-core";
 import {
@@ -22,7 +23,7 @@ import {
   type Radio,
 } from "./core";
 
-export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion";
+export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion" | "debounce";
 export type PlantId = "lift" | "heavy";
 
 /** Targets for the arm; the last one is out of reach. */
@@ -51,6 +52,7 @@ export interface IotStats {
   i2cRuns: { a: number; b: number; ok: boolean }[];
   rtosRuns: { kind: Scheduler; logger: number; controlMisses: number; loggerMisses: number; utilization: number }[];
   fusionRuns?: { mode: FusionMode; alpha: number; rms: number; finalError: number }[];
+  debounceRuns?: { window: number; counted: number }[];
 }
 
 export interface IotLabState {
@@ -68,6 +70,7 @@ export interface IotLabState {
   serial: { tx: number; rx: number; received: string | null; addrB: number; i2c: { ok: boolean; answered: number } | null; bus: Bus; ms: number | null };
   rtos: { kind: Scheduler; logger: number; last: Schedule | null };
   fusion?: { mode: FusionMode; alpha: number; last: FusionRun | null };
+  debounce?: { window: number; counted: number | null };
   stats: IotStats;
 }
 
@@ -99,7 +102,9 @@ export type IotLabAction =
   | { type: "rtos/set"; kind?: Scheduler; logger?: number }
   | { type: "rtos/run" }
   | { type: "fusion/set"; mode?: FusionMode; alpha?: number }
-  | { type: "fusion/run" };
+  | { type: "fusion/run" }
+  | { type: "debounce/set"; window: number }
+  | { type: "debounce/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -139,7 +144,9 @@ export function initialIotState(): IotLabState {
       i2cRuns: [],
       rtosRuns: [],
       fusionRuns: [],
+      debounceRuns: [],
     },
+    debounce: { window: 0, counted: null },
     fusion: { mode: "gyro", alpha: 0.98, last: null },
   };
 }
@@ -262,6 +269,13 @@ function reduce(s: IotLabState, a: IotLabAction): IotLabState {
     case "bus/send": {
       const ms = Math.round(transferTime(a.bus, 1024) * 100000) / 100;
       return { ...s, mode: "serial", serial: { ...s.serial, bus: a.bus, ms }, stats: { ...st, busRuns: cap([...st.busRuns, { bus: a.bus, ms }]) } };
+    }
+    case "debounce/set":
+      return [0, 2, 10, 60].includes(a.window) ? { ...s, mode: "debounce", debounce: { window: a.window, counted: null } } : s;
+    case "debounce/run": {
+      const window = s.debounce?.window ?? 0;
+      const r = countPresses(window);
+      return { ...s, mode: "debounce", debounce: { window, counted: r.counted }, stats: { ...st, debounceRuns: cap([...(st.debounceRuns ?? []), { window, counted: r.counted }]) } };
     }
     case "fusion/set": {
       const cur = s.fusion ?? { mode: "gyro" as FusionMode, alpha: 0.98, last: null };

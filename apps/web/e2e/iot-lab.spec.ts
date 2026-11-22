@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("robotics lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/iot");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Robotics & IoT");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("lesson 1: an 8-bit ADC reads 23.20 °C", async ({ page }) => {
@@ -87,4 +87,14 @@ test("Middle 13: the gyro drifts 10°, the complementary filter keeps the error 
   await page.getByRole("button", { name: "α = 0.98" }).click();
   await page.getByRole("button", { name: "Роботты еңкейту" }).click();
   await expect(r).toContainText("0.43°");
+});
+
+test("Middle 14: three presses read as 15; a 10 ms debounce counts 3", async ({ page }) => {
+  await page.goto("/labs/iot/iot-14-debounce");
+  const r = page.getByRole("status", { name: "Басу саны" });
+  await page.getByRole("button", { name: "Басуларды санау" }).click();
+  await expect(r).toContainText("Саналды15");
+  await page.getByRole("button", { name: "10 мс", exact: true }).click();
+  await page.getByRole("button", { name: "Басуларды санау" }).click();
+  await expect(r).toContainText("Саналды3");
 });

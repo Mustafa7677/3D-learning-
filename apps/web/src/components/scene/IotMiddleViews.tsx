@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Color, type Mesh } from "three";
-import { HORIZON, type IotLabState } from "@inside-tech/lab-iot";
+import { HORIZON, SAMPLES, debounce, rawSignal, type IotLabState } from "@inside-tech/lab-iot";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -167,6 +167,46 @@ export function FusionView({ state }: { state: IotLabState }) {
       <Label text="0°" position={[-8, 1, 0]} size={0.4} />
       <Label text="30°" position={[-8, 1 + 30 * k, 0]} size={0.4} />
       <Label text={last ? `алтын: шын бұрыш · көк: бағалау · қате ${last.rms}°` : "Роботты еңкейт"} position={[0, 4.2, 0]} size={0.55} />
+    </group>
+  );
+}
+
+function runs(s: number[]): { from: number; to: number; v: number }[] {
+  const out: { from: number; to: number; v: number }[] = [];
+  s.forEach((v, i) => {
+    const last = out.at(-1);
+    if (last && last.v === v) last.to = i + 1;
+    else out.push({ from: i, to: i + 1, v });
+  });
+  return out;
+}
+
+export function DebounceView({ state }: { state: IotLabState }) {
+  const d = state.debounce;
+  const raw = rawSignal();
+  const clean = d && d.window > 0 ? debounce(raw, d.window) : raw;
+  const k = 15 / SAMPLES;
+  const lane = (sig: number[], z: number, color: Color) =>
+    runs(sig).map((r, i) => (
+      <mesh key={`${z}-${i}`} position={[-7.5 + ((r.from + r.to) / 2) * k, r.v ? 0.6 : 0.05, z]}>
+        <boxGeometry args={[Math.max(0.02, (r.to - r.from) * k), r.v ? 1.2 : 0.1, 0.4]} />
+        <meshStandardMaterial color={r.v ? color : OFF} />
+      </mesh>
+    ));
+  return (
+    <group>
+      {lane(raw, -1.2, BAD)}
+      {d && d.counted !== null && lane(clean, 1.2, OK)}
+      {raw.slice(95, 111).map((v, i) => (
+        <mesh key={`z${i}`} position={[-3.6 + i * 0.48, 2.6 + (v ? 0.5 : 0.04), -3]}>
+          <boxGeometry args={[0.44, v ? 1 : 0.08, 0.3]} />
+          <meshStandardMaterial color={v ? BAD : OFF} />
+        </mesh>
+      ))}
+      <Label text="лупа: 95-110 мс, бірінші басудағы діріл" position={[0, 4.3, -3]} size={0.42} />
+      <Label text="шикі сигнал" position={[-8.8, 0.6, -1.2]} size={0.42} />
+      {d && d.counted !== null && <Label text={d.window ? `debounce ${d.window} мс` : "debounce жоқ"} position={[-8.8, 0.6, 1.2]} size={0.42} />}
+      <Label text={d && d.counted !== null ? `${d.counted} басу саналды (шын мәнінде 3)` : "Басуларды сана"} position={[0, 6.2, -3]} size={0.6} />
     </group>
   );
 }

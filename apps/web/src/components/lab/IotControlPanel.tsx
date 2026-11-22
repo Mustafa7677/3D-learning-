@@ -14,7 +14,7 @@ import {
   type Radio,
 } from "@inside-tech/lab-iot";
 import type { IotFocus } from "../scene/IotScene";
-import { FusionSection, PwmSection, RtosSection, SerialSection } from "./IotMiddleSections";
+import { DebounceSection, FusionSection, PwmSection, RtosSection, SerialSection } from "./IotMiddleSections";
 import styles from "./lab.module.css";
 
 type D = (a: IotLabAction) => void;
@@ -285,6 +285,7 @@ export function IotControlPanel({ state, focus, dispatch, canUndo, onUndo }: { s
       {focus === "serial" && <SerialSection state={state} dispatch={dispatch} />}
       {focus === "rtos" && <RtosSection state={state} dispatch={dispatch} />}
       {focus === "fusion" && <FusionSection state={state} dispatch={dispatch} />}
+      {focus === "debounce" && <DebounceSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау
