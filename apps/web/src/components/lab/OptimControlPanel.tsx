@@ -4,7 +4,7 @@ import { LRS, OPT_STEPS, type KernelPreset, type Optimizer, type OptimLabAction,
 import styles from "./lab.module.css";
 
 type D = (a: OptimLabAction) => void;
-export type OptimFocus = "optim" | "metrics" | "conv" | "drift";
+export type OptimFocus = "optim" | "metrics" | "conv" | "drift" | "leak";
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 function OptimSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
@@ -192,6 +192,73 @@ function DriftSection({ state, dispatch }: { state: OptimLabState; dispatch: D }
   );
 }
 
+function LeakSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
+  const l = state.leak ?? { useLeak: true, split: "rows" as const, feature: null, splitRun: null };
+  return (
+    <>
+      <fieldset className={styles.group}>
+        <legend>Тұмау моделі · бір ережелі классификатор</legend>
+        <label className={styles.row}>
+          <input type="checkbox" checked={l.useLeak} onChange={(e) => dispatch({ type: "leak/set", useLeak: e.target.checked })} /> «Антибиотик жазылды» белгісі қосулы
+        </label>
+        <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "leak/train" })}>
+          Үйрету және тексеру
+        </button>
+        {l.feature && (
+          <div className={styles.metrics} role="status" aria-label="Белгі нәтижесі">
+            <div>
+              <span>Ереже</span>
+              <strong>{l.feature.stump.feature === "antibiotic" ? "антибиотик > 0" : `қызу > ${l.feature.stump.threshold}`}</strong>
+            </div>
+            <div>
+              <span>Тест</span>
+              <strong>{pct(l.feature.test)}</strong>
+            </div>
+            <div>
+              <span>Өндіріс</span>
+              <strong>{pct(l.feature.production)}</strong>
+            </div>
+          </div>
+        )}
+      </fieldset>
+      <fieldset className={styles.group}>
+        <legend>150 пациент × 3 келу · ең жақын көрші</legend>
+        <div className={styles.row} role="group" aria-label="Тестке бөлу">
+          {(
+            [
+              ["rows", "Жолдар бойынша"],
+              ["patients", "Пациенттер бойынша"],
+            ] as const
+          ).map(([k, label]) => (
+            <button key={k} type="button" className="btn" aria-pressed={l.split === k} onClick={() => dispatch({ type: "leak/set", split: k })}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "leak/split" })}>
+          Бөліп, тексеру
+        </button>
+        {l.splitRun && (
+          <div className={styles.metrics} role="status" aria-label="Бөлу нәтижесі">
+            <div>
+              <span>Тест</span>
+              <strong>{pct(l.splitRun.test)}</strong>
+            </div>
+            <div>
+              <span>Жаңа пациенттер</span>
+              <strong>{pct(l.splitRun.fresh)}</strong>
+            </div>
+            <div>
+              <span>Ортақ жазба</span>
+              <strong>{l.splitRun.shared}</strong>
+            </div>
+          </div>
+        )}
+      </fieldset>
+    </>
+  );
+}
+
 export function OptimControlPanel({ state, focus, dispatch, canUndo, onUndo }: { state: OptimLabState; focus: OptimFocus; dispatch: D; canUndo: boolean; onUndo(): void }) {
   return (
     <aside className={styles.controls} aria-label="Басқару панелі">
@@ -199,6 +266,7 @@ export function OptimControlPanel({ state, focus, dispatch, canUndo, onUndo }: {
       {focus === "metrics" && <MetricsSection state={state} dispatch={dispatch} />}
       {focus === "conv" && <ConvSection state={state} dispatch={dispatch} />}
       {focus === "drift" && <DriftSection state={state} dispatch={dispatch} />}
+      {focus === "leak" && <LeakSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

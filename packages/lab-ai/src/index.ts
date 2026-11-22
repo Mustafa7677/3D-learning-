@@ -15,3 +15,4 @@ export * from "./middle/core";
 export * from "./middle/plugin";
 export * from "./middle/lessons";
 export * from "./middle/drift";
+export * from "./middle/leak";

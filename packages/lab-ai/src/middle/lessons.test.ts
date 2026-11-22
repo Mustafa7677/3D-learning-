@@ -49,6 +49,18 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "metrics/evaluate" });
     },
   },
+  "ai-14-leakage": {
+    future: (d) => {
+      d({ type: "leak/train" });
+      d({ type: "leak/set", useLeak: false });
+      d({ type: "leak/train" });
+    },
+    patients: (d) => {
+      d({ type: "leak/split" });
+      d({ type: "leak/set", split: "patients" });
+      d({ type: "leak/split" });
+    },
+  },
   "ai-13-drift": {
     decay: (d) => {
       d({ type: "drift/evaluate" });

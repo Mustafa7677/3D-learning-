@@ -53,3 +53,21 @@ test("Middle 13: the week-0 model falls to 81% by week 8; retraining restores it
   await expect(r).toContainText("81.0%");
   await expect(r).toContainText("37");
 });
+
+test("Middle 14: a leaky feature scores 98% and drops to 59%; a patient split tells the truth", async ({ page }) => {
+  await page.goto("/labs/ai/ai-14-leakage");
+  const f = page.getByRole("status", { name: "Белгі нәтижесі" });
+  await page.getByRole("button", { name: "Үйрету және тексеру" }).click();
+  await expect(f).toContainText("Тест98%");
+  await expect(f).toContainText("Өндіріс59%");
+  await page.getByLabel("«Антибиотик жазылды» белгісі қосулы").click();
+  await page.getByRole("button", { name: "Үйрету және тексеру" }).click();
+  await expect(f).toContainText("Өндіріс77%");
+  await expect(objective(page, "Оны алып таста")).toHaveAttribute("data-done", "true");
+  const sp = page.getByRole("status", { name: "Бөлу нәтижесі" });
+  await page.getByRole("button", { name: "Бөліп, тексеру" }).click();
+  await expect(sp).toContainText("Тест85%");
+  await page.getByRole("button", { name: "Пациенттер бойынша" }).click();
+  await page.getByRole("button", { name: "Бөліп, тексеру" }).click();
+  await expect(sp).toContainText("Ортақ жазба0");
+});

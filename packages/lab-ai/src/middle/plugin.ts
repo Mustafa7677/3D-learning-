@@ -1,13 +1,15 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { accuracy, driftScore, falseAlarms, train, weekData } from "./drift";
+import { runFeature, runSplit, type FeatureRun, type DataSplit, type SplitRun } from "./leak";
 import { KERNELS, confusion, convolve, edgeResponse, optimize, patients, squareImage, type Confusion, type KernelPreset, type OptRun, type Optimizer } from "./core";
 
-export type OptimMode = "optim" | "metrics" | "conv" | "drift";
+export type OptimMode = "optim" | "metrics" | "conv" | "drift" | "leak";
 
 export interface OptimStats {
   optimRuns: { opt: Optimizer; lr: number; steps: number | null; diverged: boolean }[];
   metricRuns: { trivial: boolean; threshold: number; accuracy: number; precision: number; recall: number }[];
   convRuns: { preset: KernelPreset | null; vertical: number; horizontal: number; flat: number }[];
+  leakRuns?: ({ kind: "feature"; useLeak: boolean; test: number; production: number } | { kind: "split"; split: DataSplit; test: number; fresh: number })[];
   driftRuns?: { week: number; threshold: number; trainedWeek: number; accuracy: number; falseAlarms: number; drift: number }[];
 }
 
@@ -17,6 +19,7 @@ export interface OptimLabState {
   metrics: { trivial: boolean; threshold: number; last: Confusion | null };
   conv: { kernel: number[]; preset: KernelPreset | null; output: number[] | null };
   drift?: { week: number; threshold: number; trainedWeek: number };
+  leak?: { useLeak: boolean; split: DataSplit; feature: FeatureRun | null; splitRun: SplitRun | null };
   stats: OptimStats;
 }
 
@@ -31,7 +34,10 @@ export type OptimLabAction =
   | { type: "conv/apply" }
   | { type: "drift/week"; week: number }
   | { type: "drift/evaluate" }
-  | { type: "drift/retrain" };
+  | { type: "drift/retrain" }
+  | { type: "leak/set"; useLeak?: boolean; split?: DataSplit }
+  | { type: "leak/train" }
+  | { type: "leak/split" };
 
 export const LRS = [0.05, 0.1, 0.3, 0.45, 0.55];
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -88,6 +94,21 @@ function reduce(s: OptimLabState, a: OptimLabAction): OptimLabState {
       const data = weekData(d.week);
       const run = { week: d.week, threshold: d.threshold, trainedWeek: d.trainedWeek, accuracy: accuracy(data, d.threshold), falseAlarms: falseAlarms(data, d.threshold), drift: Math.round(driftScore(weekData(d.trainedWeek), data) * 100) / 100 };
       return { ...s, mode: "drift", stats: { ...st, driftRuns: cap([...(st.driftRuns ?? []), run]) } };
+    }
+    case "leak/set": {
+      const l = s.leak ?? { useLeak: true, split: "rows" as DataSplit, feature: null, splitRun: null };
+      const split = a.split === "rows" || a.split === "patients" ? a.split : l.split;
+      return { ...s, mode: "leak", leak: { ...l, useLeak: a.useLeak ?? l.useLeak, split } };
+    }
+    case "leak/train": {
+      const l = s.leak ?? { useLeak: true, split: "rows" as DataSplit, feature: null, splitRun: null };
+      const r = runFeature(l.useLeak);
+      return { ...s, mode: "leak", leak: { ...l, feature: r }, stats: { ...st, leakRuns: cap([...(st.leakRuns ?? []), { kind: "feature" as const, useLeak: r.useLeak, test: r.test, production: r.production }]) } };
+    }
+    case "leak/split": {
+      const l = s.leak ?? { useLeak: true, split: "rows" as DataSplit, feature: null, splitRun: null };
+      const r = runSplit(l.split);
+      return { ...s, mode: "leak", leak: { ...l, splitRun: r }, stats: { ...st, leakRuns: cap([...(st.leakRuns ?? []), { kind: "split" as const, split: r.split, test: r.test, fresh: r.fresh }]) } };
     }
     case "conv/apply": {
       const out = convolve(squareImage(), s.conv.kernel);

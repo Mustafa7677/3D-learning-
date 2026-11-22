@@ -178,12 +178,54 @@ function DriftView({ state }: { state: OptimLabState }) {
   );
 }
 
+function Gauge({ x, title, a, b, la, lb }: { x: number; title: string; a: number | null; b: number | null; la: string; lb: string }) {
+  const bar = (v: number | null, dx: number, label: string, color: Color) => (
+    <group position={[x + dx, 0, 0]}>
+      <mesh position={[0, 0.02, 0]}>
+        <boxGeometry args={[1.3, 0.04, 1]} />
+        <meshStandardMaterial color={OFF} />
+      </mesh>
+      {v !== null && (
+        <mesh position={[0, (v * 4) / 2, 0]}>
+          <boxGeometry args={[1.1, v * 4, 0.8]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+      )}
+      <Label text={v === null ? label : `${label} ${Math.round(v * 100)}%`} position={[0, -0.4, 0.9]} size={0.38} />
+    </group>
+  );
+  const gap = a !== null && b !== null && a - b > 0.2;
+  return (
+    <group>
+      {bar(a, -0.85, la, C0)}
+      {bar(b, 0.85, lb, gap ? BAD : OK)}
+      <mesh position={[x, 4, -0.5]}>
+        <boxGeometry args={[3.6, 0.03, 0.03]} />
+        <meshStandardMaterial color={C1} />
+      </mesh>
+      <Label text={title} position={[x, 4.7, 0]} size={0.45} />
+      {gap && <Label text="тест өтірік айтты" position={[x, 4.25, 0]} size={0.4} />}
+    </group>
+  );
+}
+
+function LeakView({ state }: { state: OptimLabState }) {
+  const l = state.leak;
+  return (
+    <group>
+      <Gauge x={-3.6} title={l?.feature ? (l.feature.useLeak ? "антибиотикпен" : "тек қызумен") : "1. Белгі"} a={l?.feature?.test ?? null} b={l?.feature?.production ?? null} la="тест" lb="өндіріс" />
+      <Gauge x={3.6} title={l?.splitRun ? (l.splitRun.split === "rows" ? "жолдар бойынша бөлу" : "пациенттер бойынша бөлу") : "2. Бөлу"} a={l?.splitRun?.test ?? null} b={l?.splitRun?.fresh ?? null} la="тест" lb="жаңа адамдар" />
+    </group>
+  );
+}
+
 function Contents({ state, focus }: { state: OptimLabState; focus: OptimFocus }) {
   const frames: Record<OptimFocus, { w: number; h: number; t: [number, number, number]; d: [number, number, number] }> = {
     optim: { w: 14, h: 8, t: [0, 1.4, 0], d: [0.35, 0.9, 1] },
     metrics: { w: 15, h: 5, t: [0, 0.8, 0], d: [0, 0.9, 1] },
     conv: { w: 14, h: 6, t: [0, 0.6, 0], d: [0, 1.3, 1] },
     drift: { w: 15, h: 5.5, t: [0, 1.8, 0], d: [0, 0.45, 1] },
+    leak: { w: 12, h: 6, t: [0, 2.2, 0], d: [0, 0.35, 1] },
   };
   const f = frames[focus];
   return (
@@ -196,6 +238,7 @@ function Contents({ state, focus }: { state: OptimLabState; focus: OptimFocus })
       {focus === "metrics" && <MetricsView state={state} />}
       {focus === "conv" && <ConvView state={state} />}
       {focus === "drift" && <DriftView state={state} />}
+      {focus === "leak" && <LeakView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>
