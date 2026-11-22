@@ -1,4 +1,4 @@
-import { gameMiddleContent, lessonBroad, lessonFsm, lessonPathfinding, lessonPool } from "./middle";
+import { gameMiddleContent, lessonBroad, lessonFsm, lessonPathfinding, lessonPool, lessonTimestep } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { gameContent } from "./content";
 import type { GameLabAction, GameLabState } from "./plugin";
@@ -346,4 +346,5 @@ export const gameLessons: L[] = [
   lessonFsm,
   lessonBroad,
   lessonPool,
+  lessonTimestep,
 ].map((l) => withDeepDives(withContent(l, gameContent[l.id] ?? gameMiddleContent[l.id] ?? {}), gameDeepDives[l.id] ?? {}));

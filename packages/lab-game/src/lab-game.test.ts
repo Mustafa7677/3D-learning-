@@ -321,6 +321,18 @@ const scripts: Record<string, Record<string, (b: Bot) => void>> = {
       b.d({ type: "fsm/run" });
     },
   },
+  "game-14-timestep": {
+    explode: (b) => {
+      b.d({ type: "timestep/run" });
+      b.d({ type: "timestep/set", fps: 144 });
+      b.d({ type: "timestep/run" });
+    },
+    fixed: (b) => {
+      b.d({ type: "timestep/run" });
+      b.d({ type: "timestep/set", fps: 144 });
+      b.d({ type: "timestep/run" });
+    },
+  },
   "game-13-pooling": {
     spikes: (b) => b.d({ type: "pool/run" }),
     pool: (b) => {

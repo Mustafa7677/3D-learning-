@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import type { Mesh } from "three";
 import { Color } from "three";
 import { BUDGET_MS, FRAMES, PATH_H, PATH_MAP, PATH_W, PLAYER_DISTANCE, WORLD, type GameLabState } from "@inside-tech/lab-game";
 import { Label } from "./Label";
@@ -129,6 +131,57 @@ export function PoolView({ state }: { state: GameLabState }) {
       </mesh>
       <Label text="16,7 мс: 60 FPS шегі" position={[-5.5, BUDGET_MS * k + 0.35, -0.4]} size={0.42} />
       <Label text={last ? `${last.janky} кадр қатты · ең баяуы ${last.worst} мс` : "300 кадр ойна"} position={[0, 4.6, 0]} size={0.6} />
+    </group>
+  );
+}
+
+function Platform({ trace, fps }: { trace: number[]; fps: number }) {
+  const ref = useRef<Mesh>(null);
+  const t0 = useRef(0);
+  useFrame((_, dt) => {
+    t0.current += dt;
+    const i = Math.floor(t0.current * fps) % Math.max(1, trace.length);
+    const x = Math.max(-2.5, Math.min(2.5, trace[i] ?? 1));
+    if (ref.current) ref.current.position.y = 3 + x;
+  });
+  return (
+    <group position={[-6.5, 0, 0]}>
+      <mesh position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, 3, 8]} />
+        <meshStandardMaterial color={OFF} />
+      </mesh>
+      <mesh ref={ref} position={[0, 4, 0]}>
+        <boxGeometry args={[1.6, 0.3, 1.2]} />
+        <meshStandardMaterial color={C1} />
+      </mesh>
+    </group>
+  );
+}
+
+export function TimestepView({ state }: { state: GameLabState }) {
+  const t = state.mid.timestep;
+  const last = t?.last;
+  const n = last?.trace.length ?? 0;
+  const w = 11 / Math.max(1, n);
+  return (
+    <group>
+      {last && <Platform trace={last.trace} fps={t!.fps} />}
+      {last?.trace.map((x, i) => {
+        const over = Math.abs(x) > 2.5;
+        const y = 3 + Math.max(-2.5, Math.min(2.5, x));
+        return (
+          <mesh key={i} position={[-4.5 + i * w + w / 2, y, 0]}>
+            <boxGeometry args={[Math.max(0.03, w * 0.9), 0.12, 0.3]} />
+            <meshStandardMaterial color={over ? BAD : C0} />
+          </mesh>
+        );
+      })}
+      <mesh position={[1, 3, -0.3]}>
+        <boxGeometry args={[11.2, 0.02, 0.02]} />
+        <meshStandardMaterial color={OFF} />
+      </mesh>
+      <Label text={last ? `амплитуда ${last.amplitude >= 1000 ? Math.round(last.amplitude).toLocaleString("ru-RU") : last.amplitude} · ${last.steps} физика қадамы` : "3 секунд ойнат"} position={[1, 6.4, 0]} size={0.55} />
+      <Label text="қызыл: шектен шықты (±2,5)" position={[1, -0.1, 0.6]} size={0.4} />
     </group>
   );
 }

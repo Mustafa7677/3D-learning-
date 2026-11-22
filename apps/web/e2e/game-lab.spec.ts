@@ -12,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("game lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/game");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game Development");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("lesson 1: selecting and moving a parent object", async ({ page }) => {
@@ -105,4 +105,15 @@ test("Middle 13: without a pool the GC stalls three frames; with one, none", asy
   await expect(page.getByLabel("Объектілер пулы")).toBeChecked();
   await page.getByRole("button", { name: "300 кадр ойнау" }).click();
   await expect(r).toContainText("Қатқан кадр0");
+});
+
+test("Middle 14: frame-delta Euler explodes at 30 FPS; a fixed step keeps amplitude 1 in 720 steps", async ({ page }) => {
+  await page.goto("/labs/game/game-14-timestep");
+  const r = page.getByRole("status", { name: "Серіппе нәтижесі" });
+  await page.getByRole("button", { name: "3 секунд ойнау" }).click();
+  await expect(r).toContainText("Физика қадамы90");
+  await page.getByRole("button", { name: "Тұрақты 1/240 с қадам" }).click();
+  await page.getByRole("button", { name: "3 секунд ойнау" }).click();
+  await expect(r).toContainText("Соңғы амплитуда1");
+  await expect(r).toContainText("720");
 });

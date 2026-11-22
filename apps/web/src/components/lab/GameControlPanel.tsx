@@ -13,10 +13,10 @@ import {
 } from "@inside-tech/lab-game";
 import { useState } from "react";
 import styles from "./lab.module.css";
-import { BroadSection, FsmSection, PathSection, PoolSection } from "./GameMiddleSections";
+import { BroadSection, FsmSection, PathSection, PoolSection, TimestepSection } from "./GameMiddleSections";
 import web from "./web.module.css";
 
-export type GameSection = "scene" | "camera" | "loop" | "physics" | "graphics" | "rules" | "ai" | "play" | "editor" | "path" | "fsm" | "broad" | "pool";
+export type GameSection = "scene" | "camera" | "loop" | "physics" | "graphics" | "rules" | "ai" | "play" | "editor" | "path" | "fsm" | "broad" | "pool" | "timestep";
 
 interface Props {
   state: GameLabState;
@@ -427,6 +427,7 @@ export function GameControlPanel({ state, sections, brush, onBrush, dispatch, ca
       {has("fsm") && <FsmSection state={state} dispatch={dispatch} />}
       {has("broad") && <BroadSection state={state} dispatch={dispatch} />}
       {has("pool") && <PoolSection state={state} dispatch={dispatch} />}
+      {has("timestep") && <TimestepSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

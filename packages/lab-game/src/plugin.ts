@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { runSpring, type StepRun, type Stepper } from "./timestep";
 import { runPool, type PoolRun } from "./pool";
 import { bodies, bruteForce, findPath, gridPhase, runGuard, type BroadPhase, type FsmRun, type PathAlgo, type PathResult } from "./middle-core";
 import { EFFECT_TEXT, TRIGGER_TEXT, initialGame, sanitizeLevel, spawn, tickGame, type AiParams, type Effect, type EnemyState, type GameState, type Tile, type Trigger, GRID } from "./game";
@@ -81,6 +82,7 @@ export interface GameStats {
   fsmRuns: { see: number; lose: number; switches: number; attacked: boolean }[];
   broadRuns: { n: number; cell: number; brute: number; grid: number; hits: number }[];
   poolRuns?: { perFrame: number; pooled: boolean; janky: number; gcRuns: number; allocations: number }[];
+  stepRuns?: { stepper: Stepper; fps: number; amplitude: number; steps: number }[];
 }
 
 export interface GameLabState {
@@ -101,6 +103,7 @@ export interface GameLabState {
     cell: number;
     broad: { brute: BroadPhase; grid: BroadPhase; points: [number, number][] } | null;
     pool?: { perFrame: number; pooled: boolean; last: PoolRun | null };
+    timestep?: { stepper: Stepper; fps: number; last: StepRun | null };
   };
   stats: GameStats;
 }
@@ -136,7 +139,9 @@ export type GameLabAction =
   | { type: "broad/set"; n?: number; cell?: number }
   | { type: "broad/run" }
   | { type: "pool/set"; perFrame?: number; pooled?: boolean }
-  | { type: "pool/run" };
+  | { type: "pool/run" }
+  | { type: "timestep/set"; stepper?: Stepper; fps?: number }
+  | { type: "timestep/run" };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
 const uniq = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
@@ -176,6 +181,7 @@ const emptyStats = (): GameStats => ({
   fsmRuns: [],
   broadRuns: [],
   poolRuns: [],
+  stepRuns: [],
 });
 
 function newLoop(useDeltaTime: boolean, speed: number): LoopDemo {
@@ -397,6 +403,17 @@ function reduce(s: GameLabState, a: GameLabAction): GameLabState {
       const n = a.n !== undefined && [50, 200, 1000].includes(a.n) ? a.n : s.mid.n;
       const cell = a.cell !== undefined && [2, 10, 50].includes(a.cell) ? a.cell : s.mid.cell;
       return { ...s, mid: { ...s.mid, n, cell, broad: null } };
+    }
+    case "timestep/set": {
+      const cur = s.mid.timestep ?? { stepper: "frame-euler" as Stepper, fps: 60, last: null };
+      const fps = a.fps !== undefined && [30, 60, 144].includes(a.fps) ? a.fps : cur.fps;
+      const stepper = a.stepper === "frame-euler" || a.stepper === "fixed-symplectic" ? a.stepper : cur.stepper;
+      return { ...s, mid: { ...s.mid, timestep: { stepper, fps, last: null } } };
+    }
+    case "timestep/run": {
+      const cur = s.mid.timestep ?? { stepper: "frame-euler" as Stepper, fps: 60, last: null };
+      const r = runSpring(cur.stepper, cur.fps);
+      return { ...s, mid: { ...s.mid, timestep: { ...cur, last: r } }, stats: { ...st, stepRuns: [...(st.stepRuns ?? []), { stepper: cur.stepper, fps: cur.fps, amplitude: r.amplitude, steps: r.steps }].slice(-40) } };
     }
     case "pool/set": {
       const cur = s.mid.pool ?? { perFrame: 40, pooled: false, last: null };

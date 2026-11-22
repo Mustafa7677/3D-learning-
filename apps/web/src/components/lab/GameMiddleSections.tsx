@@ -1,6 +1,6 @@
 "use client";
 
-import type { GameLabAction, GameLabState, PathAlgo } from "@inside-tech/lab-game";
+import type { GameLabAction, GameLabState, PathAlgo, Stepper } from "@inside-tech/lab-game";
 import styles from "./lab.module.css";
 
 type D = (a: GameLabAction) => void;
@@ -169,6 +169,48 @@ export function PoolSection({ state, dispatch }: { state: GameLabState; dispatch
           <div>
             <span>Жаңа объект</span>
             <strong>{p.last.allocations.toLocaleString("ru-RU")}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+export function TimestepSection({ state, dispatch }: { state: GameLabState; dispatch: D }) {
+  const t = state.mid.timestep ?? { stepper: "frame-euler" as Stepper, fps: 60, last: null };
+  const steppers: [Stepper, string][] = [
+    ["frame-euler", "Кадр уақытымен (Euler)"],
+    ["fixed-symplectic", "Тұрақты 1/240 с қадам"],
+  ];
+  return (
+    <fieldset className={styles.group}>
+      <legend>Серіппе · 3 секунд, бастапқы ауытқу 1</legend>
+      <div className={styles.row} role="group" aria-label="Физика қадамы">
+        {steppers.map(([v, label]) => (
+          <button key={v} type="button" className="btn" aria-pressed={t.stepper === v} onClick={() => dispatch({ type: "timestep/set", stepper: v })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className={styles.row} role="group" aria-label="Кадр жиілігі">
+        {[30, 60, 144].map((f) => (
+          <button key={f} type="button" className="btn" aria-pressed={t.fps === f} onClick={() => dispatch({ type: "timestep/set", fps: f })}>
+            {f} FPS
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "timestep/run" })}>
+        3 секунд ойнау
+      </button>
+      {t.last && (
+        <div className={styles.metrics} role="status" aria-label="Серіппе нәтижесі">
+          <div>
+            <span>Соңғы амплитуда</span>
+            <strong>{t.last.amplitude >= 1000 ? Math.round(t.last.amplitude).toLocaleString("ru-RU") : t.last.amplitude}</strong>
+          </div>
+          <div>
+            <span>Физика қадамы</span>
+            <strong>{t.last.steps}</strong>
           </div>
         </div>
       )}
