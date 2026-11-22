@@ -8,3 +8,4 @@ export * from "./layout";
 export * from "./lessons";
 export * from "./pset";
 export * from "./mission";
+export * from "./waterfall";

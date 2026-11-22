@@ -193,6 +193,16 @@ const scripts: Record<string, Record<string, (d: D, s: () => WebLabState, tick: 
       send(d, t, { origin: "https://shop.kz" });
     },
   },
+  "web-15-waterfall": {
+    serial: (d) => {
+      d({ type: "waterfall/run" });
+      d({ type: "waterfall/set", strategy: "parallel" });
+      d({ type: "waterfall/run" });
+    },
+    batch: (d) => {
+      d({ type: "waterfall/run" });
+    },
+  },
   "web-14-ratelimit": {
     limit: (d, _s, t) => {
       for (let i = 0; i < 6; i++) send(d, t);

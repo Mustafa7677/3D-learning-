@@ -1,5 +1,6 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { PROGRAMS, finalOutput, runEventLoop } from "./eventloop";
+import { STRATEGIES, runWaterfall, type FetchStrategy, type WaterfallRun } from "./waterfall";
 import { parseHtml } from "./html";
 import { parseUrl, resolveRequest, type Method, type RequestSpec, type Response, type Route, type Server, type Stage, type World } from "./net";
 import { STARTER_HTML, scenario, type ScenarioId } from "./scenarios";
@@ -86,6 +87,7 @@ export interface WebStats {
   /** Requests sent by a page's script: from which origin, and what the browser let it read. */
   corsRuns?: { origin: string; method: string; status: number; blocked: boolean; preflight: boolean }[];
   /** Requests to a rate-limited server: who called, the status, and the clock when sent. */
+  waterfallRuns?: { strategy: FetchStrategy; total: number; requests: number }[];
   rateRuns?: { caller: string; status: number; at: number; retryAfter?: number }[];
 }
 
@@ -104,6 +106,7 @@ export interface WebLabState {
   flex: FlexModel;
   loop: { programId: string; frame: number; prediction: string[] };
   sql: { text: string; last: QueryResult | null; lastTable: string | null };
+  waterfall?: { strategy: FetchStrategy; last: WaterfallRun | null };
   stats: WebStats;
 }
 
@@ -122,6 +125,8 @@ export type WebLabAction =
   | { type: "cache/clear" }
   | { type: "dnsCache/clear" }
   | { type: "clock/advance"; ms: number }
+  | { type: "waterfall/set"; strategy: FetchStrategy }
+  | { type: "waterfall/run" }
   | { type: "html/set"; html: string }
   | { type: "dom/select"; id: number | null }
   | { type: "site/deploy"; ip: string }
@@ -380,6 +385,13 @@ function reduce(s: WebLabState, a: WebLabAction): WebLabState {
       return { ...s, world: { ...s.world, cache: [] } };
     case "dnsCache/clear":
       return { ...s, world: { ...s.world, dnsCache: {} } };
+    case "waterfall/set":
+      return STRATEGIES.includes(a.strategy) ? { ...s, waterfall: { strategy: a.strategy, last: null } } : s;
+    case "waterfall/run": {
+      const strategy = s.waterfall?.strategy ?? "serial";
+      const r = runWaterfall(strategy);
+      return { ...s, waterfall: { strategy, last: r }, stats: { ...s.stats, waterfallRuns: [...(s.stats.waterfallRuns ?? []), { strategy, total: r.total, requests: r.requests }].slice(-40) } };
+    }
     case "clock/advance":
       return { ...s, world: { ...s.world, clock: s.world.clock + clamp(a.ms, 0, 3_600_000) } };
 

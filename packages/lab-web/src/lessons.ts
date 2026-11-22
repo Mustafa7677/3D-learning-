@@ -1,4 +1,4 @@
-import { lessonCache, lessonCors, lessonIdempotency, lessonRateLimit, lessonRoles, webMiddleContent } from "./middle";
+import { lessonCache, lessonCors, lessonIdempotency, lessonRateLimit, lessonRoles, lessonWaterfall, webMiddleContent } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { webContent } from "./content";
 import { findAll, parseHtml, textContent } from "./html";
@@ -453,4 +453,5 @@ export const webLessons: L[] = [
   lessonIdempotency,
   lessonCors,
   lessonRateLimit,
+  lessonWaterfall,
 ].map((l) => withDeepDives(withContent(l, webContent[l.id] ?? webMiddleContent[l.id] ?? {}), webDeepDives[l.id] ?? {}));

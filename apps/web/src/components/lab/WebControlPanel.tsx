@@ -19,12 +19,13 @@ import {
   type WebLabState,
   ORIGINS,
 } from "@inside-tech/lab-web";
+import { CONN_LIMIT, POSTS, type FetchStrategy } from "@inside-tech/lab-web";
 import type { WebFocus } from "../scene/WebScene";
 import styles from "./lab.module.css";
 import lang from "./lang.module.css";
 import web from "./web.module.css";
 
-export type WebSection = "request" | "server" | "dns" | "routes" | "cache" | "html" | "deploy" | "box" | "flex" | "loop" | "sql" | "cors" | "rate";
+export type WebSection = "request" | "server" | "dns" | "routes" | "cache" | "html" | "deploy" | "box" | "flex" | "loop" | "sql" | "cors" | "rate" | "waterfall";
 
 interface Props {
   state: WebLabState;
@@ -369,6 +370,44 @@ function CorsSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
   );
 }
 
+const FETCH_WORD: [FetchStrategy, string][] = [
+  ["serial", "await бірінен соң бірі"],
+  ["parallel", "Promise.all"],
+  ["batch", "Бір пакеттік сұраныс"],
+];
+
+function WaterfallSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
+  const w = state.waterfall ?? { strategy: "serial" as FetchStrategy, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Профиль беті: пайдаланушы, посттар, {POSTS} посттың пікірлері</legend>
+      <div className={styles.row} role="group" aria-label="Жүктеу тәсілі">
+        {FETCH_WORD.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={w.strategy === k} onClick={() => dispatch({ type: "waterfall/set", strategy: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "waterfall/run" })}>
+        Бетті жүктеу
+      </button>
+      {w.last && (
+        <div className={styles.metrics} role="status" aria-label="Жүктеу нәтижесі">
+          <div>
+            <span>Бет дайын</span>
+            <strong>{w.last.total} мс</strong>
+          </div>
+          <div>
+            <span>Сұраныс</span>
+            <strong>{w.last.requests}</strong>
+          </div>
+        </div>
+      )}
+      <p className={styles.small}>HTTP/1.1: браузер бір хостқа ең көбі {CONN_LIMIT} қосылым ашады.</p>
+    </fieldset>
+  );
+}
+
 function RateSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
   const api = state.world.servers.find((s) => s.host === "api.inside.kz");
   if (!api) return null;
@@ -702,6 +741,7 @@ export function WebControlPanel({ state, sections, focus, dispatch, canUndo, onU
       {has("cache") && <CacheSection state={state} dispatch={dispatch} />}
       {has("cors") && <CorsSection state={state} dispatch={dispatch} />}
       {has("rate") && <RateSection state={state} dispatch={dispatch} />}
+      {has("waterfall") && <WaterfallSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

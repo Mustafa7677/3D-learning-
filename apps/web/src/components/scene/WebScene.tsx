@@ -23,7 +23,7 @@ import { Dust, FilmFx } from "../film/Fx";
 import { QUALITY, useQuality } from "@/lib/quality";
 import { C0, C1 } from "./palette";
 
-export type WebFocus = "network" | "dom" | "box" | "flex" | "loop" | "db";
+export type WebFocus = "network" | "dom" | "box" | "flex" | "loop" | "db" | "waterfall";
 
 interface Props {
   state: WebLabState;
@@ -251,6 +251,39 @@ function DbView({ state }: { state: WebLabState }) {
   );
 }
 
+function WaterfallView({ state }: { state: WebLabState }) {
+  const last = state.waterfall?.last;
+  const k = 10 / 1200;
+  const x = (t: number) => -3.6 + t * k;
+  return (
+    <group>
+      {last?.fetches.map((f, i) => {
+        const y = 4.6 - i * 0.45;
+        const color = i < 2 ? "#3d5bd9" : f.end > 380 && last.strategy === "parallel" && f.start > 270 ? "#c9a24a" : "#17895c";
+        return (
+          <group key={f.name}>
+            <mesh position={[x((f.start + f.end) / 2), y, 0]}>
+              <boxGeometry args={[(f.end - f.start) * k, 0.32, 0.5]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
+            <Label text={f.name} position={[-6.2, y, 0.3]} size={0.34} />
+          </group>
+        );
+      })}
+      {last && (
+        <mesh position={[x(last.total), 2.4, -0.2]}>
+          <boxGeometry args={[0.05, 5.2, 0.05]} />
+          <meshStandardMaterial color="#c23b3b" emissive="#c23b3b" emissiveIntensity={0.5} />
+        </mesh>
+      )}
+      {[0, 300, 600, 900, 1200].map((t) => (
+        <Label key={t} text={`${t} мс`} position={[x(t), -0.2, 0.3]} size={0.38} />
+      ))}
+      <Label text={last ? `бет ${last.total} мс-та дайын · ${last.requests} сұраныс` : "Бетті жүкте"} position={[0, 5.6, 0]} size={0.55} />
+    </group>
+  );
+}
+
 /** Region each view must keep visible (world units), framed for the viewport aspect. */
 const FRAME: Record<WebFocus, { width: number; height: number; target: [number, number, number]; dir: [number, number, number] }> = {
   network: { width: 11.5, height: 5.5, target: [0.4, 1, -0.6], dir: [0.15, 0.42, 1] },
@@ -259,6 +292,7 @@ const FRAME: Record<WebFocus, { width: number; height: number; target: [number, 
   flex: { width: 11, height: 6, target: [0, 1.4, 0], dir: [0, 0.2, 1] },
   loop: { width: 10.5, height: 6, target: [0, 1.7, 0], dir: [0, 0.25, 1] },
   db: { width: 9.5, height: 6, target: [0, 0.6, 0], dir: [0, 1, 0.9] },
+  waterfall: { width: 15.5, height: 7, target: [0.2, 2.4, 0], dir: [0, 0.25, 1] },
 };
 
 export default function WebScene(props: Props) {
@@ -283,6 +317,7 @@ export default function WebScene(props: Props) {
       {props.focus === "flex" && <FlexView state={props.state} />}
       {props.focus === "loop" && <LoopView state={props.state} />}
       {props.focus === "db" && <DbView state={props.state} />}
+      {props.focus === "waterfall" && <WaterfallView state={props.state} />}
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={30} />
       <FitCamera width={fr.width} height={fr.height} target={fr.target} dir={fr.dir} />
     </Canvas>

@@ -87,6 +87,7 @@ const WEB_SECTIONS: Record<string, WebSection[]> = {
   "web-12-idempotency": ["request", "routes"],
   "web-13-cors": ["request", "cors"],
   "web-14-ratelimit": ["request", "rate"],
+  "web-15-waterfall": ["waterfall"],
 };
 
 const GAME_SECTIONS: Record<string, GameSection[]> = {

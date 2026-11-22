@@ -18,11 +18,11 @@ test.beforeEach(async ({ page }) => {
 
 test("web lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/web");
-  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator("ol li")).toHaveCount(15);
   const path = page.getByRole("navigation", { name: "Деңгей жолы" });
-  await expect(path.getByRole("button", { name: "Middle: 0/5 сабақ" })).toBeVisible();
+  await expect(path.getByRole("button", { name: "Middle: 0/6 сабақ" })).toBeVisible();
   await expect(path.getByRole("button", { name: "Senior: жақында" })).toBeDisabled();
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("predict, observe, explain: the guess is locked, then revealed after the experiment", async ({ page }) => {
@@ -175,4 +175,20 @@ test("Middle 14: five pass, the sixth is 429; another caller and waiting both ge
   await limiter.getByRole("button", { name: "Уақыт +60 с" }).click();
   await send(page);
   await expect(objective(page, "Retry-After уақыты өткенше")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+});
+
+test("Middle 15: a waterfall of awaits takes 1150 ms, Promise.all 490, one batch 430 with 3 requests", async ({ page }) => {
+  await page.goto("/labs/web/web-15-waterfall");
+  const r = page.getByRole("status", { name: "Жүктеу нәтижесі" });
+  const load = page.getByRole("button", { name: "Бетті жүктеу" });
+  await load.click();
+  await expect(r).toContainText("Бет дайын1150 мс");
+  await page.getByRole("group", { name: "Жүктеу тәсілі" }).getByRole("button", { name: "Promise.all" }).click();
+  await load.click();
+  await expect(r).toContainText("Бет дайын490 мс");
+  await expect(objective(page, "Promise.all")).toHaveAttribute("data-done", "true");
+  await nextStep(page);
+  await load.click();
+  await expect(r).toContainText("Сұраныс3");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });
