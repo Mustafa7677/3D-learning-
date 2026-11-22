@@ -153,6 +153,14 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "tcp/event", event: { kind: "timer", side: "client" } });
     },
   },
+  "net-13-quic": {
+    hol: (d) => {
+      d({ type: "streams/run" });
+      d({ type: "streams/set", proto: "quic" });
+      d({ type: "streams/run" });
+    },
+    voice: (d) => d({ type: "streams/run" }),
+  },
   "net-12-switch": {
     arp: (d) => {
       d({ type: "lan/send", from: "A", to: "192.168.1.11" });

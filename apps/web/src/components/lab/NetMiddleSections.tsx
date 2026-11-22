@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DNS_NAMES, LAN_HOSTS, pendingResend, type NetLabAction, type NetLabState, type Side } from "@inside-tech/lab-net";
+import { DNS_NAMES, LAN_HOSTS, pendingResend, type NetLabAction, type NetLabState, type Side, type Transport } from "@inside-tech/lab-net";
 import styles from "./lab.module.css";
 
 type D = (a: NetLabAction) => void;
@@ -212,6 +212,50 @@ export function LanSection({ state, dispatch }: { state: NetLabState; dispatch: 
             : "бос"}
         </dd>
       </dl>
+    </fieldset>
+  );
+}
+
+const PROTOS: [Transport, string][] = [
+  ["tcp", "TCP"],
+  ["quic", "QUIC"],
+  ["udp", "UDP"],
+];
+const STREAM_NAME: Record<string, string> = { A: "бет (A)", B: "стиль (B)", C: "сурет (C)" };
+
+export function StreamsSection({ state, dispatch }: { state: NetLabState; dispatch: D }) {
+  const st = state.streams ?? { proto: "tcp" as Transport, loss: true, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Бір байланыс, үш ағын · 12 пакет</legend>
+      <div className={styles.row} role="group" aria-label="Көлік хаттамасы">
+        {PROTOS.map(([p, label]) => (
+          <button key={p} type="button" className="btn" aria-pressed={st.proto === p} onClick={() => dispatch({ type: "streams/set", proto: p })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <label className={styles.row}>
+        <input type="checkbox" checked={st.loss} onChange={(e) => dispatch({ type: "streams/set", loss: e.target.checked })} /> B ағынының бір пакеті жоғалсын
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "streams/run" })}>
+        Бетті жүктеу
+      </button>
+      {st.last && (
+        <div className={styles.metrics} role="status" aria-label="Ағындар нәтижесі">
+          {Object.entries(st.last.finish).map(([k, v]) => (
+            <div key={k}>
+              <span>{STREAM_NAME[k]}</span>
+              <strong>{v === null ? "тесік" : `${v} мс`}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+      {st.last && (
+        <p className={styles.small}>
+          Ең ұзақ кідіріс: {st.last.maxDelay} мс · жоғалды: {st.last.lost}
+        </p>
+      )}
     </fieldset>
   );
 }

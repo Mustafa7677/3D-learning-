@@ -1,8 +1,9 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { runStreams, type StreamRun, type Transport } from "./streams";
 import { ageSwitch, lanSend, newLan, newTcp, resolve, tcpStep, zone, type CacheEntry, type DnsResult, type Lan, type Side, type Tcp, type TcpEvent, type TcpState } from "./middle-core";
 import { LINKS, cidr, congestion, natIn, natOut, newNat, packetize, sameSubnet, shortestPath, transfer, type Nat, type Protocol, type Variant } from "./core";
 
-export type NetMode = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat" | "dns" | "tcp" | "lan";
+export type NetMode = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat" | "dns" | "tcp" | "lan" | "streams";
 export const RTT = 10;
 export const PACKETS = 50;
 
@@ -26,6 +27,7 @@ export interface NetStats {
   tcpEstablished: number;
   lanRuns: { from: string; to: string; nextHop: string; arped: boolean; flooded: boolean[]; kinds: string[]; dstMac: string }[];
   lanAged: number;
+  streamRuns?: { proto: Transport; loss: boolean; finish: Record<string, number | null>; maxDelay: number; lost: number }[];
 }
 
 export interface NetLabState {
@@ -39,6 +41,7 @@ export interface NetLabState {
   dns: { cache: CacheEntry[]; clock: number; moved: boolean; last: DnsResult | null };
   tcp: Tcp;
   lan: Lan;
+  streams?: { proto: Transport; loss: boolean; last: StreamRun | null };
   speed: number;
   stats: NetStats;
 }
@@ -68,7 +71,9 @@ export type NetLabAction =
   | { type: "tcp/reset" }
   | { type: "lan/send"; from: string; to: string }
   | { type: "lan/age" }
-  | { type: "lan/reset" };
+  | { type: "lan/reset" }
+  | { type: "streams/set"; proto?: Transport; loss?: boolean }
+  | { type: "streams/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -123,7 +128,9 @@ export function initialNetState(): NetLabState {
       tcpEstablished: 0,
       lanRuns: [],
       lanAged: 0,
+      streamRuns: [],
     },
+    streams: { proto: "tcp", loss: true, last: null },
   };
 }
 
@@ -243,6 +250,17 @@ function reduce(s: NetLabState, a: NetLabAction): NetLabState {
     }
     case "lan/age":
       return { ...s, lan: { ...ageSwitch(s.lan), frames: [] }, stats: { ...st, lanAged: st.lanAged + 1 } };
+    case "streams/set": {
+      const cur = s.streams ?? { proto: "tcp" as Transport, loss: true, last: null };
+      const proto = a.proto && ["tcp", "quic", "udp"].includes(a.proto) ? a.proto : cur.proto;
+      return { ...s, mode: "streams", streams: { proto, loss: a.loss ?? cur.loss, last: null } };
+    }
+    case "streams/run": {
+      const cur = s.streams ?? { proto: "tcp" as Transport, loss: true, last: null };
+      const r = runStreams(cur.proto, cur.loss);
+      const run = { proto: cur.proto, loss: cur.loss, finish: r.finish, maxDelay: r.maxDelay, lost: r.lost };
+      return { ...s, mode: "streams", streams: { ...cur, last: r }, stats: { ...st, streamRuns: cap([...(st.streamRuns ?? []), run]) } };
+    }
     case "lan/reset":
       return { ...s, mode: "lan", lan: newLan() };
   }

@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("networks lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/net");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Networks");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("Middle 10: DNS goes root, TLD, zone; then the cache answers in 10 ms", async ({ page }) => {
@@ -79,4 +79,15 @@ test("lesson 6: a window of one RTT fills the link", async ({ page }) => {
   await page.getByRole("button", { name: "Жіберу", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "85%" })).toBeVisible();
   await expect(objective(page, "≥ 80% пайдалан")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 13: one lost packet holds all TCP streams; QUIC holds only its own", async ({ page }) => {
+  await page.goto("/labs/net/net-13-quic");
+  const r = page.getByRole("status", { name: "Ағындар нәтижесі" });
+  await page.getByRole("button", { name: "Бетті жүктеу" }).click();
+  await expect(r).toContainText("бет (A)85 мс");
+  await page.getByRole("button", { name: "QUIC" }).click();
+  await page.getByRole("button", { name: "Бетті жүктеу" }).click();
+  await expect(r).toContainText("бет (A)65 мс");
+  await expect(objective(page, "тек жоғалған пакеттің ағыны")).toHaveAttribute("data-done", "true");
 });

@@ -176,3 +176,40 @@ export function LanView({ state }: { state: NetLabState }) {
     </group>
   );
 }
+
+export function StreamsView({ state }: { state: NetLabState }) {
+  const last = state.streams?.last;
+  const k = 0.11;
+  const lanes = ["A", "B", "C"];
+  return (
+    <group>
+      {lanes.map((name, li) => (
+        <Label key={name} text={name === "A" ? "бет" : name === "B" ? "стиль" : "сурет"} position={[-6.2, 0.3, li * 1.2 - 1.2]} size={0.5} />
+      ))}
+      {last?.packets.map((p, i) => {
+        const li = lanes.indexOf(p.stream);
+        const end = p.delivered ?? p.sent + 20;
+        const wait = p.delivered === null ? 0 : p.delivered - p.sent;
+        const color = p.delivered === null ? OFF : wait > 20 ? BAD : C0;
+        const len = Math.max(0.1, (end - p.sent) * k);
+        return (
+          <mesh key={i} position={[-5 + p.sent * k + len / 2, 0.15, li * 1.2 - 1.2 + (Math.floor(i / 3) - 1.5) * 0.22]}>
+            <boxGeometry args={[len, 0.25, 0.18]} />
+            <meshStandardMaterial color={color} transparent={p.delivered === null} opacity={p.delivered === null ? 0.35 : 1} />
+          </mesh>
+        );
+      })}
+      {last &&
+        Object.entries(last.finish).map(([name, t]) =>
+          t === null ? null : (
+            <mesh key={name} position={[-5 + t * k, 0.45, lanes.indexOf(name) * 1.2 - 1.2]}>
+              <boxGeometry args={[0.06, 0.9, 0.9]} />
+              <meshStandardMaterial color={GOLD} emissive={GOLD} emissiveIntensity={0.5} />
+            </mesh>
+          ),
+        )}
+      <Label text={last ? `${state.streams!.proto.toUpperCase()} · ең ұзақ кідіріс ${last.maxDelay} мс` : "Бетті жүкте"} position={[0, 1.6, -2.2]} size={0.55} />
+      <Label text="жолақ: пакет жіберілгеннен қолданбаға жеткенге дейін · қызыл: күтті · алтын: ағын бітті" position={[0, 1.1, -2.2]} size={0.45} />
+    </group>
+  );
+}
