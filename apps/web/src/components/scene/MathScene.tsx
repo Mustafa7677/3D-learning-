@@ -3,10 +3,19 @@
 import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { BufferGeometry, Color, Float32BufferAttribute, Quaternion, Vector3 } from "three";
+import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Quaternion, TubeGeometry, Vector3 } from "three";
 import {
   BASIS_TARGET,
+  CONE_H,
+  CONE_HALF,
+  CONIC_NAME,
   EIGEN_PRESETS,
+  conicEccentricity,
+  conicKind,
+  ellipsePoint,
+  focalDistances,
+  sectionCurve,
+  vertexLines,
   add,
   angleDeg,
   apply,
@@ -357,6 +366,87 @@ function EigenView({ s }: { s: MathLabState }) {
   );
 }
 
+// ---------------- analytic geometry ----------------
+
+/** A smooth chalk curve through points in math coordinates. */
+function Curve({ pts, color, r = 0.05 }: { pts: V3[]; color: Color; r?: number }) {
+  const geo = useMemo(() => new TubeGeometry(new CatmullRomCurve3(pts.map((p) => new Vector3(...W(p)))), Math.max(16, pts.length), r, 8, false), [pts, r]);
+  return (
+    <mesh geometry={geo}>
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.45} />
+    </mesh>
+  );
+}
+
+function EllipseView({ s }: { s: MathLabState }) {
+  const { a, c, t } = s.ell;
+  const ring = useMemo(() => Array.from({ length: 121 }, (_, i) => { const [x, y] = ellipsePoint({ a, c }, i * 3); return [x, y, 0] as V3; }), [a, c]);
+  const [px, py] = ellipsePoint({ a, c }, t);
+  const P: V3 = [px, py, 0];
+  const F1: V3 = [-c, 0, 0];
+  const F2: V3 = [c, 0, 0];
+  const [d1, d2] = focalDistances({ a, c }, t);
+  return (
+    <group>
+      <Curve pts={ring} color={CHALK} r={0.04} />
+      <Segment a={[-a, 0, 0]} b={[a, 0, 0]} color={VIOLET} opacity={0.6} width={0.02} />
+      <Segment a={F1} b={P} color={BLUE} width={0.045} />
+      <Segment a={F2} b={P} color={GOLD} width={0.045} />
+      <Dot at={F1} color={RED} r={0.16} />
+      <Dot at={F2} color={RED} r={0.16} />
+      <Dot at={P} color={GREEN} r={0.2} />
+      <Label text="F₁" position={W([-c, -0.7, 0])} size={0.5} />
+      <Label text="F₂" position={W([c, -0.7, 0])} size={0.5} />
+      <Label text={`d₁ = ${d1.toFixed(2)}`} position={W([(px - c) / 2 - 0.6, py / 2 + 0.6, 0])} size={0.5} />
+      <Label text={`d₂ = ${d2.toFixed(2)}`} position={W([(px + c) / 2 + 0.6, py / 2 + 0.6, 0])} size={0.5} />
+      <Label text={`d₁ + d₂ = ${(d1 + d2).toFixed(2)} = 2a`} position={W([0, -Math.max(2.4, a * 0.9), 0])} size={0.6} />
+    </group>
+  );
+}
+
+function ConicView({ s }: { s: MathLabState }) {
+  const { tilt, d } = s.cut;
+  const kind = conicKind(s.cut);
+  const runs = useMemo(() => sectionCurve({ tilt, d }), [tilt, d]);
+  const lines = useMemo(() => (Math.abs(d) < 1e-9 ? vertexLines({ tilt, d }) : []), [tilt, d]);
+  const R = CONE_H * Math.tan((CONE_HALF * Math.PI) / 180);
+  const b = (tilt * Math.PI) / 180;
+  const n: V3 = [0, -Math.sin(b), Math.cos(b)];
+  const q = new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), new Vector3(...W(n)).normalize());
+  const gens = Array.from({ length: 12 }, (_, i) => {
+    const phi = (i * Math.PI) / 6;
+    return [Math.cos(phi) * R, Math.sin(phi) * R] as const;
+  });
+  return (
+    // The vertex floats above the floor so both nappes show.
+    <group position={[0, CONE_H, 0]}>
+      <mesh position={[0, CONE_H / 2, 0]} rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[R, CONE_H, 48, 1, true]} />
+        <meshStandardMaterial color={BLUE} transparent opacity={0.16} side={2} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, -CONE_H / 2, 0]}>
+        <coneGeometry args={[R, CONE_H, 48, 1, true]} />
+        <meshStandardMaterial color={BLUE} transparent opacity={0.16} side={2} depthWrite={false} />
+      </mesh>
+      {gens.map(([x, y], i) => (
+        <Segment key={i} a={[-x, -y, -CONE_H]} b={[x, y, CONE_H]} color={DIM} opacity={0.35} width={0.01} />
+      ))}
+      <mesh position={W([n[0] * d, n[1] * d, n[2] * d])} quaternion={q}>
+        <planeGeometry args={[6.5, 6.5]} />
+        <meshStandardMaterial color={GOLD} transparent opacity={0.2} side={2} depthWrite={false} />
+      </mesh>
+      {runs.map((run, i) => (
+        <Curve key={`${tilt}-${d}-${i}`} pts={run} color={GOLD} r={0.055} />
+      ))}
+      {lines.map(([p, q2], i) => (
+        <Segment key={i} a={p!} b={q2!} color={GOLD} width={0.05} />
+      ))}
+      {kind === "point" && <Dot at={[0, 0, 0]} color={GOLD} r={0.14} />}
+      <Label text={`${CONIC_NAME[kind]} · β = ${tilt}° · e = ${conicEccentricity(s.cut).toFixed(2)}`} position={[0, CONE_H + 0.9, 0]} size={0.42} />
+    </group>
+  );
+}
+
 const FRAMES: Record<MathFocus, { w: number; h: number; t: [number, number, number]; d: [number, number, number] }> = {
   vectors: { w: 11, h: 7, t: [1.5, 1, -1.5], d: [0.35, 0.8, 1] },
   dot: { w: 11, h: 7, t: [1.5, 1, -1.5], d: [0.35, 0.8, 1] },
@@ -366,6 +456,8 @@ const FRAMES: Record<MathFocus, { w: number; h: number; t: [number, number, numb
   det: { w: 9, h: 6.5, t: [0.6, 0.8, -0.6], d: [0.9, 0.7, 1] },
   basis: { w: 12, h: 8, t: [1, 0.5, -0.5], d: [0, 1.6, 1] },
   eigen: { w: 9, h: 7, t: [0, 0.5, 0], d: [0, 1.8, 0.8] },
+  ellipse: { w: 16, h: 10, t: [0, 0, 0], d: [0, 1.6, 1] },
+  conic: { w: 9, h: 8.5, t: [0, 3, 0], d: [1, 0.35, 1] },
 };
 
 function Contents({ state: learner, focus }: { state: MathLabState; focus: MathFocus }) {
@@ -381,7 +473,7 @@ function Contents({ state: learner, focus }: { state: MathLabState; focus: MathF
       <color attach="background" args={["#142a23"]} />
       <gridHelper args={[12, 12, "#7f9c8f", "#2f4a40"]} position={[0, -0.005, 0]} />
       <StageLook />
-      <Axes z={focus !== "basis" && focus !== "eigen"} />
+      {focus !== "conic" && <Axes z={focus !== "basis" && focus !== "eigen" && focus !== "ellipse"} size={focus === "ellipse" ? 7.5 : 5} />}
       {focus === "vectors" && <VectorsView s={state} />}
       {focus === "dot" && <DotView s={state} />}
       {focus === "gauss" && <GaussView s={state} />}
@@ -390,6 +482,8 @@ function Contents({ state: learner, focus }: { state: MathLabState; focus: MathF
       {focus === "det" && <DetView s={state} />}
       {focus === "basis" && <BasisView s={state} />}
       {focus === "eigen" && <EigenView s={state} />}
+      {focus === "ellipse" && <EllipseView s={state} />}
+      {focus === "conic" && <ConicView s={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} />
     </>
@@ -398,7 +492,7 @@ function Contents({ state: learner, focus }: { state: MathLabState; focus: MathF
 
 export default function MathScene({ state, focus }: { state: MathLabState; focus: MathFocus }) {
   return (
-    <Canvas camera={{ position: [6, 7, 10], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: сызықтық алгебра">
+    <Canvas camera={{ position: [6, 7, 10], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: математика">
       <Contents state={state} focus={focus} />
     </Canvas>
   );

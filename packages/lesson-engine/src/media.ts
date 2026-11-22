@@ -74,3 +74,25 @@ export interface SolutionFilm {
   title: string;
   frames: FilmFrame[];
 }
+
+/**
+ * Contrasting cases: two worked cases that differ in one thing, side by side.
+ * The learner names the difference that matters. Comparing makes the deep
+ * feature stand out where a single example hides it among surface details.
+ */
+export interface ContrastCase {
+  label: string;
+  lines: string[];
+  result: string;
+}
+
+export interface Contrast {
+  title: string;
+  a: ContrastCase;
+  b: ContrastCase;
+  question: string;
+  /** The first option is the right one; the screen shuffles them. */
+  options: string[];
+  answer: number;
+  why: string;
+}

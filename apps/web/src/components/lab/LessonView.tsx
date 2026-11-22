@@ -626,7 +626,7 @@ function IotLesson({ labId, lesson, nextLessonId, persist }: LessonProps<IotLabS
   );
 }
 
-const MATH_FOCI: MathMode[] = ["vectors", "dot", "gauss", "matrix", "inverse", "det", "basis", "eigen"];
+const MATH_FOCI: MathMode[] = ["vectors", "dot", "gauss", "matrix", "inverse", "det", "basis", "eigen", "ellipse", "conic"];
 
 function MathLesson({ labId, lesson, nextLessonId, persist }: LessonProps<MathLabState, MathLabAction>) {
   const session = useLabSession(lesson, "math", { persist });

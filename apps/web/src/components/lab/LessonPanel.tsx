@@ -10,7 +10,7 @@ import { Reward } from "../film/Game";
 import { XP_LESSON, announceXp } from "@/lib/xp";
 import styles from "./lab.module.css";
 import { OyuRule } from "./Oyu";
-import { ComicStrip, ErrorHuntBoard, WorkedBoard } from "./StepMedia";
+import { ComicStrip, ContrastBoard, ErrorHuntBoard, WorkedBoard } from "./StepMedia";
 import { SolutionFilmPlayer } from "./SolutionFilm";
 
 interface Props {
@@ -215,6 +215,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
       {step.comic && <ComicStrip comic={step.comic} />}
       <Prose text={step.body} />
       {step.worked && <WorkedBoard key={`${step.id}-worked`} w={step.worked} />}
+      {step.contrast && <ContrastBoard key={`${step.id}-contrast`} c={step.contrast} />}
       {cinema && (
         <LectureCinema
           labId={labId}

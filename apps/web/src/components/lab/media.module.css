@@ -253,3 +253,97 @@
 .huntVerdict p {
   margin: 6px 0 0;
 }
+
+/* ---------- Салыстыр: two cases on two index cards ---------- */
+.contrast {
+  margin: 18px 0;
+  padding: 12px 14px 14px;
+  color: #1b1410;
+  background: #f7f1e1;
+  border: 1.5px solid #1b1410;
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 #1b1410;
+}
+.contrast .problem {
+  color: #1b1410;
+}
+.contrastKicker {
+  display: inline-block;
+  margin: 0 0 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #f7f1e1;
+  background: #2b5aa8;
+}
+.contrastCases {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.contrastCase {
+  min-width: 0;
+  padding: 8px 10px;
+  background: #fffdf6;
+  border: 1px solid rgb(27 20 16 / 0.35);
+  border-top: 4px solid #2b5aa8;
+}
+.contrastCase + .contrastCase {
+  border-top-color: #b2281d;
+}
+.contrastCase h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+.contrastCase code {
+  display: block;
+  font-family: "Caveat", "Segoe Print", var(--font-serif), serif;
+  font-size: 16px;
+  line-height: 1.35;
+  background: none;
+  white-space: pre-wrap;
+}
+.contrastCase p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.contrastQ {
+  margin: 12px 0 6px;
+  font-weight: 700;
+}
+.contrastOptions {
+  display: grid;
+  gap: 6px;
+}
+.contrastOptions button {
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: #1b1410;
+  background: #fffdf6;
+  border: 1px solid rgb(27 20 16 / 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.contrastOptions button[data-state="right"] {
+  background: #d9f0df;
+  border-color: #2f7d4f;
+}
+.contrastOptions button[data-state="wrong"] {
+  background: #f6dcd7;
+  border-color: #b2281d;
+  text-decoration: line-through;
+}
+.contrastVerdict {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+@media (max-width: 420px) {
+  .contrastCases {
+    grid-template-columns: 1fr;
+  }
+}

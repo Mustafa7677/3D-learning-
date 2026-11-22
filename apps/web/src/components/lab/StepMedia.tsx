@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CHARACTER_NAME, type Character, type Comic, type ErrorHunt, type Mood, type WorkedExample } from "@inside-tech/lesson-engine";
+import { CHARACTER_NAME, type Character, type Comic, type Contrast, type ErrorHunt, type Mood, type WorkedExample } from "@inside-tech/lesson-engine";
+import { optionOrder } from "@/lib/shuffle";
 import styles from "./media.module.css";
 
 // ---------------- characters ----------------
@@ -192,6 +193,53 @@ export function ErrorHuntBoard({ h }: { h: ErrorHunt }) {
             <span>Бұл жол дұрыс. Іздеуді жалғастыр.</span>
           )}
         </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Салыстыр: two cases side by side that differ in one thing. The learner names the
+ * difference that matters; a wrong pick says what it does not explain, and they try again.
+ */
+export function ContrastBoard({ c }: { c: Contrast }) {
+  const [tried, setTried] = useState<number[]>([]);
+  const order = useMemo(() => optionOrder(c.question, c.options.length), [c.question, c.options.length]);
+  const right = tried.includes(c.answer);
+  const last = tried.at(-1);
+  return (
+    <section className={styles.contrast} aria-label={`Салыстыр: ${c.title}`}>
+      <p className={styles.contrastKicker}>САЛЫСТЫР</p>
+      <p className={styles.problem}>{c.title}</p>
+      <div className={styles.contrastCases}>
+        {[c.a, c.b].map((k, i) => (
+          <article key={i} className={styles.contrastCase} aria-label={k.label}>
+            <h4>{k.label}</h4>
+            {k.lines.map((l) => (
+              <code key={l}>{l}</code>
+            ))}
+            <p>{k.result}</p>
+          </article>
+        ))}
+      </div>
+      <p className={styles.contrastQ}>{c.question}</p>
+      <div className={styles.contrastOptions} role="group" aria-label="Айырманың себебі">
+        {order.map((i) => (
+          <button key={i} type="button" disabled={right} data-state={tried.includes(i) ? (i === c.answer ? "right" : "wrong") : undefined} onClick={() => setTried((t) => (t.includes(i) ? t : [...t, i]))}>
+            {c.options[i]}
+          </button>
+        ))}
+      </div>
+      {last !== undefined && (
+        <p className={styles.contrastVerdict} role="status" data-right={right}>
+          {right ? (
+            <>
+              <strong>Дәл таптың.</strong> {c.why}
+            </>
+          ) : (
+            "Бұл екеуінде бірдей ғой: айырманы түсіндірмейді. Екі жағдайдың сандарын қатар қойып қара."
+          )}
+        </p>
       )}
     </section>
   );

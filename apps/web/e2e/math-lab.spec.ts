@@ -21,9 +21,9 @@ test("the math lab shows the first-year map: five subjects, 36 topics in order, 
     "Дискретті математика",
   ]);
   await expect(map.locator("ol ol > li")).toHaveCount(36);
-  await expect(map.getByRole("link")).toHaveCount(8);
+  await expect(map.getByRole("link")).toHaveCount(10);
   await expect(map.locator("ol ol > li").nth(8)).toContainText("Жазықтықтағы координаталар");
-  await expect(page.locator("ol li[data-level='Math']")).toHaveCount(8);
+  await expect(page.locator("ol li[data-level='Math']")).toHaveCount(10);
 });
 
 test("lesson 1: vectors add tip to tail; AB has length 5", async ({ page }) => {
@@ -199,4 +199,39 @@ test("the comic characters are Нұрай and Мустафа", async ({ page }) 
   await expect(comic).toContainText("Нұрай Мустафаға құпия хат жібермек");
   await expect(comic).toContainText("Мустафа");
   await expect(comic).not.toContainText("Әлия");
+});
+
+test("analytic geometry: the string keeps d1 + d2 = 2a; c = 0 makes a circle", async ({ page }) => {
+  await page.goto("/labs/math/ag-3-ellipse");
+  const read = page.getByRole("status", { name: "Эллипс нәтижесі" });
+  for (const t of ["60", "150"]) {
+    await page.getByLabel("P нүктесінің орны, градус").fill(t);
+    await expect(read).toContainText("d₁ + d₂10.00");
+  }
+  await expect(objective(page, "кемінде үш түрлі")).toHaveAttribute("data-done", "true");
+  await page.getByLabel("Фокус қашықтығы c").fill("0");
+  await expect(read).toContainText("e = c/a0.00");
+  await expect(objective(page, "шеңберге айналсын")).toHaveAttribute("data-done", "true");
+});
+
+test("analytic geometry: cutting the cone gives a circle, a parabola and a hyperbola; contrasting cases name the edge", async ({ page }) => {
+  await page.goto("/labs/math/ag-4-conics");
+  const cut = page.getByRole("status", { name: "Қима" });
+  await expect(cut).toContainText("эллипс");
+  const beta = page.getByLabel("Жазықтықтың көлбеуі β, градус");
+  await beta.fill("0");
+  await expect(cut).toContainText("шеңбер");
+  await beta.fill("60");
+  await expect(cut).toContainText("парабола");
+  await expect(cut).toContainText("1.00");
+  await beta.fill("75");
+  await expect(cut).toContainText("гипербола");
+  for (const o of ["Жазықтықты көлденең", "парабола", "гипербола"]) await expect(objective(page, o)).toHaveAttribute("data-done", "true");
+
+  const c = page.getByRole("region", { name: "Салыстыр: Он градус айырма" });
+  await expect(c.getByRole("article")).toHaveCount(2);
+  await c.getByRole("button", { name: "Конустың биіктігі өзгерді" }).click();
+  await expect(c.getByRole("status")).toContainText("айырманы түсіндірмейді");
+  await c.getByRole("button", { name: "β 60°-тың екі жағында" }).click();
+  await expect(c.getByRole("status")).toContainText("Дәл таптың.");
 });

@@ -9,6 +9,7 @@ import { EIGEN_PRESETS, PRESETS, type MathLabAction, type MathLabState } from ".
 import { mathContent } from "./content";
 import { mathMedia } from "./media";
 import { mathFilms } from "./films";
+import { geometryLessons } from "./geometry";
 import type { StepContent } from "@inside-tech/lesson-engine";
 
 type L = LessonDefinition<MathLabState, MathLabAction>;
@@ -288,7 +289,10 @@ const eigen: L = {
   ],
 };
 
-export const mathLessons: L[] = [vectors, dotLesson, gauss, matrices, inverseLesson, determinant, basis, eigen].map((l) => withContent(l, merged(l.id, l.steps.at(-1)!.id)));
+const linearLessons: L[] = [vectors, dotLesson, gauss, matrices, inverseLesson, determinant, basis, eigen].map((l) => withContent(l, merged(l.id, l.steps.at(-1)!.id)));
+
+/** Every built lesson of the course, in course order. */
+export const mathLessons: L[] = [...linearLessons, ...geometryLessons];
 
 /**
  * Prose, questions and the math-specific forms (comic, board, error hunt) of one lesson. The

@@ -1,7 +1,7 @@
 import { LessonEngine, coverage } from "@inside-tech/lesson-engine";
 import { SimulationRuntime } from "@inside-tech/sim-core";
 import { describe, expect, it } from "vitest";
-import { shown, GAUSS_START, MATH_COURSE, PRESETS, applyOp, det, inverse, isEchelon, mathLabPlugin, mathLessons, mul, solutionOf, type MathLabAction, type MathLabState } from "./index";
+import { CONE_HALF, conicEccentricity, conicKind, eccentricity, focalDistances, sectionCurve, semiMinor, vertexLines, shown, GAUSS_START, MATH_COURSE, PRESETS, applyOp, det, inverse, isEchelon, mathLabPlugin, mathLessons, mul, solutionOf, type MathLabAction, type MathLabState } from "./index";
 
 type D = (a: MathLabAction) => void;
 const scripts: Record<string, Record<string, (d: D) => void>> = {
@@ -81,6 +81,28 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "basis/set", b1: [1, 1], b2: [1, -1], a: 2, b: 1 });
     },
   },
+  "ag-3-ellipse": {
+    string: (d) => {
+      for (const t of [60, 150]) d({ type: "ellipse/set", t });
+      d({ type: "ellipse/set", c: 0 });
+    },
+    ecc: (d) => {
+      d({ type: "ellipse/set", c: 4 });
+      d({ type: "ellipse/set", a: 6.5, c: 2.5 });
+    },
+  },
+  "ag-4-conics": {
+    cut: (d) => {
+      d({ type: "conic/set", tilt: 0 });
+      d({ type: "conic/set", tilt: 60 });
+      d({ type: "conic/set", tilt: 75 });
+    },
+    edge: (d) => {
+      d({ type: "conic/set", tilt: 59 });
+      d({ type: "conic/set", tilt: 61 });
+      d({ type: "conic/set", tilt: 75, d: 0 });
+    },
+  },
   "la-8-eigen": {
     find: (d) => {
       d({ type: "eigen/probe", deg: 45 });
@@ -112,9 +134,10 @@ describe("math: linear algebra core", () => {
 });
 
 describe("math: the lessons", () => {
-  it("the lessons are the first subject of the course map, in order", () => {
-    expect(mathLessons.map((l) => l.id)).toEqual(MATH_COURSE[0]!.lessons.map((l) => l.id));
-    expect(mathLessons.map((l) => l.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  it("the lessons sit on the course map, in order", () => {
+    const placed = MATH_COURSE.flatMap((s) => s.lessons).flatMap((l, i) => (l.id ? [{ id: l.id, order: i + 1 }] : []));
+    expect(mathLessons.map((l) => ({ id: l.id, order: l.order }))).toEqual(placed);
+    expect(mathLessons.map((l) => l.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 11, 12]);
     expect(MATH_COURSE.reduce((n, s) => n + s.lessons.length, 0)).toBe(36);
   });
 
@@ -212,7 +235,7 @@ describe("fair options", () => {
   it("the right option never stands out: no lone proof after a colon, no option far longer than the rest", () => {
     for (const l of mathLessons) {
       for (const s of l.steps) {
-        const qs = [...(s.quiz ?? []), ...(s.predict ? [s.predict] : [])];
+        const qs = [...(s.quiz ?? []), ...(s.predict ? [s.predict] : []), ...(s.contrast ? [s.contrast] : [])];
         for (const q of qs) {
           const right = q.options[q.answer]!;
           const others = q.options.filter((_, i) => i !== q.answer);
@@ -221,5 +244,60 @@ describe("fair options", () => {
         }
       }
     }
+  });
+});
+
+describe("analytic geometry", () => {
+  it("an ellipse keeps d1 + d2 = 2a everywhere; b and e follow from a and c", () => {
+    const e = { a: 5, c: 3 };
+    for (const t of [0, 37, 90, 200, 333]) {
+      const [d1, d2] = focalDistances(e, t);
+      expect(d1 + d2).toBeCloseTo(10, 9);
+    }
+    expect(semiMinor(e)).toBeCloseTo(4, 9);
+    expect(eccentricity({ a: 5, c: 4 })).toBeCloseTo(0.8, 9);
+    expect(semiMinor({ a: 6.5, c: 2.5 })).toBeCloseTo(6, 9);
+  });
+
+  it("the cut decides the conic; the edge is the generator angle 60°", () => {
+    const kinds = [0, 40, 59, 60, 61, 75, 90].map((tilt) => conicKind({ tilt, d: 1 }));
+    expect(kinds).toEqual(["circle", "ellipse", "ellipse", "parabola", "hyperbola", "hyperbola", "hyperbola"]);
+    expect([30, 60, 75].map((tilt) => conicKind({ tilt, d: 0 }))).toEqual(["point", "line", "lines"]);
+    expect([40, 60, 75].map((tilt) => Math.round(conicEccentricity({ tilt, d: 1 }) * 100) / 100)).toEqual([0.74, 1, 1.12]);
+    expect([50, 55, 65].map((tilt) => Math.round(conicEccentricity({ tilt, d: 1 }) * 100) / 100)).toEqual([0.88, 0.95, 1.05]);
+  });
+
+  it("every point of the drawn section lies on the cone and on the plane; a hyperbola has two branches", () => {
+    const t = Math.tan((CONE_HALF * Math.PI) / 180);
+    for (const cut of [{ tilt: 0, d: 1 }, { tilt: 40, d: 1.2 }, { tilt: 60, d: 1 }, { tilt: 75, d: 0.6 }]) {
+      const b = (cut.tilt * Math.PI) / 180;
+      for (const run of sectionCurve(cut)) {
+        for (const [x, y, z] of run) {
+          expect(Math.hypot(x, y)).toBeCloseTo(Math.abs(z) * t, 6);
+          expect(-y * Math.sin(b) + z * Math.cos(b)).toBeCloseTo(cut.d, 6);
+        }
+      }
+    }
+    const zs = sectionCurve({ tilt: 75, d: 0.6 }).map((run) => Math.sign(run[Math.floor(run.length / 2)]![2]));
+    expect(new Set(zs)).toEqual(new Set([1, -1]));
+    expect(sectionCurve({ tilt: 0, d: 1 })).toHaveLength(1);
+    expect(vertexLines({ tilt: 75, d: 0 })).toHaveLength(2);
+    expect(vertexLines({ tilt: 60, d: 0 })).toHaveLength(1);
+    expect(vertexLines({ tilt: 30, d: 0 })).toHaveLength(0);
+  });
+
+  it("the plugin keeps the foci inside and the cut on its sliders", () => {
+    const rt = new SimulationRuntime<MathLabState, MathLabAction>(mathLabPlugin, 1);
+    rt.dispatch({ type: "ellipse/set", a: 2, c: 9 });
+    expect(rt.getState().ell.c).toBe(1.5);
+    rt.dispatch({ type: "conic/set", tilt: 120, d: -7 });
+    expect(rt.getState().cut).toEqual({ tilt: 90, d: -2 });
+    rt.dispatch({ type: "film/scene", patch: { cut: { tilt: 60, d: 1 }, ell: { a: 5, c: 4, t: 90 } } });
+    expect(shown(rt.getState()).cut).toEqual({ tilt: 60, d: 1 });
+    expect(rt.getState().stats.conicSnaps).toHaveLength(1);
+  });
+
+  it("every new lesson compares two cases", () => {
+    for (const l of mathLessons.filter((x) => x.id.startsWith("ag-"))) expect(l.steps.some((s) => s.contrast), l.id).toBe(true);
   });
 });

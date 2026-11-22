@@ -3,7 +3,13 @@
 import { useState } from "react";
 import {
   BASIS_TARGET,
+  CONIC_NAME,
   EIGEN_PRESETS,
+  conicEccentricity,
+  conicKind,
+  eccentricity,
+  focalDistances,
+  semiMinor,
   angleDeg,
   apply2,
   combo,
@@ -361,6 +367,78 @@ function EigenSection({ s, d }: { s: MathLabState; d: D }) {
   );
 }
 
+function EllipseSection({ s, d }: { s: MathLabState; d: D }) {
+  const e = s.ell;
+  const [d1, d2] = focalDistances(e, e.t);
+  return (
+    <fieldset className={styles.group}>
+      <legend>Эллипс: бау мен екі фокус</legend>
+      <label className={styles.row}>
+        <span>a = {fmt(e.a)}</span>
+        <input type="range" min={1} max={7} step={0.5} value={e.a} aria-label="Үлкен жарты ось a" onChange={(x) => d({ type: "ellipse/set", a: Number(x.target.value) })} />
+      </label>
+      <label className={styles.row}>
+        <span>c = {fmt(e.c)}</span>
+        <input type="range" min={0} max={6.5} step={0.5} value={e.c} aria-label="Фокус қашықтығы c" onChange={(x) => d({ type: "ellipse/set", c: Number(x.target.value) })} />
+      </label>
+      <label className={styles.row}>
+        <span>P: t = {e.t}°</span>
+        <input type="range" min={0} max={355} step={5} value={e.t} aria-label="P нүктесінің орны, градус" onChange={(x) => d({ type: "ellipse/set", t: Number(x.target.value) })} />
+      </label>
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Эллипс нәтижесі">
+        <div>
+          <span>d₁</span>
+          <strong>{d1.toFixed(2)}</strong>
+        </div>
+        <div>
+          <span>d₂</span>
+          <strong>{d2.toFixed(2)}</strong>
+        </div>
+        <div>
+          <span>d₁ + d₂</span>
+          <strong>{(d1 + d2).toFixed(2)}</strong>
+        </div>
+        <div>
+          <span>b</span>
+          <strong>{semiMinor(e).toFixed(2)}</strong>
+        </div>
+        <div>
+          <span>e = c/a</span>
+          <strong>{eccentricity(e).toFixed(2)}</strong>
+        </div>
+      </div>
+    </fieldset>
+  );
+}
+
+function ConicSection({ s, d }: { s: MathLabState; d: D }) {
+  const kind = conicKind(s.cut);
+  return (
+    <fieldset className={styles.group}>
+      <legend>Қос конусты жазықтықпен кес</legend>
+      <label className={styles.row}>
+        <span>β = {s.cut.tilt}°</span>
+        <input type="range" min={0} max={90} step={1} value={s.cut.tilt} aria-label="Жазықтықтың көлбеуі β, градус" onChange={(x) => d({ type: "conic/set", tilt: Number(x.target.value) })} />
+      </label>
+      <label className={styles.row}>
+        <span>d = {fmt(s.cut.d)}</span>
+        <input type="range" min={-2} max={2} step={0.1} value={s.cut.d} aria-label="Төбеден қашықтық d" onChange={(x) => d({ type: "conic/set", d: Number(x.target.value) })} />
+      </label>
+      <p className={styles.small}>Жасаушы түзу горизонтпен 60° жасайды: бұл шекара.</p>
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Қима">
+        <div>
+          <span>қима</span>
+          <strong>{CONIC_NAME[kind]}</strong>
+        </div>
+        <div>
+          <span>e</span>
+          <strong>{conicEccentricity(s.cut).toFixed(2)}</strong>
+        </div>
+      </div>
+    </fieldset>
+  );
+}
+
 export function MathControlPanel({ state, focus, dispatch, canUndo, onUndo }: { state: MathLabState; focus: MathMode; dispatch: D; canUndo: boolean; onUndo(): void }) {
   return (
     <aside className={styles.controls} aria-label="Басқару панелі">
@@ -370,6 +448,8 @@ export function MathControlPanel({ state, focus, dispatch, canUndo, onUndo }: { 
       {(focus === "matrix" || focus === "inverse" || focus === "det") && <MatrixSection s={state} d={dispatch} mode={focus} />}
       {focus === "basis" && <BasisSection s={state} d={dispatch} />}
       {focus === "eigen" && <EigenSection s={state} d={dispatch} />}
+      {focus === "ellipse" && <EllipseSection s={state} d={dispatch} />}
+      {focus === "conic" && <ConicSection s={state} d={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

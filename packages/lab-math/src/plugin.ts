@@ -1,7 +1,8 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { conicKind, type ConicKind, type Cut, type Ellipse } from "./conic";
 import { I3, applyOp, det, inverse, isEchelon, isReduced, mul, type M2, type M3, type RowOp, type System, type V2, type V3 } from "./linalg";
 
-export type MathMode = "vectors" | "dot" | "gauss" | "matrix" | "inverse" | "det" | "basis" | "eigen";
+export type MathMode = "vectors" | "dot" | "gauss" | "matrix" | "inverse" | "det" | "basis" | "eigen" | "ellipse" | "conic";
 
 /** The system of the elimination lesson: x + y + z = 6, 2x + y − z = 1, x − y + 2z = 5 (solution 1, 2, 3). */
 export const GAUSS_START: System = [
@@ -68,6 +69,10 @@ export interface MathStats {
   inverseTries: { m: M3; ok: boolean }[];
   basisSnaps: { b1: V2; b2: V2; a: number; b: number }[];
   eigenProbes: { preset: EigenPreset; deg: number }[];
+  /** Every ellipse and point the learner set (a, c, parameter angle t). */
+  ellipseSnaps: { a: number; c: number; t: number }[];
+  /** Every cut of the cone, with what it gave. */
+  conicSnaps: { tilt: number; d: number; kind: ConicKind }[];
 }
 
 export interface MathLabState {
@@ -85,12 +90,14 @@ export interface MathLabState {
   b: number;
   eigen: EigenPreset;
   probe: number;
+  ell: Ellipse & { t: number };
+  cut: Cut;
   /** What a solution film is showing right now; drawn over the learner's state, never graded. */
   film?: FilmScene | null;
   stats: MathStats;
 }
 
-export type FilmScene = Partial<Pick<MathLabState, "u" | "v" | "k" | "sys" | "A" | "showInverse" | "b1" | "b2" | "a" | "b" | "eigen" | "probe">>;
+export type FilmScene = Partial<Pick<MathLabState, "u" | "v" | "k" | "sys" | "A" | "showInverse" | "b1" | "b2" | "a" | "b" | "eigen" | "probe" | "ell" | "cut">>;
 
 /** The state the 3D scene draws: the learner's, with the film's patch on top. */
 export const shown = (s: MathLabState): MathLabState => (s.film ? { ...s, ...s.film } : s);
@@ -109,6 +116,8 @@ export type MathLabAction =
   | { type: "basis/set"; b1?: V2; b2?: V2; a?: number; b?: number }
   | { type: "eigen/preset"; name: EigenPreset }
   | { type: "eigen/probe"; deg: number }
+  | { type: "ellipse/set"; a?: number; c?: number; t?: number }
+  | { type: "conic/set"; tilt?: number; d?: number }
   | { type: "film/scene"; patch: Record<string, unknown> | null };
 
 const fin = (x: unknown, lo = -10, hi = 10) => (typeof x === "number" && Number.isFinite(x) ? Math.min(hi, Math.max(lo, Math.round(x * 1000) / 1000)) : 0);
@@ -134,7 +143,9 @@ export function initialMathState(): MathLabState {
     b: 0,
     eigen: "symmetric",
     probe: 0,
-    stats: { vectorSnaps: [], gaussOps: 0, gaussEchelon: false, gaussReduced: false, matrices: [], inverseTries: [], basisSnaps: [], eigenProbes: [] },
+    ell: { a: 5, c: 3, t: 0 },
+    cut: { tilt: 0, d: 1 },
+    stats: { vectorSnaps: [], gaussOps: 0, gaussEchelon: false, gaussReduced: false, matrices: [], inverseTries: [], basisSnaps: [], eigenProbes: [], ellipseSnaps: [], conicSnaps: [] },
   };
 }
 
@@ -144,6 +155,15 @@ function snapVec(s: MathLabState): MathLabState {
 function snapBasis(s: MathLabState): MathLabState {
   return { ...s, stats: { ...s.stats, basisSnaps: cap([...s.stats.basisSnaps, { b1: s.b1, b2: s.b2, a: s.a, b: s.b }]) } };
 }
+/** a in [1, 7]; the foci stay strictly inside: c in [0, a − 0.5]; t in [0, 360). */
+function cleanEllipse(a: unknown, c: unknown, t: unknown): Ellipse & { t: number } {
+  const A = fin(a, 1, 7);
+  return { a: A, c: fin(c, 0, Math.max(0, A - 0.5)), t: ((Math.round(fin(t, -720, 720)) % 360) + 360) % 360 };
+}
+function cleanCut(tilt: unknown, d: unknown): Cut {
+  return { tilt: Math.round(fin(tilt, 0, 90)), d: Math.round(fin(d, -2, 2) * 10) / 10 };
+}
+
 function setMatrix(s: MathLabState, m: M3, via: "edit" | "preset" | "compose"): MathLabState {
   return { ...s, A: m, showInverse: false, stats: { ...s.stats, matrices: cap([...s.stats.matrices, { m, via }]) } };
 }
@@ -189,6 +209,14 @@ function reduce(s: MathLabState, a: MathLabAction): MathLabState {
     }
     case "basis/set":
       return snapBasis({ ...s, b1: a.b1 ? v2(a.b1) : s.b1, b2: a.b2 ? v2(a.b2) : s.b2, a: a.a !== undefined ? fin(a.a, -6, 6) : s.a, b: a.b !== undefined ? fin(a.b, -6, 6) : s.b });
+    case "ellipse/set": {
+      const ell = cleanEllipse(a.a ?? s.ell.a, a.c ?? s.ell.c, a.t ?? s.ell.t);
+      return { ...s, ell, stats: { ...s.stats, ellipseSnaps: cap([...s.stats.ellipseSnaps, ell]) } };
+    }
+    case "conic/set": {
+      const cut = cleanCut(a.tilt ?? s.cut.tilt, a.d ?? s.cut.d);
+      return { ...s, cut, stats: { ...s.stats, conicSnaps: cap([...s.stats.conicSnaps, { ...cut, kind: conicKind(cut) }]) } };
+    }
     case "film/scene": {
       if (!a.patch) return { ...s, film: null };
       const q = a.patch;
@@ -204,6 +232,16 @@ function reduce(s: MathLabState, a: MathLabAction): MathLabState {
       if (typeof q.a === "number") f.a = fin(q.a, -6, 6);
       if (typeof q.b === "number") f.b = fin(q.b, -6, 6);
       if (typeof q.eigen === "string" && q.eigen in EIGEN_PRESETS) f.eigen = q.eigen as EigenPreset;
+      if (q.ell && typeof q.ell === "object") {
+        const e = q.ell as Record<string, unknown>;
+        const base = f.ell ?? s.ell;
+        f.ell = cleanEllipse(e.a ?? base.a, e.c ?? base.c, e.t ?? base.t);
+      }
+      if (q.cut && typeof q.cut === "object") {
+        const c = q.cut as Record<string, unknown>;
+        const base = f.cut ?? s.cut;
+        f.cut = cleanCut(c.tilt ?? base.tilt, c.d ?? base.d);
+      }
       if (typeof q.probe === "number") f.probe = ((Math.round(fin(q.probe, -360, 360)) % 180) + 180) % 180;
       return { ...s, film: f };
     }
