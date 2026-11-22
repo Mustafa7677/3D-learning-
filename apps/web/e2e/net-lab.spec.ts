@@ -12,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("networks lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/net");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Networks");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("Middle 10: DNS goes root, TLD, zone; then the cache answers in 10 ms", async ({ page }) => {
@@ -112,4 +112,20 @@ test("Middle 14: fragments, PMTU discovery, a black hole and MSS clamping", asyn
   await send.click();
   await expect(r).toContainText("Нәтиже: жетті, 40 мс");
   await expect(objective(page, "MSS clamping қос")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 15: a huge router buffer keeps speed but adds 700 ms; one BDP keeps both", async ({ page }) => {
+  await page.goto("/labs/net/net-15-bufferbloat");
+  const r = page.getByRole("status", { name: "Буфер нәтижесі" });
+  const go = page.getByRole("button", { name: "Жүктеуді бастау" });
+  await go.click();
+  await expect(r).toContainText("Ең ұзақ731.2 мс");
+  await page.getByRole("group", { name: "Роутер буфері" }).getByRole("button", { name: /Кіші буфер/ }).click();
+  await go.click();
+  await expect(r).toContainText("Арна90%");
+  await expect(objective(page, "Кіші буфер")).toHaveAttribute("data-done", "true");
+  await nextStep(page);
+  await go.click();
+  await expect(r).toContainText("Арна99%");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });

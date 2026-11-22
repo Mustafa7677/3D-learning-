@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DNS_NAMES, LAN_HOSTS, MTU_PATH, PACKET_SIZES, defaultMtu, pendingResend, type NetLabAction, type NetLabState, type Side, type Transport } from "@inside-tech/lab-net";
+import { BUFFER, DNS_NAMES, LAN_HOSTS, MTU_PATH, type QueuePolicy, PACKET_SIZES, defaultMtu, pendingResend, type NetLabAction, type NetLabState, type Side, type Transport } from "@inside-tech/lab-net";
 import styles from "./lab.module.css";
 
 type D = (a: NetLabAction) => void;
@@ -300,6 +300,48 @@ export function MtuSection({ state, dispatch }: { state: NetLabState; dispatch: 
           </p>
         </div>
       )}
+    </fieldset>
+  );
+}
+
+const POLICY_WORD: [QueuePolicy, string][] = [
+  ["huge", `Үлкен буфер (${BUFFER.huge})`],
+  ["bdp", `BDP өлшемі (${BUFFER.bdp})`],
+  ["tiny", `Кіші буфер (${BUFFER.tiny})`],
+];
+
+export function BloatSection({ state, dispatch }: { state: NetLabState; dispatch: D }) {
+  const b = state.bloat ?? { policy: "huge" as QueuePolicy, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Үй роутері 10 Мбит/с · бір үлкен жүктеу · негізгі RTT 40 мс</legend>
+      <div className={styles.row} role="group" aria-label="Роутер буфері">
+        {POLICY_WORD.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={b.policy === k} onClick={() => dispatch({ type: "bloat/set", policy: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "bloat/run" })}>
+        Жүктеуді бастау
+      </button>
+      {b.last && (
+        <div className={styles.metrics} role="status" aria-label="Буфер нәтижесі">
+          <div>
+            <span>Орташа RTT</span>
+            <strong>{b.last.avgRtt} мс</strong>
+          </div>
+          <div>
+            <span>Ең ұзақ</span>
+            <strong>{b.last.maxRtt} мс</strong>
+          </div>
+          <div>
+            <span>Арна</span>
+            <strong>{Math.round(b.last.utilization * 100)}%</strong>
+          </div>
+        </div>
+      )}
+      <p className={styles.small}>Буфер пакет санымен; бір пакет 1,2 мс күтеді.</p>
     </fieldset>
   );
 }

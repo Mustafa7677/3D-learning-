@@ -548,7 +548,7 @@ function OptimLesson({ labId, lesson, nextLessonId, persist }: LessonProps<Optim
   );
 }
 
-const NET_FOCI: NetFocus[] = ["packets", "ip", "routing", "transport", "congestion", "nat", "dns", "tcp", "lan", "streams", "mtu"];
+const NET_FOCI: NetFocus[] = ["packets", "ip", "routing", "transport", "congestion", "nat", "dns", "tcp", "lan", "streams", "mtu", "bloat"];
 
 function NetLesson({ labId, lesson, nextLessonId, persist }: LessonProps<NetLabState, NetLabAction>) {
   const session = useLabSession(lesson, "net", { persist });

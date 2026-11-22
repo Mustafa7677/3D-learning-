@@ -153,6 +153,14 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "tcp/event", event: { kind: "timer", side: "client" } });
     },
   },
+  "net-15-bufferbloat": {
+    bloat: (d) => {
+      d({ type: "bloat/run" });
+      d({ type: "bloat/set", policy: "tiny" });
+      d({ type: "bloat/run" });
+    },
+    size: (d) => d({ type: "bloat/run" }),
+  },
   "net-14-mtu": {
     fragment: (d) => {
       d({ type: "mtu/run" });

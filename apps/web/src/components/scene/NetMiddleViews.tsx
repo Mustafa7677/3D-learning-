@@ -259,3 +259,33 @@ export function MtuView({ state }: { state: NetLabState }) {
     </group>
   );
 }
+
+export function BloatView({ state }: { state: NetLabState }) {
+  const last = state.bloat?.last;
+  const n = last?.rtt.length ?? 600;
+  const w = 15 / n;
+  const k = 4.5 / 800;
+  return (
+    <group>
+      {last?.rtt.map((ms, i) =>
+        i % 2 === 0 ? (
+          <mesh key={i} position={[-7.5 + i * w, (ms * k) / 2, 0]}>
+            <boxGeometry args={[w * 1.8, Math.max(0.03, ms * k), 0.6]} />
+            <meshStandardMaterial color={ms > 150 ? BAD : ms > 60 ? GOLD : C0} />
+          </mesh>
+        ) : null,
+      )}
+      {[100, 400, 700].map((ms) => (
+        <group key={ms}>
+          <mesh position={[0, ms * k, -0.4]}>
+            <boxGeometry args={[15.2, 0.02, 0.02]} />
+            <meshStandardMaterial color={OFF} />
+          </mesh>
+          <Label text={`${ms} мс`} position={[8.3, ms * k, -0.4]} size={0.36} />
+        </group>
+      ))}
+      <Label text={last ? `орташа ${last.avgRtt} мс · ең ұзақ ${last.maxRtt} мс · арна ${Math.round(last.utilization * 100)}%` : "Жүктеуді баста"} position={[0, 5.3, 0]} size={0.55} />
+      <Label text="баған: әр айналымдағы RTT · қызыл: 150 мс-тан ұзақ, бейнеқоңырау үзіледі" position={[0, 4.75, 0]} size={0.4} />
+    </group>
+  );
+}

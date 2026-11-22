@@ -5,3 +5,4 @@ export * from "./pset";
 export * from "./middle-core";
 export * from "./streams";
 export * from "./mtu";
+export * from "./bufferbloat";
