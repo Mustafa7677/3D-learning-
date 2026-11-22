@@ -30,7 +30,14 @@ export interface Plan {
   access: "scan" | "index";
   column?: string;
   rows: number;
+  /** The planner's estimate: a sequential read costs 1, a random jump through an index RANDOM_READ. */
+  cost?: number;
+  /** An index that existed but would have cost more than reading the whole table. */
+  skipped?: string;
 }
+
+/** One random read through an index costs about this many sequential reads. */
+export const RANDOM_READ = 4;
 
 export interface Result {
   ok: boolean;
@@ -622,8 +629,20 @@ function ctxOf(alias: string, row: Row, into: Ctx = {}): Ctx {
 
 /** If `where` contains `col = literal` (at the top level of ANDs) on an indexed column, use it. */
 function indexable(where: Expr | undefined, alias: string, t: Table): { column: string; value: Value } | undefined {
-  if (!where) return undefined;
-  if (where.k === "bin" && where.op === "AND") return indexable(where.a, alias, t) ?? indexable(where.b, alias, t);
+  // Like a real planner: of all usable indexes, the one that matches the fewest rows.
+  const all = indexCandidates(where, alias, t);
+  const count = (c: { column: string; value: Value }) => t.rows.filter((r) => r[c.column] === c.value).length;
+  return all.sort((a, b) => count(a) - count(b))[0];
+}
+
+function indexCandidates(where: Expr | undefined, alias: string, t: Table): { column: string; value: Value }[] {
+  if (!where) return [];
+  if (where.k === "bin" && where.op === "AND") return [...indexCandidates(where.a, alias, t), ...indexCandidates(where.b, alias, t)];
+  const one = indexableOne(where, alias, t);
+  return one ? [one] : [];
+}
+
+function indexableOne(where: Expr, alias: string, t: Table): { column: string; value: Value } | undefined {
   if (where.k === "bin" && where.op === "=") {
     const [c, l] = where.a.k === "col" && where.b.k === "lit" ? [where.a, where.b] : where.b.k === "col" && where.a.k === "lit" ? [where.b, where.a] : [];
     if (c && l && c.k === "col" && l.k === "lit" && (!c.table || c.table === alias) && t.indexes.includes(c.name)) return { column: c.name, value: l.v };
@@ -685,10 +704,10 @@ function runSelect(db: Db, q0: Select): Result {
     baseRows = matched;
     plan.push({ table: base.name, access: "index", column: ordCol, rows: walked });
     examined += walked;
-  } else if (idx) {
+  } else if (idx && base.rows.filter((r) => r[idx.column] === idx.value).length * RANDOM_READ < base.rows.length) {
     baseRows = base.rows.filter((r) => r[idx.column] === idx.value);
-    plan.push({ table: base.name, access: "index", column: idx.column, rows: baseRows.length });
-  } else plan.push({ table: base.name, access: "scan", rows: base.rows.length });
+    plan.push({ table: base.name, access: "index", column: idx.column, rows: baseRows.length, cost: baseRows.length * RANDOM_READ });
+  } else plan.push({ table: base.name, access: "scan", rows: base.rows.length, cost: base.rows.length, ...(idx ? { skipped: idx.column } : {}) });
   if (!walk) examined += baseRows.length;
   let ctxs: Ctx[] = baseRows.map((r) => ctxOf(q.from.alias, r));
 
@@ -860,7 +879,7 @@ export function execute(session: Session, sql: string): { session: Session; resu
         return { session, result: runSelect(db, st) };
       case "explain": {
         const r = runSelect(db, st.q);
-        return { session, result: { ...empty("explain"), plan: r.plan, examined: r.examined, columns: ["кесте", "қол жеткізу", "жолдар"], rows: r.plan.map((p) => ({ кесте: p.table, "қол жеткізу": p.access === "index" ? `индекс (${p.column})` : "толық сканерлеу", жолдар: p.rows })) } };
+        return { session, result: { ...empty("explain"), plan: r.plan, examined: r.examined, columns: ["кесте", "қол жеткізу", "жолдар", "баға"], rows: r.plan.map((p) => ({ кесте: p.table, "қол жеткізу": p.access === "index" ? `индекс (${p.column})` : p.skipped ? `толық сканерлеу (${p.skipped} индексі тиімсіз)` : "толық сканерлеу", жолдар: p.rows, баға: p.cost ?? p.rows })) } };
       }
       case "insert": {
         const t = table(st.table);

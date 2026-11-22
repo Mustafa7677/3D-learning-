@@ -3,7 +3,7 @@ import { dbContent } from "./content";
 import { dbDeepDives } from "./deep";
 import { balance, lastMatches, total, usedJoin, type DbLabAction, type DbLabState } from "./plugin";
 import { lessonPsetDb } from "./pset";
-import { lessonLeftJoin, lessonNormalization, lessonPagination, lessonPatterns, lessonSubqueries, middleContent } from "./middle";
+import { lessonLeftJoin, lessonNormalization, lessonPagination, lessonSelectivity, lessonPatterns, lessonSubqueries, middleContent } from "./middle";
 
 type L = LessonDefinition<DbLabState, DbLabAction>;
 const q = (s: DbLabState) => s.stats.queries;
@@ -293,6 +293,7 @@ export const dbLessons: L[] = [
   lessonPatterns,
   lessonNormalization,
   lessonPagination,
+  lessonSelectivity,
 ].map((l) => withDeepDives(withContent(l, dbContent[l.id] ?? middleContent[l.id] ?? {}), dbDeepDives[l.id] ?? {}));
 
 export { q };

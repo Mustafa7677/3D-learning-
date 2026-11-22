@@ -34,6 +34,6 @@ describe("middle objectives cannot be gamed", () => {
   });
 
   it("the middle lessons come after the problem set, in order", () => {
-    expect(dbLessons.map((l) => l.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+    expect(dbLessons.map((l) => l.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
   });
 });

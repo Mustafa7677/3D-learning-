@@ -77,6 +77,13 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       sql(d, "SELECT id, kind FROM events WHERE id < 4981 ORDER BY id DESC LIMIT 20");
     },
   },
+  "db-15-selectivity": {
+    planner: (d) => {
+      sql(d, "CREATE INDEX ON events (kind);\nEXPLAIN SELECT * FROM events WHERE kind = 'buy'");
+      sql(d, "EXPLAIN SELECT * FROM events WHERE kind = 'view'");
+    },
+    choose: (d) => sql(d, "CREATE INDEX ON events (user_id);\nEXPLAIN SELECT * FROM events WHERE kind = 'view' AND user_id = 7"),
+  },
   "db-12-patterns": {
     distinct: (d) => sql(d, "SELECT DISTINCT city FROM students"),
     like: (d) => {

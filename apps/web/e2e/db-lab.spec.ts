@@ -16,8 +16,8 @@ test.beforeEach(async ({ page }) => {
 test("databases lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/db");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Databases");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
   await expect(page.getByRole("link", { name: /LEFT JOIN & NULL/ })).toContainText("Middle");
 });
 
@@ -116,4 +116,18 @@ test("Middle 14: OFFSET reads 5000 rows for one page, keyset reads 20; an insert
   // Saved with the lesson's progress.
   await page.reload();
   await expect(page.getByRole("status", { name: "Түсіндірме салыстыруы" })).toContainText("бәрі бір орынға жылжыды");
+});
+
+test("Middle 15: the planner skips an unselective index and picks the selective one", async ({ page }) => {
+  await page.goto("/labs/db/db-15-selectivity");
+  await page.getByRole("button", { name: "Орындау" }).click();
+  await expect(page.getByRole("cell", { name: "индекс (kind)" })).toBeVisible();
+  await run(page, "EXPLAIN SELECT * FROM events WHERE kind = 'view'");
+  await expect(page.getByRole("cell", { name: "толық сканерлеу (kind индексі тиімсіз)" })).toBeVisible();
+  await expect(objective(page, "жоспарлаушы толық сканерлеуді таңдайды")).toHaveAttribute("data-done", "true");
+  await nextStep(page);
+  await page.getByRole("button", { name: "Орындау" }).click();
+  await expect(page.getByRole("cell", { name: "индекс (user_id)" })).toBeVisible();
+  await expect(objective(page, "user_id индексін таңдап")).toHaveAttribute("data-done", "true");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });
