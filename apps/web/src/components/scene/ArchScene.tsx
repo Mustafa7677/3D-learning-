@@ -7,10 +7,10 @@ import { CIRCUITS, COLS, MEM_SIZE, ROWS, cacheTrace, evaluate, hex, toBits, toSi
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
-import { AssocView, BranchView, FloatView, PipeView, TlbView } from "./ArchMiddleViews";
+import { AssocView, BranchView, FloatView, PipeView, SharingView, TlbView } from "./ArchMiddleViews";
 import { C0, C1 } from "./palette";
 
-export type ArchFocus = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb" | "float";
+export type ArchFocus = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb" | "float" | "sharing";
 
 const OFF = new Color("#c9d0de");
 const ON = C1;
@@ -217,6 +217,7 @@ function Contents({ state, focus }: { state: ArchLabState; focus: ArchFocus }) {
     assoc: { w: 14, h: 7, t: [0, 0, 0.2], d: [0, 1.5, 1] },
     tlb: { w: 14, h: 6, t: [0, 0.6, 0.3], d: [0, 1.1, 1] },
     float: { w: 15, h: 8, t: [0, 3.4, 0], d: [0, 0.2, 1] },
+    sharing: { w: 13, h: 5, t: [0, 1.2, 0], d: [0, 0.5, 1] },
   };
   const f = frame[focus];
   return (
@@ -235,6 +236,7 @@ function Contents({ state, focus }: { state: ArchLabState; focus: ArchFocus }) {
       {focus === "assoc" && <AssocView state={state} />}
       {focus === "tlb" && <TlbView state={state} />}
       {focus === "float" && <FloatView state={state} />}
+      {focus === "sharing" && <SharingView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

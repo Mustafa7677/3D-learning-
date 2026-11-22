@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextStep } from "./helpers";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 
@@ -11,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("architecture lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/arch");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Architecture");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("lesson 1: switching bits on builds 42", async ({ page }) => {
@@ -116,4 +117,19 @@ test("Middle 14: 0.1 + 0.2 is not 0.3; Kahan rescues a float32 sum", async ({ pa
   await expect(page.getByLabel("Kahan қосындысы")).toBeChecked();
   await page.getByRole("button", { name: "Есептеу" }).click();
   await expect(r).toContainText("10000 (қате 0.0e+0)");
+});
+
+test("Middle 15: two threads on one cache line are 39 times slower than one; padding makes them twice as fast", async ({ page }) => {
+  await page.goto("/labs/arch/arch-15-false-sharing");
+  const r = page.getByRole("status", { name: "Ядролар нәтижесі" });
+  const go = page.getByRole("button", { name: "Іске қосу" });
+  await go.click();
+  await expect(r).toContainText("Такт2039");
+  await page.getByRole("button", { name: "2 ағын, бір кэш жолы" }).click();
+  await go.click();
+  await expect(r).toContainText("Такт80000");
+  await nextStep(page);
+  await go.click();
+  await expect(r).toContainText("Такт1039");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });

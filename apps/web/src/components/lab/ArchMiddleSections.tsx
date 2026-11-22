@@ -1,6 +1,6 @@
 "use client";
 
-import { SUM_N, type Precision, WALK_CYCLES, splitAddress, type TlbPattern, MISS_PENALTY, PIPE_PROGRAM, canSwap, type ArchLabAction, type ArchLabState, type AssocPattern, type BranchPattern, type PipeMode, type Predictor } from "@inside-tech/lab-arch";
+import { INCREMENTS, type Layout, SUM_N, type Precision, WALK_CYCLES, splitAddress, type TlbPattern, MISS_PENALTY, PIPE_PROGRAM, canSwap, type ArchLabAction, type ArchLabState, type AssocPattern, type BranchPattern, type PipeMode, type Predictor } from "@inside-tech/lab-arch";
 import styles from "./lab.module.css";
 
 type D = (a: ArchLabAction) => void;
@@ -256,6 +256,49 @@ export function FloatSection({ state, dispatch }: { state: ArchLabState; dispatc
             {f.last.sum} (қате {f.last.error < 1e-6 ? f.last.error.toExponential(1) : f.last.error.toFixed(3)})
           </dd>
         </dl>
+      )}
+    </fieldset>
+  );
+}
+
+const LAYOUT_WORD: [Layout, string][] = [
+  ["single", "1 ағын, екі санауыш"],
+  ["shared", "2 ағын, бір кэш жолы"],
+  ["padded", "2 ағын, бөлек жолдар"],
+];
+
+export function SharingSection({ state, dispatch }: { state: ArchLabState; dispatch: D }) {
+  const c = state.sharing ?? { layout: "single" as Layout, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Екі санауыш, әрқайсысы {INCREMENTS} рет ++ · кэш жолы 64 байт</legend>
+      <div className={styles.row} role="group" aria-label="Орналасу">
+        {LAYOUT_WORD.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={c.layout === k} onClick={() => dispatch({ type: "sharing/set", layout: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "sharing/run" })}>
+        Іске қосу
+      </button>
+      {c.last && (
+        <div className={styles.metrics} role="status" aria-label="Ядролар нәтижесі">
+          <div>
+            <span>Такт</span>
+            <strong>{c.last.cycles}</strong>
+          </div>
+          <div>
+            <span>Жол көшті</span>
+            <strong>{c.last.transfers}</strong>
+          </div>
+          <div>
+            <span>Адрестер</span>
+            <strong>
+              {c.last.addresses[0]} · {c.last.addresses[1]}
+            </strong>
+          </div>
+        </div>
       )}
     </fieldset>
   );

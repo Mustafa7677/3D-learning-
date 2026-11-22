@@ -177,3 +177,44 @@ export function FloatView({ state }: { state: ArchLabState }) {
     </group>
   );
 }
+
+export function SharingView({ state }: { state: ArchLabState }) {
+  const c = state.sharing;
+  const last = c?.last;
+  const two = c?.layout !== "single";
+  const lines = c?.layout === "padded" ? 2 : 1;
+  const hot = last && c?.layout === "shared";
+  return (
+    <group>
+      {[0, 1].map((core) => (
+        <group key={core} position={[core === 0 ? -4.5 : 4.5, 0, 0]}>
+          <mesh position={[0, 0.6, 0]}>
+            <boxGeometry args={[2.6, 1.2, 1.6]} />
+            <meshStandardMaterial color={two || core === 0 ? C0 : OFF} metalness={0.3} roughness={0.5} />
+          </mesh>
+          <Label text={`ядро ${core}`} position={[0, 1.6, 0]} size={0.45} />
+          <Label text={two ? `санауыш ${core === 0 ? "a" : "b"}` : core === 0 ? "a мен b" : "бос"} position={[0, -0.35, 1]} size={0.36} />
+        </group>
+      ))}
+      {Array.from({ length: lines }, (_, i) => (
+        <group key={i} position={[lines === 1 ? 0 : i === 0 ? -1.6 : 1.6, 0.4, 0]}>
+          <mesh>
+            <boxGeometry args={[2.4, 0.5, 1]} />
+            <meshStandardMaterial color={hot ? BAD : OK} emissive={hot ? BAD : OK} emissiveIntensity={0.25} />
+          </mesh>
+          <Label text={`кэш жолы ${i}`} position={[0, 0.65, 0]} size={0.34} />
+          <Label text={lines === 1 ? "a (0) · b (8)" : i === 0 ? "a (0)" : "b (64)"} position={[0, -0.6, 0.6]} size={0.32} />
+        </group>
+      ))}
+      {hot &&
+        [-1, 1].map((d) => (
+          <mesh key={d} position={[d * 2.4, 0.9, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.05, 0.05, 2, 8]} />
+            <meshStandardMaterial color={BAD} emissive={BAD} emissiveIntensity={0.5} />
+          </mesh>
+        ))}
+      <Label text={last ? `${last.cycles} такт · жол ${last.transfers} рет көшті` : "Іске қос"} position={[0, 3.2, 0]} size={0.6} />
+      {hot && <Label text="жол ядролар арасында әр жазуда секіреді" position={[0, 2.6, 0]} size={0.42} />}
+    </group>
+  );
+}

@@ -137,6 +137,14 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "branch/run" });
     },
   },
+  "arch-15-false-sharing": {
+    shared: (d) => {
+      d({ type: "sharing/run" });
+      d({ type: "sharing/set", layout: "shared" });
+      d({ type: "sharing/run" });
+    },
+    padded: (d) => d({ type: "sharing/run" }),
+  },
   "arch-14-float": {
     point: (d) => {
       d({ type: "float/run" });
