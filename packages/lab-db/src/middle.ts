@@ -196,7 +196,163 @@ export const lessonNormalization: L = {
   ],
 };
 
+const selects = (s: DbLabState) => s.stats.queries.filter((q) => q.ok && q.kind === "select");
+const lastInsert = (s: DbLabState) => s.stats.queries.map((q, i) => (q.ok && q.kind === "insert" ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
+/** A newest-first page taken before the insert, and a later page that overlaps it (OFFSET shifted). */
+const duplicated = (s: DbLabState) => {
+  const qs = s.stats.queries;
+  const ins = lastInsert(s);
+  if (ins < 0) return false;
+  const before = qs.slice(0, ins).filter((q) => q.ok && q.kind === "select" && /desc/i.test(q.sql ?? "") && (q.ids?.length ?? 0) === 20);
+  const after = qs.slice(ins + 1).filter((q) => q.ok && q.kind === "select" && /offset\s+20\b/i.test(q.sql ?? ""));
+  return after.some((b) => before.some((a) => (b.ids ?? []).some((id) => a.ids!.includes(id))));
+};
+const keysetClean = (s: DbLabState) => {
+  const qs = s.stats.queries;
+  const ins = lastInsert(s);
+  if (ins < 0) return false;
+  const before = qs.slice(0, ins).filter((q) => q.ok && q.kind === "select" && /desc/i.test(q.sql ?? "") && (q.ids?.length ?? 0) === 20);
+  const after = qs.slice(ins + 1).filter((q) => q.ok && q.kind === "select" && /\bid\s*<\s*\d+/i.test(q.sql ?? "") && !/offset/i.test(q.sql ?? "") && (q.ids?.length ?? 0) === 20);
+  return after.some((k) => before.some((a) => Math.max(...k.ids!) === Math.min(...a.ids!) - 1));
+};
+
+export const lessonPagination: L = {
+  id: "db-14-pagination",
+  labId: "db",
+  order: 14,
+  title: "Pagination: OFFSET vs Keyset",
+  summary: "Тереңдегі бетті ашу неге баяу, ал лента неге бір жазбаны екі рет көрсетеді. OFFSET-тің бағасы және «осы id-ден кейінгілер» әдісі.",
+  estimatedMinutes: 25,
+  steps: [
+    {
+      id: "deep",
+      title: "Тереңдегі бет",
+      body: "",
+      focus: "sql",
+      onEnter: [{ type: "mode/set", mode: "sql" }, { type: "sql/reset" }, text("SELECT id, kind, amount FROM events ORDER BY id LIMIT 20 OFFSET 4980")],
+      objectives: [
+        { id: "offset", text: "Соңғы бетті OFFSET-пен аш: 20 жол үшін 5000 жол оқылды", check: (s) => selects(s).some((q) => /offset/i.test(q.sql ?? "") && q.rows === 20 && q.examined >= 5000) },
+        { id: "keyset", text: "Сол бетті WHERE id > ... арқылы аш: 20 жол оқылды", check: (s) => selects(s).some((q) => /\bid\s*>\s*\d+/i.test(q.sql ?? "") && !/offset/i.test(q.sql ?? "") && q.rows === 20 && q.examined <= 20) },
+      ],
+    },
+    {
+      id: "feed",
+      title: "Қозғалатын лента",
+      body: "",
+      focus: "sql",
+      onEnter: [{ type: "sql/reset" }, text("SELECT id, kind FROM events ORDER BY id DESC LIMIT 20")],
+      objectives: [
+        { id: "dup", text: "1-бетті аш, жаңа оқиға қос, 2-бетті OFFSET 20-пен аш: бір жазба қайталанды", check: duplicated },
+        { id: "clean", text: "Жаңа оқиғадан кейін 2-бетті WHERE id < ... арқылы аш: қайталану жоқ", check: keysetClean },
+      ],
+    },
+  ],
+};
+
 export const middleContent: Record<string, Record<string, StepContent>> = {
+  "db-14-pagination": {
+    deep: {
+      predict: {
+        question: "events кестесінде 5000 жол, id бойынша индекс бар. «ORDER BY id LIMIT 20 OFFSET 4980» сұранысы неше жолды оқиды?",
+        options: ["5000: алдымен 4980 жолды оқып, лақтырады, сосын 20-сын береді", "20: дерекқор 4981-жолға бірден секіреді", "4980"],
+        answer: 0,
+        explain: "Индекс жолдарды ретімен береді, бірақ «4980-орын» қай жерде екенін білмейді. OFFSET жолдарды бір-бірлеп санап өтуге мәжбүрлейді.",
+      },
+      body: `## Идея
+Үлкен тізімді беттерге бөлудің ең қарапайым жолы:
+\`\`\`
+SELECT ... ORDER BY id LIMIT 20 OFFSET 4980
+\`\`\`
+Бірақ **OFFSET тегін емес**. Дерекқор 4980 жолды индекс бойымен оқиды, оларды санайды да, лақтырып тастайды. Бет неғұрлым терең болса, соғұрлым баяу: 1-бет 20 жол, 250-бет 5000 жол.
+
+**Keyset** (seek) беттеу басқаша сұрайды: «қай орында» емес, «қай мәннен кейін»:
+\`\`\`
+SELECT ... WHERE id > 4980 ORDER BY id LIMIT 20
+\`\`\`
+Индекс B-ағаш: ол id = 4980 орнын логарифмдік уақытта табады, сосын тек 20 жол оқиды. Тереңдік маңызды емес.
+
+## Түйсік
+Кітаптың 250-бетін ашу. OFFSET: бірінші беттен бастап парақтарды санап шығу. Keyset: бетбелгі қойылған жерден ашу.
+
+## Есептеп көрейік
+EXPLAIN нәтижесінде «оқылды» санын қара:
+- OFFSET 4980: 5000 жол оқылды, 20 жол қайтарылды. Оқылғанның 99,6%-ы босқа.
+- WHERE id > 4980: 20 жол оқылды, 20 қайтарылды.
+Мыңдаған пайдаланушы ары қарай парақтаса, бұл айырма серверлердің санына айналады.
+
+## Нақты әлемде
+Twitter, Instagram, GitHub API-лері «келесі бет» үшін сан емес, курсор береді (мысалы, \`?after=4980\`): бұл keyset. Бағасы: «250-бетке бірден өту» мүмкіндігі жоғалады, тек алға не артқа жүруге болады.
+
+> ⚠ Keyset үшін сұрыптау бағаны бірегей және индекстелген болуы керек. Бірдей мәндер болса, (created_at, id) сияқты екі бағанды кілт керек.
+
+## Енді сен
+Дайын OFFSET сұранысын орында да, оқылған жолдарды көр. Сосын сол 20 жолды WHERE id > 4980 арқылы ал.`,
+      quiz: [
+        {
+          id: "cost",
+          question: "Неге OFFSET беттің тереңдігіне қарай баяулайды?",
+          options: ["Дерекқор өткізіп жіберілетін жолдарды да оқып, санап өтуі керек", "OFFSET индексті өшіреді", "Терең беттер дискіде алыс жатады"],
+          answer: 0,
+          explain: "Индекс ретті береді, бірақ «N-орынға» секіре алмайды. Ал мәнге (id > 4980) секіре алады.",
+        },
+        {
+          id: "need",
+          question: "Keyset беттеуге не керек?",
+          options: ["Бірегей әрі индекстелген сұрыптау кілті және алдыңғы беттің соңғы мәні", "Кестенің жалпы жол саны", "Әр беттің нөмірі"],
+          answer: 0,
+          explain: "«Осы мәннен кейінгілер» деп сұрау үшін соңғы көрген мәнді есте сақтау жеткілікті.",
+        },
+      ],
+    },
+    feed: {
+      predict: {
+        question: "Лента ең жаңасынан басталады (ORDER BY id DESC). Сен 1-бетті көрдің, сол кезде біреу жаңа оқиға қосты. 2-бетті OFFSET 20-пен ашсаң не болады?",
+        options: ["1-беттің соңғы жазбасы 2-беттің басында тағы шығады", "Бәрі дұрыс: 2-бет жаңа жазбаларды көрсетеді", "Бір жазба жоғалып кетеді"],
+        answer: 0,
+        explain: "Жаңа жол басына қосылды да, бәрін бір орынға ығыстырды. 20-орындағы жол енді 21-орында: OFFSET 20 оны тағы береді.",
+      },
+      body: `## Идея
+OFFSET орынмен санайды, ал орындар жылжиды. Беттер арасында:
+- басына жаңа жол **қосылса**: келесі бетте бір жазба **қайталанады**;
+- алдыңғы беттен жол **өшірілсе**: бір жазба **көрінбей қалады**, ешкім байқамайды.
+
+Keyset мәнмен санайды: «id < 4981 болғандар». Жаңа жолдың id-і үлкен, ол шартқа кірмейді. Ығысу жоқ.
+
+## Түйсік
+Кезекте тұрғанда «маған 20-орыннан кейінгілерді шақыр» десең, біреу алдыға кіріп кетсе, сен бір адамды екі рет көресің. «Мына кісіден кейінгілерді шақыр» десең, ешкім шатаспайды.
+
+## Есептеп көрейік
+1-бет (DESC): 5000, 4999, ..., 4981.
+Жаңа оқиға: id = 5001.
+- OFFSET 20: 4981, 4980, ..., 4962. 4981 екі бетте де бар.
+- WHERE id < 4981: 4980, 4979, ..., 4961. Қайталану жоқ.
+
+## Нақты әлемде
+Шексіз айналдырылатын ленталарда (жаңалықтар, чат, хабарламалар) OFFSET-тің бұл ақауы жиі кездеседі: пайдаланушы бір постты екі рет көреді, не біреуін мүлде көрмейді. Сондықтан ленталар әрқашан курсормен жасалады.
+
+## Енді сен
+1. 1-бетті аш.
+2. Жаңа оқиға қос: INSERT INTO events (id, user_id, kind, amount) VALUES (5001, 1, 'buy', 100).
+3. 2-бетті OFFSET 20-пен аш да, қайталанған id-ді тап.
+4. Сол бетті WHERE id < 4981 арқылы аш.`,
+      quiz: [
+        {
+          id: "why",
+          question: "Беттер арасында басына жол қосылғанда OFFSET неге қайталайды?",
+          options: ["Барлық жолдың орны бір орынға жылжиды, ал OFFSET орынмен санайды", "Дерекқор кэштен ескі бетті береді", "INSERT индексті бұзады"],
+          answer: 0,
+          explain: "OFFSET 20 «21-орыннан баста» дейді. Жаңа жол қосылғанда бұрынғы 20-орын 21-орынға айналды.",
+        },
+        {
+          id: "delete",
+          question: "Ал беттер арасында бірінші беттен жол өшірілсе, OFFSET беттеуде не болады?",
+          options: ["Бір жазба ешбір бетте көрсетілмей қалады", "Бір жазба екі рет шығады", "Ештеңе өзгермейді"],
+          answer: 0,
+          explain: "Жолдар бір орын алға жылжиды. 21-орындағы жол 20-орынға келіп, келесі беттің сыртында қалады.",
+        },
+      ],
+    },
+  },
   "db-10-left-join": {
     orphans: {
       body: `## Идея

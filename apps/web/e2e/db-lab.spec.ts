@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextStep } from "./helpers";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 const run = async (page: Page, sql: string) => {
@@ -15,8 +16,8 @@ test.beforeEach(async ({ page }) => {
 test("databases lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/db");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Databases");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
   await expect(page.getByRole("link", { name: /LEFT JOIN & NULL/ })).toContainText("Middle");
 });
 
@@ -84,4 +85,20 @@ test("Middle 13: updating one copy of a repeated fact makes two truths", async (
   await expect(objective(page, "екі қаласы пайда болсын")).toHaveAttribute("data-done", "true");
   await run(page, "UPDATE enrollments_flat SET student_city = 'Тараз' WHERE student_name = 'Айгерім'");
   await expect(objective(page, "барлық жолдарын түзет")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 14: OFFSET reads 5000 rows for one page, keyset reads 20; an insert makes OFFSET repeat", async ({ page }) => {
+  await page.goto("/labs/db/db-14-pagination");
+  await page.getByRole("button", { name: "Орындау" }).click();
+  await expect(page.getByText("20 жол · 5000 жол қаралды")).toBeVisible();
+  await run(page, "SELECT id, kind, amount FROM events WHERE id > 4980 ORDER BY id LIMIT 20");
+  await expect(page.getByText("20 жол · 20 жол қаралды")).toBeVisible();
+  await expect(objective(page, "WHERE id > ...")).toHaveAttribute("data-done", "true");
+  await nextStep(page);
+  await page.getByRole("button", { name: "Орындау" }).click();
+  await run(page, "INSERT INTO events (id, user_id, kind, amount) VALUES (5001, 1, 'buy', 100)");
+  await run(page, "SELECT id, kind FROM events ORDER BY id DESC LIMIT 20 OFFSET 20");
+  await expect(objective(page, "бір жазба қайталанды")).toHaveAttribute("data-done", "true");
+  await run(page, "SELECT id, kind FROM events WHERE id < 4981 ORDER BY id DESC LIMIT 20");
+  await expect(objective(page, "қайталану жоқ")).toHaveAttribute("data-done", "true");
 });

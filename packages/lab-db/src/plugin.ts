@@ -14,6 +14,10 @@ export interface QueryLog {
   /** "scan" / "index" per table in the plan. */
   access: string[];
   error?: string;
+  /** The statement, so lessons can tell which technique produced a result. */
+  sql?: string;
+  /** Values of an "id" column in the result, in order (first 50). */
+  ids?: number[];
 }
 
 export interface DbStats {
@@ -84,7 +88,7 @@ function runScript(s: DbLabState): DbLabState {
     session = r.session;
     last = r.result;
     lastSql = stmt;
-    const log: QueryLog = { kind: r.result.ok ? r.result.kind : "error", ok: r.result.ok, examined: r.result.examined, rows: r.result.rows.length, access: r.result.plan.map((p) => p.access), error: r.result.error };
+    const log: QueryLog = { kind: r.result.ok ? r.result.kind : "error", ok: r.result.ok, examined: r.result.examined, rows: r.result.rows.length, access: r.result.plan.map((p) => p.access), error: r.result.error, sql: stmt.slice(0, 300), ids: r.result.rows.map((x) => x.id).filter((v): v is number => typeof v === "number").slice(0, 50) };
     stats = { ...stats, queries: cap([...stats.queries, log]) };
     if (!r.result.ok) {
       const c = /(PRIMARY KEY|FOREIGN KEY|NOT NULL)/.exec(r.result.error ?? "")?.[1];

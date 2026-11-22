@@ -136,6 +136,8 @@ export interface Select {
   having?: Expr;
   orderBy: { e: Expr; desc: boolean }[];
   limit?: number;
+  /** Rows to skip before LIMIT starts counting (they are still read). */
+  offset?: number;
 }
 type Stmt =
   | Select
@@ -146,7 +148,7 @@ type Stmt =
   | { k: "begin" | "commit" | "rollback" }
   | { k: "explain"; q: Select };
 
-const KEYWORDS = new Set(["DISTINCT", "LEFT", "OUTER", "IN", "LIKE", "BETWEEN", "SELECT", "FROM", "WHERE", "JOIN", "INNER", "ON", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "LIMIT", "AND", "OR", "NOT", "AS", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "INDEX", "BEGIN", "COMMIT", "ROLLBACK", "EXPLAIN", "NULL", "IS"]);
+const KEYWORDS = new Set(["DISTINCT", "LEFT", "OUTER", "IN", "LIKE", "BETWEEN", "SELECT", "FROM", "WHERE", "JOIN", "INNER", "ON", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "LIMIT", "OFFSET", "AND", "OR", "NOT", "AS", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "INDEX", "BEGIN", "COMMIT", "ROLLBACK", "EXPLAIN", "NULL", "IS"]);
 
 class Parser {
   i = 0;
@@ -306,7 +308,14 @@ class Parser {
       this.i++;
       limit = t.v;
     }
-    return { k: "select", distinct, items, from, joins, where, groupBy, having, orderBy, limit };
+    let offset: number | undefined;
+    if (limit !== undefined && this.kw("OFFSET")) {
+      const t = this.peek();
+      if (t?.t !== "num") throw new Error("OFFSET-тен кейін сан керек");
+      this.i++;
+      offset = t.v;
+    }
+    return { k: "select", distinct, items, from, joins, where, groupBy, having, orderBy, limit, offset };
   }
   expr(): Expr {
     let a = this.and();
@@ -622,6 +631,23 @@ function indexable(where: Expr | undefined, alias: string, t: Table): { column: 
   return undefined;
 }
 
+/** `col > lit`-style bounds on `col` at the top level of ANDs: where an index seek can start. */
+function seekBound(where: Expr | undefined, alias: string, col: string): ((r: Row) => boolean) | undefined {
+  if (!where || where.k !== "bin") return undefined;
+  if (where.op === "AND") return seekBound(where.a, alias, col) ?? seekBound(where.b, alias, col);
+  if (![">", ">=", "<", "<="].includes(where.op)) return undefined;
+  const isCol = (e: Expr) => e.k === "col" && e.name === col && (!e.table || e.table === alias);
+  if (isCol(where.a) && where.b.k === "lit") {
+    const v = where.b.v;
+    const op = where.op;
+    return (r) => {
+      const d = cmp(r[col] ?? null, v);
+      return op === ">" ? d > 0 : op === ">=" ? d >= 0 : op === "<" ? d < 0 : d <= 0;
+    };
+  }
+  return undefined;
+}
+
 function runSelect(db: Db, q0: Select): Result {
   const plan: Plan[] = [];
   const sub = { n: 0 };
@@ -639,11 +665,31 @@ function runSelect(db: Db, q0: Select): Result {
   // Access path for the first table.
   const idx = q.joins.length === 0 ? indexable(q.where, q.from.alias, base) : indexable(q.where, q.from.alias, base);
   let baseRows = base.rows;
-  if (idx) {
+  // ORDER BY an indexed column with a LIMIT: walk the index in order, seek past a range bound
+  // without reading, and stop as soon as OFFSET + LIMIT rows have matched.
+  const ord = q.orderBy.length === 1 ? q.orderBy[0]! : undefined;
+  const ordCol = ord && ord.e.k === "col" && (!ord.e.table || ord.e.table === q.from.alias) && base.indexes.includes(ord.e.name) ? ord.e.name : undefined;
+  const walk = !!ordCol && q.limit !== undefined && q.joins.length === 0 && q.groupBy.length === 0 && !q.having && !q.distinct && !q.items.some((it) => hasAgg(it.expr));
+  if (walk && ordCol) {
+    const sorted = [...base.rows].sort((x, y) => (ord!.desc ? -1 : 1) * cmp(x[ordCol] ?? null, y[ordCol] ?? null));
+    const bound = seekBound(q.where, q.from.alias, ordCol);
+    let i = bound ? sorted.findIndex(bound) : 0;
+    if (i < 0) i = sorted.length;
+    const want = (q.offset ?? 0) + q.limit!;
+    const matched: Row[] = [];
+    let walked = 0;
+    for (; i < sorted.length && matched.length < want; i++) {
+      walked++;
+      if (!q.where || evalExpr(q.where, ctxOf(q.from.alias, sorted[i]!))) matched.push(sorted[i]!);
+    }
+    baseRows = matched;
+    plan.push({ table: base.name, access: "index", column: ordCol, rows: walked });
+    examined += walked;
+  } else if (idx) {
     baseRows = base.rows.filter((r) => r[idx.column] === idx.value);
     plan.push({ table: base.name, access: "index", column: idx.column, rows: baseRows.length });
   } else plan.push({ table: base.name, access: "scan", rows: base.rows.length });
-  examined += baseRows.length;
+  if (!walk) examined += baseRows.length;
   let ctxs: Ctx[] = baseRows.map((r) => ctxOf(q.from.alias, r));
 
   for (const j of q.joins) {
@@ -761,7 +807,8 @@ function runSelect(db: Db, q0: Select): Result {
       return true;
     });
   }
-  const rows = out.map((o) => o.row).slice(0, q.limit ?? undefined);
+  const skip = q.offset ?? 0;
+  const rows = out.map((o) => o.row).slice(skip, q.limit !== undefined ? skip + q.limit : undefined);
   return { ok: true, kind: "select", columns: [...new Set(columns)], rows, affected: 0, examined, plan };
 }
 

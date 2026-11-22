@@ -65,6 +65,18 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       sql(d, "SELECT s.name, s.city, c.title FROM enrollments e JOIN students s ON s.id = e.student_id JOIN courses c ON c.id = e.course_id");
     },
   },
+  "db-14-pagination": {
+    deep: (d) => {
+      sql(d, "SELECT id, kind, amount FROM events ORDER BY id LIMIT 20 OFFSET 4980");
+      sql(d, "SELECT id, kind, amount FROM events WHERE id > 4980 ORDER BY id LIMIT 20");
+    },
+    feed: (d) => {
+      sql(d, "SELECT id, kind FROM events ORDER BY id DESC LIMIT 20");
+      sql(d, "INSERT INTO events (id, user_id, kind, amount) VALUES (5001, 1, 'buy', 100)");
+      sql(d, "SELECT id, kind FROM events ORDER BY id DESC LIMIT 20 OFFSET 20");
+      sql(d, "SELECT id, kind FROM events WHERE id < 4981 ORDER BY id DESC LIMIT 20");
+    },
+  },
   "db-12-patterns": {
     distinct: (d) => sql(d, "SELECT DISTINCT city FROM students"),
     like: (d) => {
