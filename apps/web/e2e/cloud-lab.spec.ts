@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("cloud lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/cloud");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cloud & DevOps");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("lesson 1: reordering the Dockerfile makes rebuilds fast", async ({ page }) => {
@@ -76,4 +76,15 @@ test("Middle 12: least connections keeps p95 at 50 ms where round robin reaches 
   await page.getByRole("button", { name: "Сұраныстарды жіберу" }).click();
   await expect(result).toContainText("144 / 104 / 52");
   await expect(result).toContainText("50 мс");
+});
+
+test("Middle 13: immediate retries keep the service down; a circuit breaker cuts errors to 130", async ({ page }) => {
+  await page.goto("/labs/cloud/cloud-13-retries");
+  const r = page.getByRole("status", { name: "Қайталау нәтижесі" });
+  await page.getByRole("button", { name: "Бірден 3 рет" }).click();
+  await page.getByRole("button", { name: "60 секундты ойнату" }).click();
+  await expect(r).toContainText("ешқашан");
+  await page.getByRole("button", { name: "Circuit breaker" }).click();
+  await page.getByRole("button", { name: "60 секундты ойнату" }).click();
+  await expect(r).toContainText("Қате130");
 });

@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { runRetries, type RetryPolicy, type RetryRun } from "./retries";
 import { runLb, runProbes, runQueue, type LbAlgo, type LbResult, type ProbeResult, type ProbeScenario, type QueueResult } from "./middle-core";
 import {
   BAD_ORDER,
@@ -22,7 +23,7 @@ import {
   type Strategy,
 } from "./core";
 
-export type CloudMode = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb";
+export type CloudMode = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb" | "retries";
 
 export interface CloudStats {
   modes: CloudMode[];
@@ -40,6 +41,7 @@ export interface CloudStats {
   probeRuns: { scenario: ProbeScenario; readiness: boolean; liveness: boolean; errors: number; restarts: number; deadAtEnd: boolean }[];
   queueRuns: { consumers: number; limit: number | null; maxWait: number; dropped: number }[];
   lbRuns: { algo: LbAlgo; p95: number; slowShare: number }[];
+  retryRuns?: { policy: RetryPolicy; errors: number; recoveredAt: number | null; peakLoad: number }[];
 }
 
 export interface CloudLabState {
@@ -56,6 +58,7 @@ export interface CloudLabState {
   probes: { scenario: ProbeScenario; readiness: boolean; liveness: boolean; last: ProbeResult | null };
   queue: { consumers: number; limit: number | null; last: QueueResult | null };
   lb: { algo: LbAlgo; last: LbResult | null };
+  retries?: { policy: RetryPolicy; last: RetryRun | null };
   stats: CloudStats;
 }
 
@@ -82,7 +85,9 @@ export type CloudLabAction =
   | { type: "queue/set"; consumers?: number; limit?: number | null }
   | { type: "queue/run" }
   | { type: "lb/set"; algo: LbAlgo }
-  | { type: "lb/run" };
+  | { type: "lb/run" }
+  | { type: "retries/set"; policy: RetryPolicy }
+  | { type: "retries/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -122,7 +127,9 @@ export function initialCloudState(): CloudLabState {
       probeRuns: [],
       queueRuns: [],
       lbRuns: [],
+      retryRuns: [],
     },
+    retries: { policy: "none", last: null },
   };
 }
 
@@ -249,6 +256,13 @@ function reduce(s: CloudLabState, a: CloudLabAction): CloudLabState {
       const q = s.queue;
       const r = runQueue(q.consumers, q.limit);
       return { ...s, mode: "queue", queue: { ...q, last: r }, stats: { ...st, queueRuns: cap([...st.queueRuns, { consumers: q.consumers, limit: q.limit, maxWait: r.maxWait, dropped: r.dropped }]) } };
+    }
+    case "retries/set":
+      return ["none", "immediate", "backoff", "breaker"].includes(a.policy) ? { ...s, mode: "retries", retries: { policy: a.policy, last: null } } : s;
+    case "retries/run": {
+      const policy = s.retries?.policy ?? "none";
+      const r = runRetries(policy);
+      return { ...s, mode: "retries", retries: { policy, last: r }, stats: { ...st, retryRuns: cap([...(st.retryRuns ?? []), { policy, errors: r.errors, recoveredAt: r.recoveredAt, peakLoad: r.peakLoad }]) } };
     }
     case "lb/set":
       return { ...s, mode: "lb", lb: { algo: a.algo, last: null } };

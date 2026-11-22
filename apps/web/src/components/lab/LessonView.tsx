@@ -565,7 +565,7 @@ function NetLesson({ labId, lesson, nextLessonId, persist }: LessonProps<NetLabS
   );
 }
 
-const CLOUD_FOCI: CloudFocus[] = ["image", "cluster", "scale", "autoscale", "pipeline", "release", "availability", "incident", "probes", "queue", "lb"];
+const CLOUD_FOCI: CloudFocus[] = ["image", "cluster", "scale", "autoscale", "pipeline", "release", "availability", "incident", "probes", "queue", "lb", "retries"];
 
 function CloudLesson({ labId, lesson, nextLessonId, persist }: LessonProps<CloudLabState, CloudLabAction>) {
   const session = useLabSession(lesson, "cloud", { persist });

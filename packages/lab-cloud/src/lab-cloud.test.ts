@@ -131,6 +131,18 @@ const scripts: Record<string, Record<string, (d: D, tick: T) => void>> = {
     },
     backpressure: (d) => d({ type: "queue/run" }),
   },
+  "cloud-13-retries": {
+    storm: (d) => {
+      d({ type: "retries/run" });
+      d({ type: "retries/set", policy: "immediate" });
+      d({ type: "retries/run" });
+    },
+    breaker: (d) => {
+      d({ type: "retries/run" });
+      d({ type: "retries/set", policy: "breaker" });
+      d({ type: "retries/run" });
+    },
+  },
   "cloud-12-lb": {
     rr: (d) => {
       d({ type: "lb/run" });

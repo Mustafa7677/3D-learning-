@@ -18,7 +18,7 @@ import {
 } from "@inside-tech/lab-cloud";
 import type { CloudFocus } from "../scene/CloudScene";
 import styles from "./lab.module.css";
-import { LbSection, ProbesSection, QueueSection } from "./CloudMiddleSections";
+import { LbSection, ProbesSection, QueueSection, RetriesSection } from "./CloudMiddleSections";
 
 type D = (a: CloudLabAction) => void;
 const fmtMs = (v: number) => (Number.isFinite(v) ? `${v.toFixed(1)} мс` : "∞ (шамадан тыс)");
@@ -364,6 +364,7 @@ export function CloudControlPanel({ state, focus, dispatch, canUndo, onUndo }: {
       {focus === "probes" && <ProbesSection state={state} dispatch={dispatch} />}
       {focus === "queue" && <QueueSection state={state} dispatch={dispatch} />}
       {focus === "lb" && <LbSection state={state} dispatch={dispatch} />}
+      {focus === "retries" && <RetriesSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

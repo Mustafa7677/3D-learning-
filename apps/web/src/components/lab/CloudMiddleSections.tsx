@@ -1,6 +1,6 @@
 "use client";
 
-import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type ProbeScenario } from "@inside-tech/lab-cloud";
+import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type ProbeScenario, type RetryPolicy } from "@inside-tech/lab-cloud";
 import styles from "./lab.module.css";
 
 type D = (a: CloudLabAction) => void;
@@ -131,6 +131,48 @@ export function LbSection({ state, dispatch }: { state: CloudLabState; dispatch:
           <div>
             <span>p95</span>
             <strong>{last.p95} мс</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+const POLICIES: [RetryPolicy, string][] = [
+  ["none", "Қайталаусыз"],
+  ["immediate", "Бірден 3 рет"],
+  ["backoff", "Экспоненциалды кідіріс"],
+  ["breaker", "Circuit breaker"],
+];
+
+export function RetriesSection({ state, dispatch }: { state: CloudLabState; dispatch: D }) {
+  const r = state.retries ?? { policy: "none" as RetryPolicy, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Қызмет 10-30 с құлаған · сыйымдылығы 150/с</legend>
+      <div className={styles.row} role="group" aria-label="Қайталау саясаты">
+        {POLICIES.map(([p, label]) => (
+          <button key={p} type="button" className="btn" aria-pressed={r.policy === p} onClick={() => dispatch({ type: "retries/set", policy: p })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "retries/run" })}>
+        60 секундты ойнату
+      </button>
+      {r.last && (
+        <div className={styles.metrics} role="status" aria-label="Қайталау нәтижесі">
+          <div>
+            <span>Қате</span>
+            <strong>{r.last.errors}</strong>
+          </div>
+          <div>
+            <span>Ең көп жүктеме</span>
+            <strong>{r.last.peakLoad}/с</strong>
+          </div>
+          <div>
+            <span>Оралды</span>
+            <strong>{r.last.recoveredAt === null ? "ешқашан" : `${r.last.recoveredAt} с`}</strong>
           </div>
         </div>
       )}

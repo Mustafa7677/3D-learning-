@@ -1,7 +1,7 @@
 "use client";
 
 import { Color } from "three";
-import { LB_SERVERS, PROBE_SECONDS, type CloudLabState } from "@inside-tech/lab-cloud";
+import { CAPACITY, LB_SERVERS, PROBE_SECONDS, type CloudLabState } from "@inside-tech/lab-cloud";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -83,6 +83,37 @@ export function LbView({ state }: { state: CloudLabState }) {
         );
       })}
       {last && <Label text={`p95 ${last.p95} мс`} position={[0, 4.6, 0]} size={0.8} />}
+    </group>
+  );
+}
+
+export function RetriesView({ state }: { state: CloudLabState }) {
+  const last = state.retries?.last;
+  const w = 15 / 60;
+  const k = 4.5 / 400;
+  return (
+    <group>
+      {last?.timeline.map((x, t) => {
+        const h = Math.max(0.04, x.load * k);
+        return (
+          <mesh key={t} position={[-7.5 + t * w + w / 2, h / 2, 0]}>
+            <boxGeometry args={[w * 0.85, h, 0.8]} />
+            <meshStandardMaterial color={x.open ? OFF : x.failing ? BAD : OK} />
+          </mesh>
+        );
+      })}
+      <mesh position={[0, CAPACITY * k, -0.5]}>
+        <boxGeometry args={[15.2, 0.04, 0.04]} />
+        <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.5} />
+      </mesh>
+      <Label text="сыйымдылық 150/с" position={[8.6, CAPACITY * k, -0.5]} size={0.4} />
+      <mesh position={[-7.5 + 20 * w / 2 + 10 * w, 0.02, 1]}>
+        <boxGeometry args={[20 * w, 0.04, 0.3]} />
+        <meshStandardMaterial color={BAD} />
+      </mesh>
+      <Label text="құлау 10-30 с" position={[-7.5 + 20 * w, -0.4, 1.2]} size={0.4} />
+      <Label text={last ? `қате ${last.errors} · оралды: ${last.recoveredAt === null ? "ешқашан" : `${last.recoveredAt} с`}` : "60 секундты ойнат"} position={[0, 5, 0]} size={0.7} />
+      <Label text="баған: қызметке жүктеме · жасыл: сау · қызыл: құлаған · сұр: сақтандырғыш ашық" position={[0, 4.3, 0]} size={0.45} />
     </group>
   );
 }
