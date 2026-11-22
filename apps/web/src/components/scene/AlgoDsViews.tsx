@@ -120,3 +120,40 @@ export function DpView({ state }: { state: AlgoLabState }) {
     </group>
   );
 }
+
+export function UfView({ state }: { state: AlgoLabState }) {
+  const last = state.uf?.last;
+  if (!last) return <Label text="Біріктіріп, ізде" position={[0, 2, 0]} size={0.6} />;
+  const h = Math.max(1, last.height);
+  const sy = Math.min(0.42, 6 / h);
+  const pos = (i: number): [number, number, number] => [-6 + (i / 15) * 12, 0.4 + (h - last.depth[i]!) * sy, 0];
+  return (
+    <group>
+      {last.parent.map((p, i) => {
+        if (p === i) return null;
+        const a = pos(i);
+        const b = pos(p);
+        const mx = (a[0] + b[0]) / 2;
+        const my = (a[1] + b[1]) / 2;
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+        return (
+          <mesh key={`e${i}`} position={[mx, my, -0.05]} rotation={[0, 0, ang]}>
+            <boxGeometry args={[len, 0.05, 0.05]} />
+            <meshStandardMaterial color={new Color("#c9a24a")} />
+          </mesh>
+        );
+      })}
+      {last.parent.map((p, i) => (
+        <group key={i} position={pos(i)}>
+          <mesh>
+            <sphereGeometry args={[0.26, 16, 12]} />
+            <meshStandardMaterial color={p === i ? new Color("#c23b3b") : new Color("#3d5bd9")} />
+          </mesh>
+          <Label text={String(i)} position={[0, 0.45, 0]} size={0.3} />
+        </group>
+      ))}
+      <Label text={`биіктік ${last.height} · іздеу: ${last.firstPass}, сосын ${last.secondPass} секіріс`} position={[0, 0.9 + h * sy, 0]} size={0.5} />
+    </group>
+  );
+}

@@ -1,10 +1,11 @@
 import { DP_ITEMS, HASH_WORDS, HEAP_CALLS, LOAD_LIMIT, heapPop, heapPush, insertKey, knapsackGreedy, longestChain, lookupProbes, type DpPreset, type HashFn, type HashTable, type HeapOp } from "./ds";
+import { runUnionFind, type UfRun, type UfVariant } from "./uf";
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { GRAPHS, pathCost, pathTo, traceGraph, type GraphAlg, type GraphPreset, type GraphTrace } from "./graph";
 import { traceSearch, type Probe, type SearchKind } from "./search";
 import { applyOp, countSort, makeArray, traceSort, type ArrayPreset, type Pivot, type SortAlg, type SortOp } from "./sort";
 
-export type AlgoMode = "sort" | "search" | "graph" | "hash" | "heap" | "dp";
+export type AlgoMode = "sort" | "search" | "graph" | "hash" | "heap" | "dp" | "uf";
 
 /** Middle level: a hash table, a min-heap and the knapsack table. */
 export interface DsView {
@@ -87,6 +88,7 @@ export interface BenchPoint {
 }
 
 export interface AlgoStats {
+  ufRuns?: { variant: UfVariant; height: number; firstPass: number; secondPass: number }[];
   manualSortSteps: number;
   sortRuns: SortRun[];
   searches: { kind: SearchKind; n: number; sorted: boolean; target: number; probes: number; found: boolean; present: boolean }[];
@@ -106,11 +108,14 @@ export interface AlgoLabState {
   search: SearchView;
   graph: GraphView;
   ds: DsView;
+  uf?: { variant: UfVariant; last: UfRun | null };
   stats: AlgoStats;
 }
 
 export type AlgoLabAction =
   | { type: "mode/set"; mode: AlgoMode }
+  | { type: "uf/set"; variant: UfVariant }
+  | { type: "uf/run" }
   | { type: "speed/set"; speed: number }
   | { type: "sort/config"; alg?: SortAlg; pivot?: Pivot; preset?: ArrayPreset; n?: number }
   | { type: "sort/shuffle" }
@@ -454,6 +459,13 @@ function reduce(s: AlgoLabState, a: AlgoLabAction): AlgoLabState {
     }
     case "dp/finish":
       return { ...s, mode: "dp", ds: { ...s.ds, dp: { ...s.ds.dp, filled: dpCells(s.ds.dp.preset) } } };
+    case "uf/set":
+      return ["naive", "compress", "rank"].includes(a.variant) ? { ...s, mode: "uf", uf: { variant: a.variant, last: null } } : s;
+    case "uf/run": {
+      const variant = s.uf?.variant ?? "naive";
+      const r = runUnionFind(variant);
+      return { ...s, mode: "uf", uf: { variant, last: r }, stats: { ...s.stats, ufRuns: [...(s.stats.ufRuns ?? []), { variant, height: r.height, firstPass: r.firstPass, secondPass: r.secondPass }].slice(-40) } };
+    }
     case "dp/greedy": {
       const p = DP_ITEMS[s.ds.dp.preset];
       return { ...s, mode: "dp", ds: { ...s.ds, dp: { ...s.ds.dp, greedy: knapsackGreedy(p.items, p.capacity) } } };

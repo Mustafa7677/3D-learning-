@@ -14,6 +14,7 @@ import {
   type AlgoLabState,
   type DpPreset,
 } from "@inside-tech/lab-algo";
+import type { UfVariant } from "@inside-tech/lab-algo";
 import styles from "./lab.module.css";
 
 type D = (a: AlgoLabAction) => void;
@@ -211,6 +212,47 @@ export function DpSection({ state, dispatch }: { state: AlgoLabState; dispatch: 
       <button type="button" className="btn" onClick={() => dispatch({ type: "dp/reset" })}>
         Қайта бастау
       </button>
+    </fieldset>
+  );
+}
+
+const UF_VARIANTS: [UfVariant, string][] = [
+  ["naive", "Аңғал біріктіру"],
+  ["compress", "Жолды сығымдау"],
+  ["rank", "Union by rank"],
+];
+
+export function UfSection({ state, dispatch }: { state: AlgoLabState; dispatch: D }) {
+  const u = state.uf ?? { variant: "naive" as UfVariant, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Union-Find · 16 түйін, union(0,1), union(1,2), ... union(14,15)</legend>
+      <div className={styles.row} role="group" aria-label="Нұсқа">
+        {UF_VARIANTS.map(([v, label]) => (
+          <button key={v} type="button" className="btn" aria-pressed={u.variant === v} onClick={() => dispatch({ type: "uf/set", variant: v })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "uf/run" })}>
+        Біріктіріп, бәрін екі рет іздеу
+      </button>
+      {u.last && (
+        <div className={styles.metrics} role="status" aria-label="Union-Find нәтижесі">
+          <div>
+            <span>Биіктік</span>
+            <strong>{u.last.height}</strong>
+          </div>
+          <div>
+            <span>1-айналым</span>
+            <strong>{u.last.firstPass}</strong>
+          </div>
+          <div>
+            <span>2-айналым</span>
+            <strong>{u.last.secondPass}</strong>
+          </div>
+        </div>
+      )}
     </fieldset>
   );
 }

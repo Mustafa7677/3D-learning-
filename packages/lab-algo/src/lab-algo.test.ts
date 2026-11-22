@@ -104,6 +104,14 @@ const scripts: Record<string, Record<string, (d: D, s: () => AlgoLabState) => vo
       for (let i = 0; i < 9; i++) d({ type: "heap/pop" });
     },
   },
+  "algo-13-unionfind": {
+    chain: (d) => d({ type: "uf/run" }),
+    flat: (d) => {
+      d({ type: "uf/run" });
+      d({ type: "uf/set", variant: "rank" });
+      d({ type: "uf/run" });
+    },
+  },
   "algo-12-dp": {
     table: (d) => {
       for (let i = 0; i < 10; i++) d({ type: "dp/step" });

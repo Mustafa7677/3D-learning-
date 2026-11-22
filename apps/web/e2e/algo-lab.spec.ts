@@ -12,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("algorithms lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/algo");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Algorithms");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("Middle 10: anagrams pile up under the sum hash; the polynomial hash and growth fix it", async ({ page }) => {
@@ -110,4 +110,14 @@ test("lesson 8: Dijkstra finds the cheapest route", async ({ page }) => {
   await page.getByRole("button", { name: "Соңына дейін" }).click();
   await expect(page.getByText("Жол: A → B → D → F → H · қабырға: 4 · құны: 8")).toBeVisible();
   await expect(objective(page, "құны 8")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 13: naive unions grow a chain of 15; union by rank keeps it at height 1", async ({ page }) => {
+  await page.goto("/labs/algo/algo-13-unionfind");
+  const r = page.getByRole("status", { name: "Union-Find нәтижесі" });
+  await page.getByRole("button", { name: "Біріктіріп, бәрін екі рет іздеу" }).click();
+  await expect(r).toContainText("Биіктік15");
+  await page.getByRole("button", { name: "Union by rank" }).click();
+  await page.getByRole("button", { name: "Біріктіріп, бәрін екі рет іздеу" }).click();
+  await expect(r).toContainText("Биіктік1");
 });
