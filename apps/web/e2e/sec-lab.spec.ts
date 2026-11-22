@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("cybersecurity lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/sec");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cybersecurity");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("Middle 10: ECB keeps the picture's 10 distinct blocks, CBC makes all 64 different", async ({ page }) => {
@@ -94,4 +94,15 @@ test("Middle 13: a missing intermediate breaks the chain; a tampered certificate
   await page.getByRole("button", { name: "Сайтқа қосылу" }).click();
   await expect(verdict).toContainText("ERR_CERT_AUTHORITY_INVALID");
   await expect(objective(page, "аралық сертификатты жібермесін")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 14: without CSP the injected scripts run; a nonce policy keeps the site and stops them", async ({ page }) => {
+  await page.goto("/labs/sec/sec-14-csp");
+  const list = page.getByRole("status", { name: "Скрипттер" });
+  await page.getByRole("button", { name: "Бетті ашу" }).click();
+  await expect(list.locator("li", { hasText: "шабуыл жүрді" })).toHaveCount(3);
+  await page.getByRole("button", { name: "'self' + nonce" }).click();
+  await page.getByRole("button", { name: "Бетті ашу" }).click();
+  await expect(list.locator("li", { hasText: "шабуыл бұғатталды" })).toHaveCount(3);
+  await expect(list.locator("li", { hasText: "✓ жүрді" })).toHaveCount(2);
 });

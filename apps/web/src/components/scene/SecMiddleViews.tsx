@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Color } from "three";
-import { BLOCK, IMG, ROOT, picture, scenarioChain, type SecLabState } from "@inside-tech/lab-sec";
+import { PAGE_SCRIPTS, POLICY_HEADER, BLOCK, IMG, ROOT, picture, scenarioChain, type SecLabState } from "@inside-tech/lab-sec";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -156,6 +156,35 @@ export function CertsView({ state }: { state: SecLabState }) {
         );
       })}
       <Label text={c.last ? (c.last.ok ? "Тізбек түбірге жетті: сенімді" : "Тізбек үзілді: сенуге болмайды") : "Сайтқа қосыл"} position={[0, 0.6 + plaques.length * 1.6, 0]} size={0.55} />
+    </group>
+  );
+}
+
+export function CspView({ state }: { state: SecLabState }) {
+  const c = state.csp ?? { policy: "none" as const, ran: null };
+  return (
+    <group>
+      {c.policy !== "none" && (
+        <mesh position={[0, 1.2, 1.6]}>
+          <boxGeometry args={[12, 2.4, 0.08]} />
+          <meshStandardMaterial color={C1} transparent opacity={0.25} emissive={C1} emissiveIntensity={0.3} />
+        </mesh>
+      )}
+      <Label text={POLICY_HEADER[c.policy]} position={[0, 3, 1.6]} size={0.42} />
+      {PAGE_SCRIPTS.map((p, i) => {
+        const ran = c.ran?.includes(p.id);
+        const color = c.ran === null ? OFF : ran ? (p.legit ? OK : BAD) : OFF;
+        return (
+          <group key={p.id} position={[-4.8 + i * 2.4, 0, 0]}>
+            <mesh position={[0, ran ? 0.9 : 0.35, 0]}>
+              <boxGeometry args={[1.8, ran ? 1.8 : 0.7, 1.2]} />
+              <meshStandardMaterial color={color} emissive={ran && !p.legit ? BAD : new Color("#000")} emissiveIntensity={ran && !p.legit ? 0.4 : 0} />
+            </mesh>
+            <Label text={p.legit ? "сайттікі" : "шабуыл"} position={[0, -0.35, 0.8]} size={0.36} />
+            <Label text={p.kind === "external" ? (p.src?.startsWith("/") ? "/app.js" : "evil.kz") : p.kind === "inline" ? (p.nonce ? "inline + nonce" : "inline") : "onerror"} position={[0, -0.8, 0.8]} size={0.3} />
+          </group>
+        );
+      })}
     </group>
   );
 }

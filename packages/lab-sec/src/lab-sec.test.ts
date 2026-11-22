@@ -165,6 +165,15 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "mac/send", tamper: true, recompute: true });
     },
   },
+  "sec-14-csp": {
+    inject: (d) => d({ type: "csp/load" }),
+    policy: (d) => {
+      d({ type: "csp/policy", policy: "self" });
+      d({ type: "csp/load" });
+      d({ type: "csp/policy", policy: "nonce" });
+      d({ type: "csp/load" });
+    },
+  },
   "sec-13-certs": {
     chain: (d) => {
       d({ type: "certs/connect" });

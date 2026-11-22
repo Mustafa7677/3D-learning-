@@ -2,6 +2,7 @@ import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { crack, login, strength, isXss, type LoginResult, type Storage } from "./attacks";
 import { bitDistance, caesar, modPow, rsaKeys, sha256, utf8, xorBytes, type RsaKeys } from "./crypto";
 import { CHALLENGES, type ChallengeId } from "./text";
+import { evaluateCsp, type Policy } from "./csp";
 import { FAULTS, scenarioChain, verifyChain, type CertError, type Fault, type Verdict } from "./certs";
 import {
   BLOCK_KEY,
@@ -21,7 +22,7 @@ import {
   type MacScheme,
 } from "./middle-core";
 
-export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs";
+export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs" | "csp";
 
 export interface SecStats {
   modes: SecMode[];
@@ -50,6 +51,7 @@ export interface SecStats {
   dhRuns: { p: number; match: boolean; mitm: boolean; signed: boolean; aborted: boolean }[];
   eveRuns: { p: number; found: boolean; tries: number }[];
   certRuns?: { fault: Fault; ok: boolean; error: CertError }[];
+  cspRuns?: { policy: Policy; attacks: number; brokenLegit: number }[];
 }
 
 export interface SecLabState {
@@ -64,6 +66,7 @@ export interface SecLabState {
   mac: { scheme: MacScheme; last: Delivery | null };
   dh: { big: boolean; a: number; b: number; mitm: boolean; signed: boolean; last: DhExchange | null; eve: { p: number; found: number | null; tries: number } | null };
   certs?: { fault: Fault; last: Verdict | null };
+  csp?: { policy: Policy; ran: string[] | null };
   stats: SecStats;
 }
 
@@ -98,7 +101,9 @@ export type SecLabAction =
   | { type: "dh/exchange" }
   | { type: "dh/eve" }
   | { type: "certs/fault"; fault: Fault }
-  | { type: "certs/connect" };
+  | { type: "certs/connect" }
+  | { type: "csp/policy"; policy: Policy }
+  | { type: "csp/load" };
 
 const uniq = <T>(xs: T[], x: T, max = 60) => (xs.includes(x) ? xs : [...xs, x].slice(-max));
 const mod = (k: number, n: number) => ((Math.round(k) % n) + n) % n;
@@ -170,7 +175,9 @@ export function initialSecState(): SecLabState {
       dhRuns: [],
       eveRuns: [],
       certRuns: [],
+      cspRuns: [],
     },
+    csp: { policy: "none", ran: null },
     certs: { fault: "none", last: null },
   };
 }
@@ -326,6 +333,13 @@ function reduce(s: SecLabState, a: SecLabAction): SecLabState {
         dh: { ...d, last: x },
         stats: { ...st, dhRuns: cap([...st.dhRuns, { p, match: !x.aborted && x.alice === x.bob, mitm: d.mitm, signed: d.signed, aborted: x.aborted }]) },
       };
+    }
+    case "csp/policy":
+      return ["none", "self", "nonce"].includes(a.policy) ? { ...s, mode: "csp", csp: { policy: a.policy, ran: null } } : s;
+    case "csp/load": {
+      const policy = s.csp?.policy ?? "none";
+      const r = evaluateCsp(policy);
+      return { ...s, mode: "csp", csp: { policy, ran: r.ran }, stats: { ...st, cspRuns: cap([...(st.cspRuns ?? []), { policy, attacks: r.attacks, brokenLegit: r.brokenLegit }]) } };
     }
     case "certs/fault":
       return FAULTS.includes(a.fault) ? { ...s, mode: "certs", certs: { fault: a.fault, last: null } } : s;

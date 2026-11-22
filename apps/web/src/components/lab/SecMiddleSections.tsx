@@ -1,6 +1,6 @@
 "use client";
 
-import { DH_LARGE, DH_SMALL, FAULTS, FORGED, PAYMENT, type Fault, type MacScheme, type SecLabAction, type SecLabState } from "@inside-tech/lab-sec";
+import { PAGE_SCRIPTS, POLICY_HEADER, type Policy, DH_LARGE, DH_SMALL, FAULTS, FORGED, PAYMENT, type Fault, type MacScheme, type SecLabAction, type SecLabState } from "@inside-tech/lab-sec";
 import styles from "./lab.module.css";
 
 type D = (a: SecLabAction) => void;
@@ -239,6 +239,46 @@ export function CertsSection({ state, dispatch }: { state: SecLabState; dispatch
             ))}
           </ol>
         </div>
+      )}
+    </fieldset>
+  );
+}
+
+const POLICIES: [Policy, string][] = [
+  ["none", "CSP жоқ"],
+  ["self", "script-src 'self'"],
+  ["nonce", "'self' + nonce"],
+];
+
+export function CspSection({ state, dispatch }: { state: SecLabState; dispatch: D }) {
+  const c = state.csp ?? { policy: "none" as Policy, ran: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Бетте 5 скрипт: 2 сайттікі, 3 шабуылшыныкі</legend>
+      <div className={styles.row} role="group" aria-label="Саясат">
+        {POLICIES.map(([p, label]) => (
+          <button key={p} type="button" className="btn" aria-pressed={c.policy === p} onClick={() => dispatch({ type: "csp/policy", policy: p })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className={styles.small}>
+        <code>{POLICY_HEADER[c.policy]}</code>
+      </p>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "csp/load" })}>
+        Бетті ашу
+      </button>
+      {c.ran && (
+        <ol className={styles.notes} role="status" aria-label="Скрипттер">
+          {PAGE_SCRIPTS.map((p) => {
+            const ran = c.ran!.includes(p.id);
+            return (
+              <li key={p.id}>
+                {ran ? (p.legit ? "✓ жүрді" : "⚠ шабуыл жүрді") : p.legit ? "✗ сайттың коды бұғатталды" : "✓ шабуыл бұғатталды"}: <code>{p.label}</code>
+              </li>
+            );
+          })}
+        </ol>
       )}
     </fieldset>
   );

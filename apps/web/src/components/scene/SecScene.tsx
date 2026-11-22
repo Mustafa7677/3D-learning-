@@ -8,10 +8,10 @@ import { A, USERS, attempt, bitDistance, cipherText, frequencies, sha256, stored
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
-import { BlocksView, CertsView, DhView, MacView } from "./SecMiddleViews";
+import { BlocksView, CertsView, CspView, DhView, MacView } from "./SecMiddleViews";
 import { C0, C1 } from "./palette";
 
-export type SecFocus = "cipher" | "xor" | "hash" | "passwords" | "strength" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs";
+export type SecFocus = "cipher" | "xor" | "hash" | "passwords" | "strength" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs" | "csp";
 
 const OFF = new Color("#c9d0de");
 const OK = new Color("#17895c");
@@ -232,6 +232,7 @@ function Contents({ state, focus }: { state: SecLabState; focus: SecFocus }) {
     mac: { w: 13, h: 5, t: [0, 0.5, 0.5], d: [0, 0.5, 1] },
     dh: { w: 13, h: 6.5, t: [0, 1, 0.8], d: [0, 0.6, 1] },
     certs: { w: 8, h: 7, t: [0, 2.6, 0], d: [0, 0.25, 1] },
+    csp: { w: 13, h: 5, t: [0, 1, 0.5], d: [0, 0.5, 1] },
   };
   const f = frame[focus];
   return (
@@ -251,6 +252,7 @@ function Contents({ state, focus }: { state: SecLabState; focus: SecFocus }) {
       {focus === "mac" && <MacView state={state} />}
       {focus === "dh" && <DhView state={state} />}
       {focus === "certs" && <CertsView state={state} />}
+      {focus === "csp" && <CspView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>
