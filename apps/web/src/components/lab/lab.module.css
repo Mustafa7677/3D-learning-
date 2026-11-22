@@ -1533,3 +1533,20 @@ div.walkSteps {
   margin: 0 0 8px;
   font: 15px/1.55 var(--font-serif);
 }
+
+.calibTable {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: var(--muted);
+}
+.calibTable th,
+.calibTable td {
+  padding: 4px 6px;
+  text-align: right;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+.calibTable th {
+  font-weight: 600;
+}

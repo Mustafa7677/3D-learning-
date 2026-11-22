@@ -1,14 +1,16 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { accuracy, driftScore, falseAlarms, train, weekData } from "./drift";
+import { TEMPERATURES, runCalib, type CalibRun } from "./calib";
 import { runFeature, runSplit, type FeatureRun, type DataSplit, type SplitRun } from "./leak";
 import { KERNELS, confusion, convolve, edgeResponse, optimize, patients, squareImage, type Confusion, type KernelPreset, type OptRun, type Optimizer } from "./core";
 
-export type OptimMode = "optim" | "metrics" | "conv" | "drift" | "leak";
+export type OptimMode = "optim" | "metrics" | "conv" | "drift" | "leak" | "calib";
 
 export interface OptimStats {
   optimRuns: { opt: Optimizer; lr: number; steps: number | null; diverged: boolean }[];
   metricRuns: { trivial: boolean; threshold: number; accuracy: number; precision: number; recall: number }[];
   convRuns: { preset: KernelPreset | null; vertical: number; horizontal: number; flat: number }[];
+  calibRuns?: { temperature: number; accuracy: number; ece: number }[];
   leakRuns?: ({ kind: "feature"; useLeak: boolean; test: number; production: number } | { kind: "split"; split: DataSplit; test: number; fresh: number })[];
   driftRuns?: { week: number; threshold: number; trainedWeek: number; accuracy: number; falseAlarms: number; drift: number }[];
 }
@@ -19,6 +21,7 @@ export interface OptimLabState {
   metrics: { trivial: boolean; threshold: number; last: Confusion | null };
   conv: { kernel: number[]; preset: KernelPreset | null; output: number[] | null };
   drift?: { week: number; threshold: number; trainedWeek: number };
+  calib?: { temperature: number; last: CalibRun | null };
   leak?: { useLeak: boolean; split: DataSplit; feature: FeatureRun | null; splitRun: SplitRun | null };
   stats: OptimStats;
 }
@@ -37,7 +40,9 @@ export type OptimLabAction =
   | { type: "drift/retrain" }
   | { type: "leak/set"; useLeak?: boolean; split?: DataSplit }
   | { type: "leak/train" }
-  | { type: "leak/split" };
+  | { type: "leak/split" }
+  | { type: "calib/set"; temperature: number }
+  | { type: "calib/run" };
 
 export const LRS = [0.05, 0.1, 0.3, 0.45, 0.55];
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -109,6 +114,13 @@ function reduce(s: OptimLabState, a: OptimLabAction): OptimLabState {
       const l = s.leak ?? { useLeak: true, split: "rows" as DataSplit, feature: null, splitRun: null };
       const r = runSplit(l.split);
       return { ...s, mode: "leak", leak: { ...l, splitRun: r }, stats: { ...st, leakRuns: cap([...(st.leakRuns ?? []), { kind: "split" as const, split: r.split, test: r.test, fresh: r.fresh }]) } };
+    }
+    case "calib/set":
+      return TEMPERATURES.includes(a.temperature) ? { ...s, mode: "calib", calib: { temperature: a.temperature, last: null } } : s;
+    case "calib/run": {
+      const temperature = s.calib?.temperature ?? 1;
+      const r = runCalib(temperature);
+      return { ...s, mode: "calib", calib: { temperature, last: r }, stats: { ...st, calibRuns: cap([...(st.calibRuns ?? []), { temperature, accuracy: r.accuracy, ece: r.ece }]) } };
     }
     case "conv/apply": {
       const out = convolve(squareImage(), s.conv.kernel);

@@ -1,10 +1,10 @@
 "use client";
 
-import { LRS, OPT_STEPS, type KernelPreset, type Optimizer, type OptimLabAction, type OptimLabState } from "@inside-tech/lab-ai";
+import { LRS, OPT_STEPS, TEMPERATURES, type KernelPreset, type Optimizer, type OptimLabAction, type OptimLabState } from "@inside-tech/lab-ai";
 import styles from "./lab.module.css";
 
 type D = (a: OptimLabAction) => void;
-export type OptimFocus = "optim" | "metrics" | "conv" | "drift" | "leak";
+export type OptimFocus = "optim" | "metrics" | "conv" | "drift" | "leak" | "calib";
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 function OptimSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
@@ -192,6 +192,59 @@ function DriftSection({ state, dispatch }: { state: OptimLabState; dispatch: D }
   );
 }
 
+function CalibSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
+  const c = state.calib ?? { temperature: 1, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Классификатор · 2000 тексеру мысалы · p = σ(logit / T)</legend>
+      <div className={styles.row} role="group" aria-label="Температура">
+        {TEMPERATURES.map((t) => (
+          <button key={t} type="button" className="btn" aria-pressed={c.temperature === t} onClick={() => dispatch({ type: "calib/set", temperature: t })}>
+            T = {t}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "calib/run" })}>
+        Сенімділікті тексеру
+      </button>
+      {c.last && (
+        <>
+          <div className={styles.metrics} role="status" aria-label="Калибровка нәтижесі">
+            <div>
+              <span>Дәлдік</span>
+              <strong>{pct(c.last.accuracy)}</strong>
+            </div>
+            <div>
+              <span>ECE</span>
+              <strong>{c.last.ece.toFixed(3)}</strong>
+            </div>
+          </div>
+          <table className={styles.calibTable} aria-label="Сенімділік кестесі">
+            <thead>
+              <tr>
+                <th scope="col">Айтқаны</th>
+                <th scope="col">Шындығы</th>
+                <th scope="col">Мысал</th>
+              </tr>
+            </thead>
+            <tbody>
+              {c.last.bins
+                .filter((b) => b.count > 0)
+                .map((b) => (
+                  <tr key={b.confidence}>
+                    <td>{pct(b.confidence)}</td>
+                    <td>{pct(b.accuracy)}</td>
+                    <td>{b.count}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </fieldset>
+  );
+}
+
 function LeakSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
   const l = state.leak ?? { useLeak: true, split: "rows" as const, feature: null, splitRun: null };
   return (
@@ -267,6 +320,7 @@ export function OptimControlPanel({ state, focus, dispatch, canUndo, onUndo }: {
       {focus === "conv" && <ConvSection state={state} dispatch={dispatch} />}
       {focus === "drift" && <DriftSection state={state} dispatch={dispatch} />}
       {focus === "leak" && <LeakSection state={state} dispatch={dispatch} />}
+      {focus === "calib" && <CalibSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

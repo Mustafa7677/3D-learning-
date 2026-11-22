@@ -71,3 +71,16 @@ test("Middle 14: a leaky feature scores 98% and drops to 59%; a patient split te
   await page.getByRole("button", { name: "Бөліп, тексеру" }).click();
   await expect(sp).toContainText("Ортақ жазба0");
 });
+
+test("Middle 15: the raw model claims 99% and is right 86%; T = 3 calibrates without changing accuracy", async ({ page }) => {
+  await page.goto("/labs/ai/ai-15-calibration");
+  const r = page.getByRole("status", { name: "Калибровка нәтижесі" });
+  const go = page.getByRole("button", { name: "Сенімділікті тексеру" });
+  await go.click();
+  await expect(r).toContainText("ECE0.128");
+  await expect(page.getByRole("table", { name: "Сенімділік кестесі" })).toContainText("99%86%");
+  await page.getByRole("button", { name: "T = 3" }).click();
+  await go.click();
+  await expect(r).toContainText("Дәлдік79%");
+  await expect(r).toContainText("ECE0.011");
+});

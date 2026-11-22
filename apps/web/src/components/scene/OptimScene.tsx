@@ -209,6 +209,36 @@ function Gauge({ x, title, a, b, la, lb }: { x: number; title: string; a: number
   );
 }
 
+function CalibView({ state }: { state: OptimLabState }) {
+  const last = state.calib?.last;
+  const s = 6;
+  const x = (p: number) => -3 + (p - 0.5) * 2 * s;
+  return (
+    <group>
+      <mesh position={[0, 3, -0.6]} rotation={[0, 0, Math.atan2(6, 6)]}>
+        <boxGeometry args={[Math.hypot(6, 6), 0.05, 0.05]} />
+        <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.5} />
+      </mesh>
+      {last?.bins.map((b, i) =>
+        b.count ? (
+          <group key={i}>
+            <mesh position={[x(0.55 + i * 0.1), (b.accuracy - 0.5) * s, 0]}>
+              <boxGeometry args={[1, Math.max(0.04, (b.accuracy - 0.5) * 2 * s), 0.8]} />
+              <meshStandardMaterial color={Math.abs(b.accuracy - b.confidence) > 0.05 ? BAD : OK} />
+            </mesh>
+            <Label text={`${Math.round(b.accuracy * 100)}%`} position={[x(0.55 + i * 0.1), (b.accuracy - 0.5) * 2 * s + 0.35, 0.5]} size={0.36} />
+          </group>
+        ) : null,
+      )}
+      {[0.5, 0.6, 0.7, 0.8, 0.9, 1].map((p) => (
+        <Label key={p} text={`${Math.round(p * 100)}%`} position={[x(p), -0.35, 0.6]} size={0.32} />
+      ))}
+      <Label text={last ? `T = ${last.temperature} · дәлдік ${Math.round(last.accuracy * 100)}% · ECE ${last.ece.toFixed(3)}` : "Сенімділікті тексер"} position={[0, 6.9, 0]} size={0.55} />
+      <Label text="баған: айтқан сенімі осы аралықтағылардың шын дәлдігі · сызық: мінсіз калибровка" position={[0, 6.35, 0]} size={0.38} />
+    </group>
+  );
+}
+
 function LeakView({ state }: { state: OptimLabState }) {
   const l = state.leak;
   return (
@@ -226,6 +256,7 @@ function Contents({ state, focus }: { state: OptimLabState; focus: OptimFocus })
     conv: { w: 14, h: 6, t: [0, 0.6, 0], d: [0, 1.3, 1] },
     drift: { w: 15, h: 5.5, t: [0, 1.8, 0], d: [0, 0.45, 1] },
     leak: { w: 12, h: 6, t: [0, 2.2, 0], d: [0, 0.35, 1] },
+    calib: { w: 11, h: 8, t: [0, 3, 0], d: [0, 0.2, 1] },
   };
   const f = frames[focus];
   return (
@@ -239,6 +270,7 @@ function Contents({ state, focus }: { state: OptimLabState; focus: OptimFocus })
       {focus === "conv" && <ConvView state={state} />}
       {focus === "drift" && <DriftView state={state} />}
       {focus === "leak" && <LeakView state={state} />}
+      {focus === "calib" && <CalibView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

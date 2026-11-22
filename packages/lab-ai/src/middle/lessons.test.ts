@@ -49,6 +49,19 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "metrics/evaluate" });
     },
   },
+  "ai-15-calibration": {
+    over: (d) => {
+      d({ type: "calib/run" });
+      d({ type: "calib/set", temperature: 2 });
+      d({ type: "calib/run" });
+    },
+    scale: (d) => {
+      d({ type: "calib/set", temperature: 3 });
+      d({ type: "calib/run" });
+      d({ type: "calib/set", temperature: 4 });
+      d({ type: "calib/run" });
+    },
+  },
   "ai-14-leakage": {
     future: (d) => {
       d({ type: "leak/train" });
