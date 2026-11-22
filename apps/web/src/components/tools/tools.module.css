@@ -1,0 +1,174 @@
+/* Оқу құралдары: a workshop wall. Each group has its own colour; cards lift when pointed at. */
+.page {
+  --text: #ece4cf;
+  --muted: rgb(236 228 207 / 0.66);
+  --card: #141b28;
+  --line: rgb(236 228 207 / 0.12);
+  --tone: #f0b54a;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 108px var(--gutter, 24px) 96px;
+  color: var(--text);
+}
+.head {
+  max-width: 760px;
+  margin-bottom: 30px;
+}
+.kicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #f0b54a;
+}
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(34px, 6vw, 60px);
+  line-height: 1.05;
+}
+.lede {
+  margin: 12px 0 0;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.55;
+  color: #d9ccae;
+}
+.waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 7px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1b1410;
+  background: #f0b54a;
+  border-radius: 999px;
+}
+.waiting i {
+  width: 8px;
+  height: 8px;
+  background: #1b1410;
+  border-radius: 50%;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+.group {
+  margin-bottom: 34px;
+}
+.group[data-tone="amber"] {
+  --tone: #f0b54a;
+}
+.group[data-tone="teal"] {
+  --tone: #5fd4c4;
+}
+.group[data-tone="ember"] {
+  --tone: #e0624f;
+}
+.group[data-tone="violet"] {
+  --tone: #9b8cff;
+}
+.group[data-tone="rose"] {
+  --tone: #f08bb4;
+}
+.groupHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--tone);
+}
+.groupHead h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 26px;
+}
+.groupHead p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.card {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  height: 100%;
+  padding: 18px 18px 16px;
+  color: var(--text);
+  text-decoration: none;
+  background: radial-gradient(110% 90% at 100% 0%, color-mix(in srgb, var(--tone) 14%, transparent), transparent 60%), var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--tone);
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--tone) 22%, transparent);
+}
+.glyph {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  font-size: 22px;
+  color: #0b0f17;
+  background: var(--tone);
+  border-radius: 12px;
+}
+.card strong {
+  font-family: var(--font-serif);
+  font-size: 21px;
+}
+.text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.why {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--tone);
+}
+.badge {
+  justify-self: start;
+  margin-top: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  background: rgb(255 255 255 / 0.06);
+  border-radius: 999px;
+}
+.badge[data-hot] {
+  color: #0b0f17;
+  background: var(--tone);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .waiting i {
+    transition: none;
+    animation: none;
+  }
+}

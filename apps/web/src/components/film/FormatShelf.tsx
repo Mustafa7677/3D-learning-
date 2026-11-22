@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/journey", kind: "САЯХАТ", title: "Бір басудың 185 миллисекунды", text: "Enter басқаннан бет ашылғанға дейін: он курс бір сұраныстың ішінде.", mark: "07" },
   { href: "/problems", kind: "ЕСЕП", title: "Есептер залы", text: "Қиын есепті маман фильммен талдайды, ұқсасын өзің шығарасың. Күн сайын бір есеп.", mark: "08" },
   { href: "/tactics", kind: "ТАКТИКА", title: "Тактика алаңы", text: "Векторлық навигатор мен функция мергені: алдымен жоспар, сосын әрекет.", mark: "09" },
+  { href: "/learn", kind: "КОМИКС-КУРС", title: "Қалай оқу керек?", text: "Жеті эпизод: оқу туралы мифтер мен шындық. Нұрай, Мустафа және Ұстаз тексереді.", mark: "10" },
 ];
 
 export function FormatShelf() {
@@ -22,6 +23,9 @@ export function FormatShelf() {
         <h2 id="shelf-title" className={styles.h2}>
           Сабақтан басқа да жол бар.
         </h2>
+        <Link href="/tools" className={styles.shelfAll}>
+          Барлық оқу құралдары →
+        </Link>
       </div>
       <ul className={styles.shelfList}>
         {ITEMS.map((x) => (

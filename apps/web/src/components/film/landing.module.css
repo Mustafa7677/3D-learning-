@@ -1210,3 +1210,14 @@
     transition: none;
   }
 }
+
+.shelfAll {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: 700;
+  color: #f0b54a;
+  text-decoration: none;
+}
+.shelfAll:hover {
+  text-decoration: underline;
+}

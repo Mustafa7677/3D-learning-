@@ -96,15 +96,17 @@ export function SolutionFilmPlayer({
         .then(() => {
           // Left the cinema before the browser said yes: do not stay in full screen.
           if (left) void document.exitFullscreen?.().catch(() => undefined);
-          else wentFull = true;
         })
         .catch(() => undefined);
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setCinema(false);
     };
+    // In real full screen the browser takes Esc itself and the page gets no key: leaving full
+    // screen is then the signal. Track it from the events, not from the promise's timing.
     const onFull = () => {
-      if (wentFull && !document.fullscreenElement) setCinema(false);
+      if (document.fullscreenElement) wentFull = true;
+      else if (wentFull) setCinema(false);
     };
     window.addEventListener("keydown", onKey);
     document.addEventListener("fullscreenchange", onFull);

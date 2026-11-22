@@ -675,6 +675,10 @@
   z-index: 30;
   display: grid;
   min-width: 180px;
+  /* The header is fixed: a long menu scrolls inside itself instead of running off a phone. */
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 6px;
   border-radius: 12px;
   background: #17233b;
@@ -1035,4 +1039,10 @@
   background: #f0b54a;
   border-radius: 50%;
   box-shadow: 0 0 8px rgb(240 181 74 / 0.8);
+}
+
+.toolsAll {
+  font-weight: 700;
+  color: #f0b54a !important;
+  border-bottom: 1px solid rgb(240 181 74 / 0.3);
 }

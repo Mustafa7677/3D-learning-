@@ -46,6 +46,10 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
         <details className={styles.tools}>
           <summary>Құралдар</summary>
           <div className={styles.toolsMenu}>
+            <Link href="/tools" className={styles.toolsAll}>
+              Барлық оқу құралдары →
+            </Link>
+            <Link href="/learn">Қалай оқу керек?</Link>
             <Link href="/mission" className={styles.narrowOnly}>
               Миссия
             </Link>
