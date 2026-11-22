@@ -1,6 +1,6 @@
 "use client";
 
-import { MISS_PENALTY, PIPE_PROGRAM, canSwap, type ArchLabAction, type ArchLabState, type AssocPattern, type BranchPattern, type PipeMode, type Predictor } from "@inside-tech/lab-arch";
+import { WALK_CYCLES, splitAddress, type TlbPattern, MISS_PENALTY, PIPE_PROGRAM, canSwap, type ArchLabAction, type ArchLabState, type AssocPattern, type BranchPattern, type PipeMode, type Predictor } from "@inside-tech/lab-arch";
 import styles from "./lab.module.css";
 
 type D = (a: ArchLabAction) => void;
@@ -168,6 +168,59 @@ export function AssocSection({ state, dispatch }: { state: ArchLabState; dispatc
           </div>
         </div>
       )}
+    </fieldset>
+  );
+}
+
+const TLB_PATTERNS: [TlbPattern, string][] = [
+  ["sequential", "Тізбекті (32 КБ)"],
+  ["random-few", "Төрт бетпен"],
+  ["stride", "Сегіз бетті кезектесіп"],
+];
+
+export function TlbSection({ state, dispatch }: { state: ArchLabState; dispatch: D }) {
+  const t = state.tlb ?? { pattern: "sequential" as TlbPattern, huge: false, last: null };
+  const first = t.last?.trace[0];
+  return (
+    <fieldset className={styles.group}>
+      <legend>TLB · 4 жазба, miss = {WALK_CYCLES} такт</legend>
+      <div className={styles.row} role="group" aria-label="Оқу реті">
+        {TLB_PATTERNS.map(([p, label]) => (
+          <button key={p} type="button" className="btn" aria-pressed={t.pattern === p} onClick={() => dispatch({ type: "tlb/set", pattern: p })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <label className={styles.row}>
+        <input type="checkbox" checked={t.huge} onChange={(e) => dispatch({ type: "tlb/set", huge: e.target.checked })} /> Үлкен беттер (2 МБ)
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "tlb/run" })}>
+        64 рет оқу
+      </button>
+      {t.last && (
+        <div role="status" aria-label="TLB нәтижесі">
+          <div className={styles.metrics}>
+            <div>
+              <span>Hit</span>
+              <strong>{t.last.hits}</strong>
+            </div>
+            <div>
+              <span>Miss</span>
+              <strong>{t.last.misses}</strong>
+            </div>
+            <div>
+              <span>Такт</span>
+              <strong>{t.last.cycles}</strong>
+            </div>
+          </div>
+          {first && (
+            <p className={styles.small}>
+              Бірінші адрес 0x{first.addr.toString(16)}: бет {first.vpn} · ығысу {first.offset}
+            </p>
+          )}
+        </div>
+      )}
+      <p className={styles.small}>Мысал: 0x12345 → бет {splitAddress(0x12345).vpn}, ығысу {splitAddress(0x12345).offset}.</p>
     </fieldset>
   );
 }

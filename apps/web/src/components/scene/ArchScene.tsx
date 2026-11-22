@@ -7,10 +7,10 @@ import { CIRCUITS, COLS, MEM_SIZE, ROWS, cacheTrace, evaluate, hex, toBits, toSi
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
-import { AssocView, BranchView, PipeView } from "./ArchMiddleViews";
+import { AssocView, BranchView, PipeView, TlbView } from "./ArchMiddleViews";
 import { C0, C1 } from "./palette";
 
-export type ArchFocus = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc";
+export type ArchFocus = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb";
 
 const OFF = new Color("#c9d0de");
 const ON = C1;
@@ -215,6 +215,7 @@ function Contents({ state, focus }: { state: ArchLabState; focus: ArchFocus }) {
     pipe: { w: 16, h: 7, t: [0, 0, 0], d: [0, 1.5, 1] },
     branch: { w: 14, h: 5, t: [0, 0.6, 0], d: [0, 1.1, 1] },
     assoc: { w: 14, h: 7, t: [0, 0, 0.2], d: [0, 1.5, 1] },
+    tlb: { w: 14, h: 6, t: [0, 0.6, 0.3], d: [0, 1.1, 1] },
   };
   const f = frame[focus];
   return (
@@ -231,6 +232,7 @@ function Contents({ state, focus }: { state: ArchLabState; focus: ArchFocus }) {
       {focus === "pipe" && <PipeView state={state} />}
       {focus === "branch" && <BranchView state={state} />}
       {focus === "assoc" && <AssocView state={state} />}
+      {focus === "tlb" && <TlbView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

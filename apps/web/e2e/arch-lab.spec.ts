@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("architecture lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/arch");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Architecture");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("lesson 1: switching bits on builds 42", async ({ page }) => {
@@ -90,4 +90,18 @@ test("Middle 12: two arrays a cache apart thrash a direct-mapped cache, not a 2-
   await page.getByRole("button", { name: "Оқуды бастау" }).click();
   await expect(result).toContainText("Hit48");
   await expect(objective(page, "2 жолды кэшпен")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 13: striding over eight pages misses every TLB lookup; huge pages fix it", async ({ page }) => {
+  await page.goto("/labs/arch/arch-13-tlb");
+  const r = page.getByRole("status", { name: "TLB нәтижесі" });
+  await page.getByRole("button", { name: "64 рет оқу" }).click();
+  await expect(r).toContainText("Hit56");
+  await page.getByRole("button", { name: "Сегіз бетті кезектесіп" }).click();
+  await page.getByRole("button", { name: "64 рет оқу" }).click();
+  await expect(r).toContainText("Hit0");
+  await page.getByLabel("Үлкен беттер (2 МБ)").click();
+  await expect(page.getByLabel("Үлкен беттер (2 МБ)")).toBeChecked();
+  await page.getByRole("button", { name: "64 рет оқу" }).click();
+  await expect(r).toContainText("Hit63");
 });

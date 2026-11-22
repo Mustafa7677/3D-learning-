@@ -3,6 +3,7 @@ import { addTrace, toSigned, type AddTrace } from "./bits";
 import { simulateCache, type Access, type CacheConfig, type Pattern } from "./cache";
 import { assemble, resetCpu, run, tick, MEM_SIZE, type CpuState, type Instr } from "./cpu";
 import { CIRCUITS, GATE_TYPES, inputRows, solves, type CircuitId, type GateType } from "./logic";
+import { HUGE_PAGE, PAGE, runTlb, tlbAddresses, type TlbPattern, type TlbRun } from "./tlb";
 import {
   PIPE_PROGRAM,
   assocAddresses,
@@ -20,7 +21,7 @@ import {
   type Predictor,
 } from "./middle-core";
 
-export type ArchMode = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc";
+export type ArchMode = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb";
 
 export interface CpuRun {
   source: string;
@@ -49,6 +50,7 @@ export interface ArchStats {
   pipeRuns: { mode: PipeMode; cycles: number; stalls: number; order: string }[];
   branchRuns: { pattern: BranchPattern; predictor: Predictor; misses: number; total: number }[];
   assocRuns: { pattern: AssocPattern; ways: number; hits: number; misses: number }[];
+  tlbRuns?: { pattern: TlbPattern; huge: boolean; hits: number; misses: number }[];
 }
 
 export interface ArchLabState {
@@ -62,6 +64,7 @@ export interface ArchLabState {
   pipe: { mode: PipeMode; order: string[]; last: PipeResult | null };
   branch: { pattern: BranchPattern; predictor: Predictor; last: BranchRun | null };
   assoc: { pattern: AssocPattern; ways: number; last: AssocResult | null };
+  tlb?: { pattern: TlbPattern; huge: boolean; last: TlbRun | null };
   stats: ArchStats;
 }
 
@@ -96,7 +99,9 @@ export type ArchLabAction =
   | { type: "branch/set"; pattern?: BranchPattern; predictor?: Predictor }
   | { type: "branch/run" }
   | { type: "assoc/set"; pattern?: AssocPattern; ways?: number }
-  | { type: "assoc/run" };
+  | { type: "assoc/run" }
+  | { type: "tlb/set"; pattern?: TlbPattern; huge?: boolean }
+  | { type: "tlb/run" };
 
 export const CACHE_LINES = [1, 2, 4, 8, 16];
 export const LINE_SIZES = [4, 8, 16, 32, 64];
@@ -217,7 +222,9 @@ export function initialArchState(): ArchLabState {
       pipeRuns: [],
       branchRuns: [],
       assocRuns: [],
+      tlbRuns: [],
     },
+    tlb: { pattern: "sequential", huge: false, last: null },
   };
   return loadSource(base, PROGRAMS.first!.source);
 }
@@ -343,6 +350,17 @@ function reduce(s: ArchLabState, a: ArchLabAction): ArchLabState {
     case "assoc/set": {
       const ways = a.ways !== undefined && [1, 2, 4].includes(a.ways) ? a.ways : s.assoc.ways;
       return { ...s, mode: "assoc", assoc: { pattern: a.pattern ?? s.assoc.pattern, ways, last: null } };
+    }
+    case "tlb/set": {
+      const cur = s.tlb ?? { pattern: "sequential" as TlbPattern, huge: false, last: null };
+      const pattern = a.pattern && ["sequential", "stride", "random-few"].includes(a.pattern) ? a.pattern : cur.pattern;
+      return { ...s, mode: "tlb", tlb: { pattern, huge: a.huge ?? cur.huge, last: null } };
+    }
+    case "tlb/run": {
+      const cur = s.tlb ?? { pattern: "sequential" as TlbPattern, huge: false, last: null };
+      const r = runTlb(tlbAddresses(cur.pattern), cur.huge ? HUGE_PAGE : PAGE);
+      const run = { pattern: cur.pattern, huge: cur.huge, hits: r.hits, misses: r.misses };
+      return { ...s, mode: "tlb", tlb: { ...cur, last: r }, stats: { ...s.stats, tlbRuns: [...(s.stats.tlbRuns ?? []), run].slice(-40) } };
     }
     case "assoc/run": {
       const r = runAssoc(assocAddresses(s.assoc.pattern), s.assoc.ways);

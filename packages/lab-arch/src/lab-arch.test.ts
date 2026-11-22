@@ -137,6 +137,18 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "branch/run" });
     },
   },
+  "arch-13-tlb": {
+    translate: (d) => {
+      d({ type: "tlb/run" });
+      d({ type: "tlb/set", pattern: "random-few" });
+      d({ type: "tlb/run" });
+    },
+    huge: (d) => {
+      d({ type: "tlb/run" });
+      d({ type: "tlb/set", huge: true });
+      d({ type: "tlb/run" });
+    },
+  },
   "arch-12-assoc": {
     conflict: (d) => {
       d({ type: "assoc/run" });

@@ -105,3 +105,32 @@ export function AssocView({ state }: { state: ArchLabState }) {
     </group>
   );
 }
+
+export function TlbView({ state }: { state: ArchLabState }) {
+  const last = state.tlb?.last;
+  const w = 13 / 64;
+  return (
+    <group>
+      {Array.from({ length: 4 }, (_, i) => {
+        const vpn = last?.tlb[i];
+        return (
+          <group key={i} position={[-3 + i * 2, 0, -1.6]}>
+            <mesh position={[0, 0.4, 0]}>
+              <boxGeometry args={[1.6, 0.8, 0.9]} />
+              <meshStandardMaterial color={vpn === undefined ? OFF : C1} />
+            </mesh>
+            <Label text={vpn === undefined ? "бос" : `бет ${vpn}`} position={[0, 1.15, 0]} size={0.4} />
+          </group>
+        );
+      })}
+      <Label text="TLB: 4 жазба" position={[0, 2, -1.6]} size={0.55} />
+      {last?.trace.map((t, i) => (
+        <mesh key={i} position={[-6.5 + i * w + w / 2, t.hit ? 0.1 : 0.4, 1.4]}>
+          <boxGeometry args={[w * 0.85, t.hit ? 0.2 : 0.8, 0.6]} />
+          <meshStandardMaterial color={t.hit ? OK : BAD} />
+        </mesh>
+      ))}
+      <Label text={last ? `${last.hits} hit · ${last.misses} miss · ${last.cycles} такт` : "64 рет оқы"} position={[0, 1.4, 2.4]} size={0.5} />
+    </group>
+  );
+}
