@@ -82,6 +82,8 @@ export interface LessonProgress {
   answers?: Record<string, string[]>;
   /** The option chosen for each step's prediction, before the experiment. */
   predictions?: Record<string, number>;
+  /** Question ids answered wrongly at least once, per step id (the mistakes notebook). */
+  misses?: Record<string, string[]>;
   completedAt?: number;
   startedAt: number;
   updatedAt: number;

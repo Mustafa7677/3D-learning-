@@ -54,7 +54,7 @@ function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] })
         ))}
       </div>
       <p className={styles.quizFeedback} aria-live="polite" data-correct={done || result?.correct ? "true" : result ? "false" : undefined}>
-        {done ? `✓ ${q.explain ?? ""}` : result ? (result.correct ? `✓ ${result.feedback}` : `✗ ${result.feedback}`) : ""}
+        {done ? `✓ ${q.explain ?? ""}` : result ? (result.correct ? `✓ ${result.feedback}` : `✗ ${result.feedback} Сұрақ қателер дәптеріне жазылды.`) : ""}
       </p>
     </fieldset>
   );

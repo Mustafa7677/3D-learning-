@@ -120,7 +120,15 @@ export class LessonEngine<S, A = unknown> {
     const step = this.step;
     const q = step.quiz?.find((x) => x.id === questionId);
     if (!q) return { correct: false, feedback: "Мұндай сұрақ жоқ." };
-    if (option !== q.answer) return { correct: false, feedback: q.wrongHint ?? "Дұрыс емес. Мәтінге қайта қарап, тағы ойлан." };
+    if (option !== q.answer) {
+      const missed = new Set(this.progress.misses?.[step.id] ?? []);
+      if (!missed.has(q.id)) {
+        missed.add(q.id);
+        this.progress.misses = { ...(this.progress.misses ?? {}), [step.id]: [...missed] };
+        this.afterChange();
+      }
+      return { correct: false, feedback: q.wrongHint ?? "Дұрыс емес. Мәтінге қайта қарап, тағы ойлан." };
+    }
     const answers = new Set(this.progress.answers?.[step.id] ?? []);
     if (!answers.has(q.id)) {
       answers.add(q.id);
