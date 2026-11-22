@@ -1,6 +1,7 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { runRetries, type RetryPolicy, type RetryRun } from "./retries";
 import { runStampede, type CacheStrategy, type StampedeRun } from "./stampede";
+import { STOP_POLICIES, runShutdown, type ShutdownRun, type StopPolicy } from "./shutdown";
 import { runLb, runProbes, runQueue, type LbAlgo, type LbResult, type ProbeResult, type ProbeScenario, type QueueResult } from "./middle-core";
 import {
   BAD_ORDER,
@@ -24,7 +25,7 @@ import {
   type Strategy,
 } from "./core";
 
-export type CloudMode = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb" | "retries" | "stampede";
+export type CloudMode = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb" | "retries" | "stampede" | "shutdown";
 
 export interface CloudStats {
   modes: CloudMode[];
@@ -42,6 +43,7 @@ export interface CloudStats {
   probeRuns: { scenario: ProbeScenario; readiness: boolean; liveness: boolean; errors: number; restarts: number; deadAtEnd: boolean }[];
   queueRuns: { consumers: number; limit: number | null; maxWait: number; dropped: number }[];
   lbRuns: { algo: LbAlgo; p95: number; slowShare: number }[];
+  shutdownRuns?: { policy: StopPolicy; total: number; stopSeconds: number }[];
   stampedeRuns?: { strategy: CacheStrategy; dbPeak: number; overload: number; slow: number; hitRate: number }[];
   retryRuns?: { policy: RetryPolicy; errors: number; recoveredAt: number | null; peakLoad: number }[];
 }
@@ -62,6 +64,7 @@ export interface CloudLabState {
   lb: { algo: LbAlgo; last: LbResult | null };
   retries?: { policy: RetryPolicy; last: RetryRun | null };
   stampede?: { strategy: CacheStrategy; last: StampedeRun | null };
+  shutdown?: { policy: StopPolicy; last: ShutdownRun | null };
   stats: CloudStats;
 }
 
@@ -92,7 +95,9 @@ export type CloudLabAction =
   | { type: "retries/set"; policy: RetryPolicy }
   | { type: "retries/run" }
   | { type: "stampede/set"; strategy: CacheStrategy }
-  | { type: "stampede/run" };
+  | { type: "stampede/run" }
+  | { type: "shutdown/set"; policy: StopPolicy }
+  | { type: "shutdown/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -275,6 +280,13 @@ function reduce(s: CloudLabState, a: CloudLabAction): CloudLabState {
       const strategy = s.stampede?.strategy ?? "ttl";
       const r = runStampede(strategy);
       return { ...s, mode: "stampede", stampede: { strategy, last: r }, stats: { ...st, stampedeRuns: cap([...(st.stampedeRuns ?? []), { strategy, dbPeak: r.dbPeak, overload: r.overload, slow: r.slow, hitRate: r.hitRate }]) } };
+    }
+    case "shutdown/set":
+      return STOP_POLICIES.includes(a.policy) ? { ...s, mode: "shutdown", shutdown: { policy: a.policy, last: null } } : s;
+    case "shutdown/run": {
+      const policy = s.shutdown?.policy ?? "kill";
+      const r = runShutdown(policy);
+      return { ...s, mode: "shutdown", shutdown: { policy, last: r }, stats: { ...st, shutdownRuns: cap([...(st.shutdownRuns ?? []), { policy, total: r.total, stopSeconds: r.stopSeconds }]) } };
     }
     case "lb/set":
       return { ...s, mode: "lb", lb: { algo: a.algo, last: null } };

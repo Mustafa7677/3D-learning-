@@ -1,6 +1,6 @@
 "use client";
 
-import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type CacheStrategy, type ProbeScenario, type RetryPolicy } from "@inside-tech/lab-cloud";
+import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type CacheStrategy, type ProbeScenario, type RetryPolicy, type StopPolicy } from "@inside-tech/lab-cloud";
 import styles from "./lab.module.css";
 
 type D = (a: CloudLabAction) => void;
@@ -222,6 +222,44 @@ export function StampedeSection({ state, dispatch }: { state: CloudLabState; dis
           </div>
         </div>
       )}
+    </fieldset>
+  );
+}
+
+const STOP_WORD: [StopPolicy, string][] = [
+  ["kill", "Бірден өлтіру"],
+  ["close", "SIGTERM: портты жабу"],
+  ["drain", "preStop + draining"],
+];
+
+export function ShutdownSection({ state, dispatch }: { state: CloudLabState; dispatch: D }) {
+  const c = state.shutdown ?? { policy: "kill" as StopPolicy, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Rolling deploy · 4 под · 100 сұраныс/с · әр сұраныс 2 с</legend>
+      <div className={styles.row} role="group" aria-label="Под қалай тоқтайды">
+        {STOP_WORD.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={c.policy === k} onClick={() => dispatch({ type: "shutdown/set", policy: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "shutdown/run" })}>
+        Deploy жасау
+      </button>
+      {c.last && (
+        <div className={styles.metrics} role="status" aria-label="Deploy нәтижесі">
+          <div>
+            <span>Қате</span>
+            <strong>{c.last.total}</strong>
+          </div>
+          <div>
+            <span>Под тоқтауы</span>
+            <strong>{c.last.stopSeconds} с</strong>
+          </div>
+        </div>
+      )}
+      <p className={styles.small}>Жүктеме балансы тоқтап жатқан подты 5 секундтан кейін ғана тізімнен шығарады.</p>
     </fieldset>
   );
 }

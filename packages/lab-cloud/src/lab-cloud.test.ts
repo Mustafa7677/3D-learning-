@@ -131,6 +131,14 @@ const scripts: Record<string, Record<string, (d: D, tick: T) => void>> = {
     },
     backpressure: (d) => d({ type: "queue/run" }),
   },
+  "cloud-15-shutdown": {
+    kill: (d) => {
+      d({ type: "shutdown/run" });
+      d({ type: "shutdown/set", policy: "close" });
+      d({ type: "shutdown/run" });
+    },
+    drain: (d) => d({ type: "shutdown/run" }),
+  },
   "cloud-14-stampede": {
     stampede: (d) => {
       d({ type: "stampede/run" });

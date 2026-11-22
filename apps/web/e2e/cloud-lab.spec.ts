@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextStep } from "./helpers";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 
@@ -11,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("cloud lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/cloud");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cloud & DevOps");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("lesson 1: reordering the Dockerfile makes rebuilds fast", async ({ page }) => {
@@ -102,4 +103,19 @@ test("Middle 14: a TTL cache still stampedes; single-flight sends one query", as
   await play.click();
   await expect(r).toContainText("Дерекқор шыңы1/с");
   await expect(r).toContainText("Шамадан тыс0 с");
+});
+
+test("Middle 15: killing pods costs 700 errors, closing the port 500, draining none", async ({ page }) => {
+  await page.goto("/labs/cloud/cloud-15-shutdown");
+  const r = page.getByRole("status", { name: "Deploy нәтижесі" });
+  const go = page.getByRole("button", { name: "Deploy жасау" });
+  await go.click();
+  await expect(r).toContainText("Қате700");
+  await page.getByRole("button", { name: "SIGTERM: портты жабу" }).click();
+  await go.click();
+  await expect(r).toContainText("Қате500");
+  await nextStep(page);
+  await go.click();
+  await expect(r).toContainText("Қате0");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });

@@ -5,3 +5,4 @@ export * from "./pset";
 export * from "./middle-core";
 export * from "./retries";
 export * from "./stampede";
+export * from "./shutdown";

@@ -1,7 +1,7 @@
 "use client";
 
 import { Color } from "three";
-import { CAPACITY, DB_CAP, HOT_RPS, LB_SERVERS, PROBE_SECONDS, type CloudLabState } from "@inside-tech/lab-cloud";
+import { CAPACITY, DB_CAP, DEPLOY_PODS, FIRST_STOP, HOT_RPS, STOP_EVERY, LB_SERVERS, PROBE_SECONDS, type CloudLabState } from "@inside-tech/lab-cloud";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -152,6 +152,44 @@ export function StampedeView({ state }: { state: CloudLabState }) {
       <Label text="төменгі жолақ: жасыл кэштен · қызыл күтті" position={[0, -0.45, 1.3]} size={0.4} />
       <Label text={last && c ? `${STRATEGY_WORD[c.strategy]} · дерекқор шыңы ${last.dbPeak}/с · шамадан тыс ${last.overload} с` : "60 секундты ойнат"} position={[0, 5, 0]} size={0.7} />
       <Label text="баған: секундына дерекқорға баратын сұраныс (логарифм шкала)" position={[0, 4.3, 0]} size={0.45} />
+    </group>
+  );
+}
+
+export function ShutdownView({ state }: { state: CloudLabState }) {
+  const c = state.shutdown;
+  const last = c?.last;
+  const n = last?.errors.length ?? 130;
+  const w = 15 / n;
+  const k = 3.6 / 80;
+  return (
+    <group>
+      {Array.from({ length: DEPLOY_PODS }, (_, i) => {
+        const t0 = FIRST_STOP + i * STOP_EVERY;
+        return (
+          <group key={i}>
+            <mesh position={[-7.5 + t0 * w, 0.02, 1.2]}>
+              <boxGeometry args={[0.12, 0.04, 0.9]} />
+              <meshStandardMaterial color={C1} />
+            </mesh>
+            <Label text={`под ${i + 1}`} position={[-7.5 + t0 * w, -0.35, 1.5]} size={0.36} />
+          </group>
+        );
+      })}
+      {last?.errors.map((e, t) =>
+        e > 0 ? (
+          <mesh key={t} position={[-7.5 + t * w + w / 2, (e * k) / 2, 0]}>
+            <boxGeometry args={[w * 0.9, e * k, 0.8]} />
+            <meshStandardMaterial color={BAD} />
+          </mesh>
+        ) : null,
+      )}
+      <mesh position={[0, 0.02, 0]}>
+        <boxGeometry args={[15.2, 0.04, 0.9]} />
+        <meshStandardMaterial color={last && last.total === 0 ? OK : OFF} />
+      </mesh>
+      <Label text={last ? `қате ${last.total} · под ${last.stopSeconds} с-та тоқтайды` : "Deploy жаса"} position={[0, 4.6, 0]} size={0.65} />
+      <Label text="қызыл баған: секундына үзілген сұраныстар · алтын белгі: под тоқтай бастады" position={[0, 4, 0]} size={0.42} />
     </group>
   );
 }
