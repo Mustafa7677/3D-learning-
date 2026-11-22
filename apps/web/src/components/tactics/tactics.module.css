@@ -1,0 +1,484 @@
+/* Тактика алаңы: a staff map room. Navy plotting table, amber grease pencil, teal radar. */
+.page {
+  --table: #0f1b2b;
+  --table-2: #13243a;
+  --line: rgb(140 190 230 / 0.14);
+  --amber: #f0b54a;
+  --teal: #5fd4c4;
+  --paper: #e9e2cf;
+  --red: #e0624f;
+  --green: #6fd08f;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 104px var(--gutter, 24px) 96px;
+}
+.head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.issue {
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--amber);
+}
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.05;
+}
+.rule {
+  display: block;
+  width: min(300px, 80%);
+  height: 22px;
+  margin: 10px auto;
+  color: var(--amber);
+}
+.lede {
+  max-width: 64ch;
+  margin: 0 auto;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.5;
+  color: #d9ccae;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 18px 0 8px;
+}
+.tabs button {
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--paper);
+  background: var(--table);
+  border: 1px solid rgb(240 181 74 / 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.tabs button[aria-pressed="true"] {
+  color: #1b1410;
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 6px;
+}
+.picker button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--paper);
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.picker button span {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+.picker button[aria-current="true"] {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgb(95 212 196 / 0.25);
+}
+.picker b {
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+.tally {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 13px;
+  color: rgb(233 226 207 / 0.7);
+}
+
+/* ---------- board ---------- */
+.board {
+  padding: 18px;
+  color: var(--paper);
+  background:
+    radial-gradient(90% 70% at 30% 0%, rgb(95 212 196 / 0.08), transparent 60%),
+    linear-gradient(180deg, var(--table-2), var(--table));
+  border: 1px solid rgb(240 181 74 / 0.3);
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.35);
+}
+.boardHead h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+}
+.boardHead p {
+  margin: 0 0 6px;
+  color: rgb(233 226 207 / 0.8);
+}
+.data {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 13px;
+  color: var(--teal) !important;
+}
+.data b {
+  color: var(--amber);
+}
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 12px;
+}
+@media (max-width: 820px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* ---------- SVG field and plot ---------- */
+.field,
+.plot {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 520px;
+  background: rgb(4 10 18 / 0.55);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.grid line,
+line.grid {
+  stroke: var(--line);
+  stroke-width: 0.03;
+}
+.axis {
+  stroke: rgb(233 226 207 / 0.45);
+  stroke-width: 0.05;
+}
+.rock circle:first-child {
+  fill: #6b5a4a;
+  stroke: #9c8670;
+  stroke-width: 0.05;
+}
+.rock circle + circle {
+  fill: #4b3e33;
+}
+.target circle {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 0.08;
+}
+.target circle + circle {
+  fill: var(--amber);
+  stroke: none;
+}
+.trail {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 0.09;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.25 0.12;
+}
+.ghost {
+  stroke: rgb(95 212 196 / 0.35);
+  stroke-width: 0.06;
+  stroke-dasharray: 0.12 0.12;
+}
+.ship path {
+  fill: var(--paper);
+  stroke: var(--teal);
+  stroke-width: 0.05;
+}
+.baseCurve,
+.targetCurve,
+.currentCurve {
+  fill: none;
+  stroke-linejoin: round;
+}
+.baseCurve {
+  stroke: rgb(233 226 207 / 0.3);
+  stroke-width: 0.06;
+}
+.targetCurve {
+  stroke: var(--amber);
+  stroke-width: 0.11;
+  stroke-dasharray: 0.3 0.18;
+}
+.currentCurve {
+  stroke: var(--teal);
+  stroke-width: 0.1;
+}
+.legend {
+  display: flex;
+  gap: 14px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: rgb(233 226 207 / 0.75);
+}
+.legend span::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-top: 3px solid;
+}
+.legend [data-k="base"]::before {
+  border-color: rgb(233 226 207 / 0.35);
+}
+.legend [data-k="target"]::before {
+  border-top-style: dashed;
+  border-color: var(--amber);
+}
+.legend [data-k="current"]::before {
+  border-color: var(--teal);
+}
+
+/* ---------- controls ---------- */
+.planBox,
+.claimBox {
+  padding: 12px 14px;
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.planBox h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.planBox p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.empty {
+  color: rgb(233 226 207 / 0.5);
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 12px 10px 0;
+}
+.stepper button {
+  width: 34px;
+  height: 34px;
+  font: inherit;
+  font-size: 18px;
+  color: var(--paper);
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.stepper .count {
+  min-width: 2ch;
+  font-family: var(--font-serif);
+  font-size: 28px;
+  text-align: center;
+  color: var(--amber);
+}
+.primary,
+.ghostBtn {
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.primary {
+  color: #1b1410;
+  background: var(--amber);
+  border: 0;
+}
+.ghostBtn {
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.22);
+}
+.primary:disabled,
+.ghostBtn:disabled,
+.moves button:disabled,
+.cards button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.moves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.moves button,
+.cards button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--paper);
+  background: rgb(95 212 196 / 0.08);
+  border: 1px solid rgb(95 212 196 / 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.moves b,
+.cards b {
+  font-size: 15px;
+  color: var(--teal);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+.cards small {
+  font-family: ui-monospace, Menlo, monospace;
+  color: rgb(233 226 207 / 0.7);
+}
+.program {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: c;
+}
+.program li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  padding: 5px 8px;
+  background: rgb(240 181 74 / 0.08);
+  border-left: 3px solid rgb(240 181 74 / 0.5);
+  border-radius: 4px;
+  counter-increment: c;
+}
+.program li::before {
+  content: counter(c) ".";
+  font-weight: 700;
+  color: var(--amber);
+}
+.program li span {
+  flex: 1;
+}
+.program li[aria-current="step"] {
+  background: rgb(95 212 196 / 0.2);
+  border-left-color: var(--teal);
+}
+.program li button {
+  width: 24px;
+  height: 24px;
+  font: inherit;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.peek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgb(233 226 207 / 0.8);
+}
+.claimBox fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.claimBox legend {
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--amber);
+}
+.claimBox label {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.status {
+  min-height: 1.4em;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.status[data-kind] {
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+.status[data-kind="win"] {
+  background: rgb(111 208 143 / 0.12);
+  border: 1px solid rgb(111 208 143 / 0.45);
+}
+.status[data-kind="warn"] {
+  background: rgb(224 98 79 / 0.12);
+  border: 1px solid rgb(224 98 79 / 0.45);
+}
+.status strong {
+  color: var(--amber);
+  letter-spacing: 2px;
+}
+
+.navRow {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+}
+.method {
+  margin-top: 18px;
+  padding: 16px 20px;
+  background: rgb(255 255 255 / 0.03);
+  border: 1px dashed rgb(240 181 74 / 0.35);
+  border-radius: 10px;
+}
+.method h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 20px;
+}
+.method ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+.method li + li {
+  margin-top: 6px;
+}
