@@ -846,3 +846,83 @@
   background: #efe5cc;
   box-shadow: inset 0 0 0 2px #a8281e;
 }
+
+/* ---------- level path: Junior → Middle → Senior ---------- */
+.levelPath {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 22px 0 6px;
+  max-width: 520px;
+}
+.levelStop {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.levelStop strong {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: #f1e3bf;
+}
+.levelStop small {
+  font-size: 11px;
+  color: #b9ab89;
+}
+.levelStop[data-state="soon"] {
+  opacity: 0.45;
+}
+.levelRoad {
+  position: absolute;
+  top: 30px;
+  right: calc(50% + 34px);
+  width: calc(100% - 68px);
+  height: 3px;
+  background: linear-gradient(90deg, #c9a24a calc(var(--fill) * 100%), rgba(201, 162, 74, 0.22) calc(var(--fill) * 100%));
+}
+.levelMedal {
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.levelMedal:disabled {
+  cursor: default;
+}
+.levelMedal svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.levelRing {
+  fill: rgba(12, 14, 26, 0.75);
+  stroke: rgba(201, 162, 74, 0.3);
+  stroke-width: 4;
+}
+.levelArc {
+  fill: none;
+  stroke: #c9a24a;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s ease;
+}
+.levelStar {
+  fill: rgba(201, 162, 74, 0.35);
+  transform: rotate(90deg);
+  transform-origin: 32px 32px;
+}
+.levelStop[data-state="done"] .levelStar {
+  fill: #e6c766;
+}
+.levelStop[data-state="done"] .levelRing {
+  fill: rgba(168, 40, 30, 0.85);
+}
+.levelMedal:hover:not(:disabled) .levelRing,
+.levelMedal:focus-visible .levelRing {
+  stroke: #e6c766;
+}

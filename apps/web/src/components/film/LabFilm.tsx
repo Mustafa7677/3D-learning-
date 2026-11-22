@@ -9,6 +9,7 @@ import { lessonsForLab } from "@/lib/lessons";
 import { levelOf } from "@/lib/levels";
 import { prefersReducedMotion } from "@/lib/nav";
 import { progressStore } from "@/lib/progress";
+import { LevelPath } from "./LevelPath";
 import { useScrollProgress } from "@/lib/useScrollProgress";
 import { useWebGL } from "@/lib/useWebGL";
 import { FilmHeader } from "./FilmHeader";
@@ -91,6 +92,7 @@ export function LabFilm({ lab, warmup, extra }: { lab: LabInfo; warmup?: ReactNo
                 </Link>
               )}
             </div>
+            <LevelPath orders={lessons.map((l) => l.order)} done={done} onJump={jump} />
             <p className={styles.scrollHint} aria-hidden>
               {lessons.length} сабақ · төмен айналдыр: жол бойымен жүреміз
             </p>

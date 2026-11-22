@@ -19,6 +19,9 @@ test.beforeEach(async ({ page }) => {
 test("web lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/web");
   await expect(page.locator("ol li")).toHaveCount(13);
+  const path = page.getByRole("navigation", { name: "Деңгей жолы" });
+  await expect(path.getByRole("button", { name: "Middle: 0/4 сабақ" })).toBeVisible();
+  await expect(path.getByRole("button", { name: "Senior: жақында" })).toBeDisabled();
   await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
