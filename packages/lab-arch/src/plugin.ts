@@ -3,6 +3,7 @@ import { addTrace, toSigned, type AddTrace } from "./bits";
 import { simulateCache, type Access, type CacheConfig, type Pattern } from "./cache";
 import { assemble, resetCpu, run, tick, MEM_SIZE, type CpuState, type Instr } from "./cpu";
 import { CIRCUITS, GATE_TYPES, inputRows, solves, type CircuitId, type GateType } from "./logic";
+import { bigPlusOne, pointThree, repeatedSum, type Precision } from "./float";
 import { HUGE_PAGE, PAGE, runTlb, tlbAddresses, type TlbPattern, type TlbRun } from "./tlb";
 import {
   PIPE_PROGRAM,
@@ -21,7 +22,7 @@ import {
   type Predictor,
 } from "./middle-core";
 
-export type ArchMode = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb";
+export type ArchMode = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb" | "float";
 
 export interface CpuRun {
   source: string;
@@ -51,6 +52,7 @@ export interface ArchStats {
   branchRuns: { pattern: BranchPattern; predictor: Predictor; misses: number; total: number }[];
   assocRuns: { pattern: AssocPattern; ways: number; hits: number; misses: number }[];
   tlbRuns?: { pattern: TlbPattern; huge: boolean; hits: number; misses: number }[];
+  floatRuns?: { precision: Precision; kahan: boolean; equals: boolean; plusOne: number; error: number }[];
 }
 
 export interface ArchLabState {
@@ -65,6 +67,7 @@ export interface ArchLabState {
   branch: { pattern: BranchPattern; predictor: Predictor; last: BranchRun | null };
   assoc: { pattern: AssocPattern; ways: number; last: AssocResult | null };
   tlb?: { pattern: TlbPattern; huge: boolean; last: TlbRun | null };
+  float?: { precision: Precision; kahan: boolean; last: { text: string; equals: boolean; plusOne: number; sum: number; error: number } | null };
   stats: ArchStats;
 }
 
@@ -101,7 +104,9 @@ export type ArchLabAction =
   | { type: "assoc/set"; pattern?: AssocPattern; ways?: number }
   | { type: "assoc/run" }
   | { type: "tlb/set"; pattern?: TlbPattern; huge?: boolean }
-  | { type: "tlb/run" };
+  | { type: "tlb/run" }
+  | { type: "float/set"; precision?: Precision; kahan?: boolean }
+  | { type: "float/run" };
 
 export const CACHE_LINES = [1, 2, 4, 8, 16];
 export const LINE_SIZES = [4, 8, 16, 32, 64];
@@ -223,7 +228,9 @@ export function initialArchState(): ArchLabState {
       branchRuns: [],
       assocRuns: [],
       tlbRuns: [],
+      floatRuns: [],
     },
+    float: { precision: 64, kahan: false, last: null },
     tlb: { pattern: "sequential", huge: false, last: null },
   };
   return loadSource(base, PROGRAMS.first!.source);
@@ -350,6 +357,19 @@ function reduce(s: ArchLabState, a: ArchLabAction): ArchLabState {
     case "assoc/set": {
       const ways = a.ways !== undefined && [1, 2, 4].includes(a.ways) ? a.ways : s.assoc.ways;
       return { ...s, mode: "assoc", assoc: { pattern: a.pattern ?? s.assoc.pattern, ways, last: null } };
+    }
+    case "float/set": {
+      const cur = s.float ?? { precision: 64 as Precision, kahan: false, last: null };
+      const precision = a.precision === 32 || a.precision === 64 ? a.precision : cur.precision;
+      return { ...s, mode: "float", float: { precision, kahan: a.kahan ?? cur.kahan, last: null } };
+    }
+    case "float/run": {
+      const cur = s.float ?? { precision: 64 as Precision, kahan: false, last: null };
+      const p3 = pointThree(cur.precision);
+      const sum = repeatedSum(cur.precision, cur.kahan);
+      const last = { text: p3.text, equals: p3.equals, plusOne: bigPlusOne(cur.precision), sum: sum.sum, error: sum.error };
+      const run = { precision: cur.precision, kahan: cur.kahan, equals: p3.equals, plusOne: last.plusOne, error: sum.error };
+      return { ...s, mode: "float", float: { ...cur, last }, stats: { ...s.stats, floatRuns: [...(s.stats.floatRuns ?? []), run].slice(-40) } };
     }
     case "tlb/set": {
       const cur = s.tlb ?? { pattern: "sequential" as TlbPattern, huge: false, last: null };

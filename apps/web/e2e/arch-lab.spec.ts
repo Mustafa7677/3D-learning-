@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("architecture lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/arch");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Architecture");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("lesson 1: switching bits on builds 42", async ({ page }) => {
@@ -104,4 +104,16 @@ test("Middle 13: striding over eight pages misses every TLB lookup; huge pages f
   await expect(page.getByLabel("Үлкен беттер (2 МБ)")).toBeChecked();
   await page.getByRole("button", { name: "64 рет оқу" }).click();
   await expect(r).toContainText("Hit63");
+});
+
+test("Middle 14: 0.1 + 0.2 is not 0.3; Kahan rescues a float32 sum", async ({ page }) => {
+  await page.goto("/labs/arch/arch-14-float");
+  const r = page.getByRole("status", { name: "Есеп нәтижесі" });
+  await page.getByRole("button", { name: "Есептеу" }).click();
+  await expect(r).toContainText("0.30000000000000004 (≠ 0.3)");
+  await page.getByRole("group", { name: "Дәлдік" }).getByRole("button", { name: "float32" }).click();
+  await page.getByLabel("Kahan қосындысы").click();
+  await expect(page.getByLabel("Kahan қосындысы")).toBeChecked();
+  await page.getByRole("button", { name: "Есептеу" }).click();
+  await expect(r).toContainText("10000 (қате 0.0e+0)");
 });

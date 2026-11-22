@@ -455,7 +455,7 @@ function ArchLesson({ labId, lesson, nextLessonId, persist }: LessonProps<ArchLa
   const session = useLabSession(lesson, "arch", { persist });
   const webgl = useWebGL();
   const { state, step } = session;
-  const focus = (["bits", "gates", "cpu", "cache", "pipe", "branch", "assoc", "tlb"].includes(step?.focus ?? "") ? step!.focus : "bits") as ArchFocus;
+  const focus = (["bits", "gates", "cpu", "cache", "pipe", "branch", "assoc", "tlb", "float"].includes(step?.focus ?? "") ? step!.focus : "bits") as ArchFocus;
   return (
     <LabShell
       labId={labId}

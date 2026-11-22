@@ -134,3 +134,46 @@ export function TlbView({ state }: { state: ArchLabState }) {
     </group>
   );
 }
+
+/** The 32 bits of a float32: sign, 8 exponent bits, 23 mantissa bits. */
+function float32Bits(x: number): number[] {
+  const buf = new DataView(new ArrayBuffer(4));
+  buf.setFloat32(0, x);
+  const u = buf.getUint32(0);
+  return Array.from({ length: 32 }, (_, i) => (u >>> (31 - i)) & 1);
+}
+
+export function FloatView({ state }: { state: ArchLabState }) {
+  const f = state.float;
+  const bits = float32Bits(0.1);
+  const last = f?.last;
+  const k = 4 / 10000;
+  return (
+    <group>
+      {bits.map((b, i) => {
+        const part = i === 0 ? C1 : i < 9 ? new Color("#7a4fd0") : C0;
+        return (
+          <mesh key={i} position={[-6.5 + i * 0.42, 5.6 + (b ? 0.35 : 0.1), -2]}>
+            <boxGeometry args={[0.36, b ? 0.7 : 0.2, 0.5]} />
+            <meshStandardMaterial color={part} />
+          </mesh>
+        );
+      })}
+      <Label text="0.1 float32-де: алтын таңба · күлгін 8 бит дәреже · көк 23 бит мантисса" position={[0, 6.9, -2]} size={0.42} />
+      <mesh position={[-2, (10000 * k) / 2, 1]}>
+        <boxGeometry args={[1.4, 10000 * k, 1]} />
+        <meshStandardMaterial color={OK} />
+      </mesh>
+      <Label text="дәл: 10 000" position={[-2, 4.5, 1]} size={0.45} />
+      {last && (
+        <>
+          <mesh position={[2, (last.sum * k) / 2, 1]}>
+            <boxGeometry args={[1.4, last.sum * k, 1]} />
+            <meshStandardMaterial color={last.error > 0.01 ? BAD : OK} />
+          </mesh>
+          <Label text={`${f!.precision === 32 ? "float32" : "float64"}${f!.kahan ? " + Kahan" : ""}: ${last.sum}`} position={[2, 4.5, 1]} size={0.45} />
+        </>
+      )}
+    </group>
+  );
+}

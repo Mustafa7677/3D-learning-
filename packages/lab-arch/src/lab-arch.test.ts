@@ -137,6 +137,18 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "branch/run" });
     },
   },
+  "arch-14-float": {
+    point: (d) => {
+      d({ type: "float/run" });
+      d({ type: "float/set", precision: 32 });
+      d({ type: "float/run" });
+    },
+    sum: (d) => {
+      d({ type: "float/run" });
+      d({ type: "float/set", kahan: true });
+      d({ type: "float/run" });
+    },
+  },
   "arch-13-tlb": {
     translate: (d) => {
       d({ type: "tlb/run" });

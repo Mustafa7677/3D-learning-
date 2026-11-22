@@ -1,6 +1,6 @@
 "use client";
 
-import { WALK_CYCLES, splitAddress, type TlbPattern, MISS_PENALTY, PIPE_PROGRAM, canSwap, type ArchLabAction, type ArchLabState, type AssocPattern, type BranchPattern, type PipeMode, type Predictor } from "@inside-tech/lab-arch";
+import { SUM_N, type Precision, WALK_CYCLES, splitAddress, type TlbPattern, MISS_PENALTY, PIPE_PROGRAM, canSwap, type ArchLabAction, type ArchLabState, type AssocPattern, type BranchPattern, type PipeMode, type Predictor } from "@inside-tech/lab-arch";
 import styles from "./lab.module.css";
 
 type D = (a: ArchLabAction) => void;
@@ -221,6 +221,42 @@ export function TlbSection({ state, dispatch }: { state: ArchLabState; dispatch:
         </div>
       )}
       <p className={styles.small}>Мысал: 0x12345 → бет {splitAddress(0x12345).vpn}, ығысу {splitAddress(0x12345).offset}.</p>
+    </fieldset>
+  );
+}
+
+export function FloatSection({ state, dispatch }: { state: ArchLabState; dispatch: D }) {
+  const f = state.float ?? { precision: 64 as Precision, kahan: false, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>IEEE 754 · жылжымалы нүкте</legend>
+      <div className={styles.row} role="group" aria-label="Дәлдік">
+        {([64, 32] as const).map((p) => (
+          <button key={p} type="button" className="btn" aria-pressed={f.precision === p} onClick={() => dispatch({ type: "float/set", precision: p })}>
+            float{p}
+          </button>
+        ))}
+      </div>
+      <label className={styles.row}>
+        <input type="checkbox" checked={f.kahan} onChange={(e) => dispatch({ type: "float/set", kahan: e.target.checked })} /> Kahan қосындысы
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "float/run" })}>
+        Есептеу
+      </button>
+      {f.last && (
+        <dl className={styles.kv} role="status" aria-label="Есеп нәтижесі">
+          <dt>0.1 + 0.2</dt>
+          <dd>
+            {f.last.text} {f.last.equals ? "(= 0.3)" : "(≠ 0.3)"}
+          </dd>
+          <dt>16 777 216 + 1</dt>
+          <dd>{f.last.plusOne === 0 ? "16 777 216: бірлік жоғалды" : "16 777 217"}</dd>
+          <dt>0.1 × {SUM_N.toLocaleString("ru-RU")} рет</dt>
+          <dd>
+            {f.last.sum} (қате {f.last.error < 1e-6 ? f.last.error.toExponential(1) : f.last.error.toFixed(3)})
+          </dd>
+        </dl>
+      )}
     </fieldset>
   );
 }

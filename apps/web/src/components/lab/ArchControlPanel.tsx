@@ -18,9 +18,9 @@ import {
   type GateType,
 } from "@inside-tech/lab-arch";
 import styles from "./lab.module.css";
-import { AssocSection, BranchSection, PipeSection, TlbSection } from "./ArchMiddleSections";
+import { AssocSection, BranchSection, FloatSection, PipeSection, TlbSection } from "./ArchMiddleSections";
 
-export type ArchSection = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb";
+export type ArchSection = "bits" | "gates" | "cpu" | "cache" | "pipe" | "branch" | "assoc" | "tlb" | "float";
 type D = (a: ArchLabAction) => void;
 const WEIGHTS = [128, 64, 32, 16, 8, 4, 2, 1];
 
@@ -357,6 +357,7 @@ export function ArchControlPanel({ state, sections, dispatch, canUndo, onUndo }:
       {has("branch") && <BranchSection state={state} dispatch={dispatch} />}
       {has("assoc") && <AssocSection state={state} dispatch={dispatch} />}
       {has("tlb") && <TlbSection state={state} dispatch={dispatch} />}
+      {has("float") && <FloatSection state={state} dispatch={dispatch} />}
       {(has("cpu") || has("cache")) && (
         <label className={styles.slider}>
           <span>Ойнату жылдамдығы</span>
