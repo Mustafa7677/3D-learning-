@@ -93,3 +93,40 @@ test("lesson 8: [[2, 1], [1, 2]] stretches 45° by 3 and keeps 135°", async ({ 
   await expect(r).toContainText("λжоқ");
   await expect(objective(page, "екінші бағытты")).toHaveAttribute("data-done", "true");
 });
+
+test("math methods: a comic, a worked example the learner finishes, and an error to hunt", async ({ page }) => {
+  await page.goto("/labs/math/la-1-vectors");
+  const comic = page.getByRole("region", { name: "Комикс: Көрсеткі ме, сандар ма?" });
+  await expect(comic.locator("li")).toHaveCount(6);
+  await expect(comic).toContainText("(3, 1) + (1, 2) = (4, 3)");
+
+  const board = page.getByRole("region", { name: "Тақтада шығару" });
+  await board.getByRole("button", { name: "Ұстаз: келесі қадам" }).click();
+  const turn = board.getByRole("group", { name: "Келесі қадамды таңда" });
+  await turn.getByRole("button", { name: "|AB| = 3 + 4 + 0" }).click();
+  await expect(board.getByRole("status")).toContainText("Бұл жол келмейді");
+  await turn.getByRole("button", { name: "|AB| = √(3² + 4² + 0²)" }).click();
+  await turn.getByRole("button", { name: "|AB| = √25 = 5" }).click();
+  await expect(board.getByRole("status")).toContainText("Шешім дайын. Соңғы 2 қадамды өзің таптың.");
+
+  const v = page.getByRole("group", { name: "v векторы" });
+  await v.getByLabel("v y", { exact: true }).fill("2");
+  await v.getByLabel("v z", { exact: true }).fill("2");
+  await v.getByLabel("v x", { exact: true }).fill("3");
+  await v.getByLabel("v y", { exact: true }).fill("4");
+  await v.getByLabel("v z", { exact: true }).fill("0");
+  await nextStep(page);
+  const hunt = page.getByRole("region", { name: "Қатені тап" });
+  await hunt.getByRole("button", { name: "(2, −6, 4) − (4, 1, 0)" }).click();
+  await expect(hunt.getByRole("status")).toContainText("Бұл жол дұрыс");
+  await hunt.getByRole("button", { name: "= (−2, −5, 4)" }).click();
+  await expect(hunt.getByRole("status")).toContainText("Таптың: 4-жол.");
+  await expect(hunt.getByRole("status")).toContainText("= (−2, −7, 4)");
+});
+
+test("a comic explains theory in other labs too: Diffie-Hellman as mixing paint", async ({ page }) => {
+  await page.goto("/labs/sec/sec-12-dh");
+  const comic = page.getByRole("region", { name: "Комикс: Бояу араластыру" });
+  await expect(comic.locator("li")).toHaveCount(8);
+  await expect(comic).toContainText("gᵃᵇ mod p");
+});

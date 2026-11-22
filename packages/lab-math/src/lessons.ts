@@ -7,6 +7,8 @@ import { withContent, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { add, combo, det, det2, eigenFactor, dirOf, isEchelon, len, near, nearV, parallel, projLen, sameM, dot, solutionOf, type V2 } from "./linalg";
 import { EIGEN_PRESETS, PRESETS, type MathLabAction, type MathLabState } from "./plugin";
 import { mathContent } from "./content";
+import { mathMedia } from "./media";
+import type { StepContent } from "@inside-tech/lesson-engine";
 
 type L = LessonDefinition<MathLabState, MathLabAction>;
 type S = MathLabState;
@@ -285,4 +287,12 @@ const eigen: L = {
   ],
 };
 
-export const mathLessons: L[] = [vectors, dotLesson, gauss, matrices, inverseLesson, determinant, basis, eigen].map((l) => withContent(l, mathContent[l.id] ?? {}));
+export const mathLessons: L[] = [vectors, dotLesson, gauss, matrices, inverseLesson, determinant, basis, eigen].map((l) => withContent(l, merged(l.id)));
+
+/** Prose, questions and the math-specific forms (comic, board, error hunt) of one lesson. */
+function merged(id: string): Record<string, StepContent> {
+  const out: Record<string, StepContent> = {};
+  for (const [step, c] of Object.entries(mathContent[id] ?? {})) out[step] = { ...c };
+  for (const [step, m] of Object.entries(mathMedia[id] ?? {})) out[step] = { ...(out[step] ?? {}), ...m };
+  return out;
+}

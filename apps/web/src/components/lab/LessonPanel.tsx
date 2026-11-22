@@ -9,6 +9,7 @@ import { Reward } from "../film/Game";
 import { XP_LESSON, announceXp } from "@/lib/xp";
 import styles from "./lab.module.css";
 import { OyuRule } from "./Oyu";
+import { ComicStrip, ErrorHuntBoard, WorkedBoard } from "./StepMedia";
 
 interface Props {
   lessonTitle: string;
@@ -175,7 +176,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
   const done = step.objectives.filter((o) => o.done).length + step.quiz.filter((q) => q.answered).length;
 
   return (
-    <section className={styles.lesson} aria-labelledby="lesson-step-title">
+    <section className={styles.lesson} aria-labelledby="lesson-step-title" data-lab={labId}>
       <p className={styles.lessonName}>{lessonTitle}</p>
       <ol className={styles.stepper} aria-label="Сабақ кезеңдері">
         {stepTitles.map((t, i) => (
@@ -204,7 +205,9 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
         Түсіндірмені 3D-де оқу
       </button>
       {step.predict && <Predict key={step.id} p={step.predict} onPredict={onPredict} />}
+      {step.comic && <ComicStrip comic={step.comic} />}
       <Prose text={step.body} />
+      {step.worked && <WorkedBoard key={`${step.id}-worked`} w={step.worked} />}
       {cinema && (
         <LectureCinema
           labId={labId}
@@ -234,6 +237,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
         ))}
       </ul>
 
+      {step.hunt && <ErrorHuntBoard key={`${step.id}-hunt`} h={step.hunt} />}
       {step.selfExplain && <SelfExplainBox key={`${step.id}-${step.selfExplain.written ?? ""}`} se={step.selfExplain} onExplain={onExplain} />}
 
       {step.hints.length > 0 && (

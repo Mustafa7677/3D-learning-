@@ -1,3 +1,4 @@
+import type { Comic, ErrorHunt, WorkedExample } from "./media";
 import { MIN_EXPLANATION, coverage, type Coverage, type SelfExplain } from "./explain";
 import { EventBus, type AssessmentResult } from "@inside-tech/sim-core";
 import type { LessonDefinition, LessonProgress, LessonStep } from "./lesson";
@@ -39,6 +40,9 @@ export interface StepView {
   predict?: PredictionView;
   /** Open once the objectives are done; the expert's text only after the learner wrote theirs. */
   selfExplain?: SelfExplainView;
+  comic?: Comic;
+  worked?: WorkedExample;
+  hunt?: ErrorHunt;
   complete: boolean;
   isLast: boolean;
   lessonComplete: boolean;
@@ -213,6 +217,9 @@ export class LessonEngine<S, A = unknown> {
       })),
       quiz: (step.quiz ?? []).map((q) => ({ id: q.id, question: q.question, options: q.options, answered: answered.has(q.id), explain: answered.has(q.id) ? q.explain : undefined })),
       predict: step.predict && this.predictionView(step.id, step.predict, step.objectives.every((o) => done.has(o.id))),
+      comic: step.comic,
+      worked: step.worked,
+      hunt: step.hunt,
       selfExplain: step.selfExplain && this.selfExplainView(step.id, step.selfExplain, step.objectives.every((o) => done.has(o.id))),
       complete: this.isStepComplete(),
       isLast: this.isLastStep(),

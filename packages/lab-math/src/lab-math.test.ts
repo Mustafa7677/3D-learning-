@@ -129,7 +129,18 @@ describe("math: the lessons", () => {
         const visible = JSON.stringify({ b: step.body, q: step.quiz, p: step.predict, s: step.selfExplain, o: step.objectives.map((o) => o.text) });
         expect(/[–—]/.test(visible), `${step.id} dashes`).toBe(false);
       }
+      const first = lesson.steps[0]!;
       const last = lesson.steps.at(-1)!;
+      expect(first.comic?.panels.length ?? 0, "comic").toBeGreaterThanOrEqual(5);
+      expect(first.comic!.panels.some((p) => p.board), "a board in the comic").toBe(true);
+      expect(first.worked, "worked example").toBeDefined();
+      expect(first.worked!.fadeFrom).toBeLessThan(first.worked!.steps.length);
+      for (const s of first.worked!.steps.slice(first.worked!.fadeFrom)) expect(s.wrong?.length ?? 0, "faded steps offer wrong lines").toBeGreaterThanOrEqual(1);
+      expect(last.hunt, "error hunt").toBeDefined();
+      expect(last.hunt!.wrong).toBeLessThan(last.hunt!.lines.length);
+      expect(last.hunt!.lines).not.toContain(last.hunt!.fix);
+      const media = JSON.stringify({ c: first.comic, w: first.worked, h: last.hunt });
+      expect(/[\u2013\u2014]/.test(media), "dashes in media").toBe(false);
       expect(last.selfExplain).toBeDefined();
       expect(coverage(last.selfExplain!, last.selfExplain!.model).missing).toEqual([]);
 

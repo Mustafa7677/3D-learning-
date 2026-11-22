@@ -1,4 +1,5 @@
 import type { SelfExplain } from "./explain";
+import type { Comic, ErrorHunt, WorkedExample } from "./media";
 import type { AssessmentResult } from "@inside-tech/sim-core";
 
 export interface ObjectiveContext {
@@ -59,6 +60,10 @@ export interface LessonStep<S, A = unknown> {
   predict?: Prediction;
   /** After the experiment: explain it in your own words, then compare (see SelfExplain). */
   selfExplain?: SelfExplain;
+  /** Theory as a comic strip, a worked example that fades, a solution with an error to find. */
+  comic?: Comic;
+  worked?: WorkedExample;
+  hunt?: ErrorHunt;
   /** Scene anchor id the camera should focus on for this step. */
   focus?: string;
   /** Actions dispatched when the step is entered (e.g. load a dataset). */
@@ -101,6 +106,9 @@ export interface StepContent {
   hints?: string[];
   predict?: Prediction;
   selfExplain?: SelfExplain;
+  comic?: Comic;
+  worked?: WorkedExample;
+  hunt?: ErrorHunt;
 }
 
 /**
@@ -116,7 +124,7 @@ export function withContent<S, A>(lesson: LessonDefinition<S, A>, content: Recor
     steps: lesson.steps.map((s) => {
       const c = content[s.id];
       if (!c) return s;
-      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict, selfExplain: c.selfExplain ?? s.selfExplain };
+      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict, selfExplain: c.selfExplain ?? s.selfExplain, comic: c.comic ?? s.comic, worked: c.worked ?? s.worked, hunt: c.hunt ?? s.hunt };
     }),
   };
 }

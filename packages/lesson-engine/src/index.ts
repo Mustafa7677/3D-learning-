@@ -3,3 +3,4 @@ export * from "./engine";
 export * from "./progress-store";
 export * from "./spec";
 export * from "./explain";
+export * from "./media";

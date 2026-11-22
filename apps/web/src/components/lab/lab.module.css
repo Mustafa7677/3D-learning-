@@ -1603,3 +1603,24 @@ div.walkSteps {
   padding-left: 10px;
   border-left: 1px dashed var(--muted);
 }
+
+/* ---------- the mathematics lab: a squared exercise book ---------- */
+.lesson[data-lab="math"] {
+  background-image:
+    linear-gradient(90deg, transparent 10px, rgb(192 57 43 / 0.55) 10px, rgb(192 57 43 / 0.55) 11.5px, transparent 11.5px),
+    linear-gradient(rgb(44 79 143 / 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(44 79 143 / 0.14) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    18px 18px,
+    18px 18px;
+}
+.lesson[data-lab="math"] .stepTitle {
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+.lesson[data-lab="math"] .lessonName {
+  border-top-color: #2c4f8f;
+  border-bottom-color: #2c4f8f;
+  color: #2c4f8f;
+}

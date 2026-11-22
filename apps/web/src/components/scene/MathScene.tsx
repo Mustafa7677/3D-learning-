@@ -39,7 +39,7 @@ const GREEN = new Color("#1f9d6b");
 const RED = new Color("#d4463d");
 const VIOLET = new Color("#8b5cf6");
 const CHALK = new Color("#dfe6f3");
-const DIM = new Color("#6b7595");
+const DIM = new Color("#9fb8ad");
 
 /** Math coordinates (z up) to the scene's (y up). */
 const W = (v: readonly number[]): [number, number, number] => [v[0] ?? 0, v[2] ?? 0, -(v[1] ?? 0)];
@@ -374,7 +374,9 @@ function Contents({ state, focus }: { state: MathLabState; focus: MathFocus }) {
       <ambientLight intensity={0.75} />
       <directionalLight position={[5, 9, 6]} intensity={1.2} />
       <directionalLight position={[-6, 4, -4]} intensity={0.35} />
-      <gridHelper args={[12, 12, "#46507a", "#262e52"]} position={[0, -0.005, 0]} />
+      {/* A chalkboard, not a stage: dark green, chalk-white lines. */}
+      <color attach="background" args={["#142a23"]} />
+      <gridHelper args={[12, 12, "#7f9c8f", "#2f4a40"]} position={[0, -0.005, 0]} />
       <StageLook />
       <Axes z={focus !== "basis" && focus !== "eigen"} />
       {focus === "vectors" && <VectorsView s={state} />}
