@@ -22,10 +22,10 @@ import {
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
-import { LbView, ProbesView, QueueView, RetriesView } from "./CloudMiddleViews";
+import { LbView, ProbesView, QueueView, RetriesView, StampedeView } from "./CloudMiddleViews";
 import { C0, C1 } from "./palette";
 
-export type CloudFocus = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb" | "retries";
+export type CloudFocus = "image" | "cluster" | "scale" | "autoscale" | "pipeline" | "release" | "availability" | "incident" | "probes" | "queue" | "lb" | "retries" | "stampede";
 
 const OFF = new Color("#c9d0de");
 const OK = new Color("#17895c");
@@ -272,6 +272,7 @@ function Contents({ state, focus }: { state: CloudLabState; focus: CloudFocus })
     queue: { w: 17, h: 7, t: [0, 2.4, 0], d: [0, 0.35, 1] },
     lb: { w: 13, h: 7, t: [0, 1.4, 0], d: [0, 0.8, 1] },
     retries: { w: 17, h: 6, t: [0, 1.9, 0], d: [0, 0.45, 1] },
+    stampede: { w: 17, h: 6, t: [0, 1.9, 0], d: [0, 0.45, 1] },
   };
   const f = frames[focus];
   return (
@@ -292,6 +293,7 @@ function Contents({ state, focus }: { state: CloudLabState; focus: CloudFocus })
       {focus === "queue" && <QueueView state={state} />}
       {focus === "lb" && <LbView state={state} />}
       {focus === "retries" && <RetriesView state={state} />}
+      {focus === "stampede" && <StampedeView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

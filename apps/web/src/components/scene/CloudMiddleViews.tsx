@@ -1,7 +1,7 @@
 "use client";
 
 import { Color } from "three";
-import { CAPACITY, LB_SERVERS, PROBE_SECONDS, type CloudLabState } from "@inside-tech/lab-cloud";
+import { CAPACITY, DB_CAP, HOT_RPS, LB_SERVERS, PROBE_SECONDS, type CloudLabState } from "@inside-tech/lab-cloud";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -114,6 +114,44 @@ export function RetriesView({ state }: { state: CloudLabState }) {
       <Label text="құлау 10-30 с" position={[-7.5 + 20 * w, -0.4, 1.2]} size={0.4} />
       <Label text={last ? `қате ${last.errors} · оралды: ${last.recoveredAt === null ? "ешқашан" : `${last.recoveredAt} с`}` : "60 секундты ойнат"} position={[0, 5, 0]} size={0.7} />
       <Label text="баған: қызметке жүктеме · жасыл: сау · қызыл: құлаған · сұр: сақтандырғыш ашық" position={[0, 4.3, 0]} size={0.45} />
+    </group>
+  );
+}
+
+const STRATEGY_WORD = { none: "кэшсіз", ttl: "TTL кэш", coalesce: "single-flight", early: "алдын ала жаңарту" } as const;
+
+export function StampedeView({ state }: { state: CloudLabState }) {
+  const c = state.stampede;
+  const last = c?.last;
+  const w = 15 / 60;
+  // Log-like height so 1, 50 and 500 queries a second are all visible.
+  const hgt = (q: number) => (q <= 0 ? 0.04 : 0.35 + Math.log10(q) * 1.4);
+  return (
+    <group>
+      {last?.timeline.map((x, t) => {
+        const h = hgt(x.db);
+        return (
+          <group key={t} position={[-7.5 + t * w + w / 2, 0, 0]}>
+            <mesh position={[0, h / 2, 0]}>
+              <boxGeometry args={[w * 0.85, h, 0.8]} />
+              <meshStandardMaterial color={x.db > DB_CAP ? BAD : x.db > 0 ? WARM : OFF} />
+            </mesh>
+            <mesh position={[0, 0.02, 1]}>
+              <boxGeometry args={[w * 0.85, 0.04, 0.4]} />
+              <meshStandardMaterial color={x.hit ? OK : x.slow ? BAD : OFF} />
+            </mesh>
+          </group>
+        );
+      })}
+      <mesh position={[0, hgt(DB_CAP), -0.5]}>
+        <boxGeometry args={[15.2, 0.04, 0.04]} />
+        <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.5} />
+      </mesh>
+      <Label text={`дерекқор шегі ${DB_CAP}/с`} position={[4.5, hgt(DB_CAP) + 0.35, -0.5]} size={0.4} />
+      <Label text={`${HOT_RPS}/с`} position={[-6.6, hgt(HOT_RPS) + 0.1, -0.5]} size={0.4} />
+      <Label text="төменгі жолақ: жасыл кэштен · қызыл күтті" position={[0, -0.45, 1.3]} size={0.4} />
+      <Label text={last && c ? `${STRATEGY_WORD[c.strategy]} · дерекқор шыңы ${last.dbPeak}/с · шамадан тыс ${last.overload} с` : "60 секундты ойнат"} position={[0, 5, 0]} size={0.7} />
+      <Label text="баған: секундына дерекқорға баратын сұраныс (логарифм шкала)" position={[0, 4.3, 0]} size={0.45} />
     </group>
   );
 }

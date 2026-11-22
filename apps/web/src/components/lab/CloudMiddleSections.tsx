@@ -1,6 +1,6 @@
 "use client";
 
-import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type ProbeScenario, type RetryPolicy } from "@inside-tech/lab-cloud";
+import { LB_SERVERS, type CloudLabAction, type CloudLabState, type LbAlgo, type CacheStrategy, type ProbeScenario, type RetryPolicy } from "@inside-tech/lab-cloud";
 import styles from "./lab.module.css";
 
 type D = (a: CloudLabAction) => void;
@@ -173,6 +173,52 @@ export function RetriesSection({ state, dispatch }: { state: CloudLabState; disp
           <div>
             <span>Оралды</span>
             <strong>{r.last.recoveredAt === null ? "ешқашан" : `${r.last.recoveredAt} с`}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+const STRATEGIES: [CacheStrategy, string][] = [
+  ["none", "Кэшсіз"],
+  ["ttl", "TTL кэш"],
+  ["coalesce", "Single-flight"],
+  ["early", "Алдын ала жаңарту"],
+];
+
+export function StampedeSection({ state, dispatch }: { state: CloudLabState; dispatch: D }) {
+  const c = state.stampede ?? { strategy: "ttl" as CacheStrategy, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Ыстық кілт 500/с · дерекқор 50/с · TTL 20 с</legend>
+      <div className={styles.row} role="group" aria-label="Кэш стратегиясы">
+        {STRATEGIES.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={c.strategy === k} onClick={() => dispatch({ type: "stampede/set", strategy: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "stampede/run" })}>
+        60 секундты ойнату
+      </button>
+      {c.last && (
+        <div className={styles.metrics} role="status" aria-label="Кэш нәтижесі">
+          <div>
+            <span>Кэштен</span>
+            <strong>{Math.round(c.last.hitRate * 100)}%</strong>
+          </div>
+          <div>
+            <span>Дерекқор шыңы</span>
+            <strong>{c.last.dbPeak}/с</strong>
+          </div>
+          <div>
+            <span>Шамадан тыс</span>
+            <strong>{c.last.overload} с</strong>
+          </div>
+          <div>
+            <span>Күтті</span>
+            <strong>{c.last.slow} с</strong>
           </div>
         </div>
       )}

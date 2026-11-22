@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("cloud lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/cloud");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cloud & DevOps");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("lesson 1: reordering the Dockerfile makes rebuilds fast", async ({ page }) => {
@@ -87,4 +87,19 @@ test("Middle 13: immediate retries keep the service down; a circuit breaker cuts
   await page.getByRole("button", { name: "Circuit breaker" }).click();
   await page.getByRole("button", { name: "60 секундты ойнату" }).click();
   await expect(r).toContainText("Қате130");
+});
+
+test("Middle 14: a TTL cache still stampedes; single-flight sends one query", async ({ page }) => {
+  await page.goto("/labs/cloud/cloud-14-stampede");
+  const r = page.getByRole("status", { name: "Кэш нәтижесі" });
+  const play = page.getByRole("button", { name: "60 секундты ойнату" });
+  await page.getByRole("button", { name: "TTL кэш" }).click();
+  await play.click();
+  await expect(r).toContainText("Кэштен90%");
+  await expect(r).toContainText("Дерекқор шыңы500/с");
+  await expect(objective(page, "әр мерзім біткенде")).toHaveAttribute("data-done", "true");
+  await page.getByRole("button", { name: "Single-flight" }).click();
+  await play.click();
+  await expect(r).toContainText("Дерекқор шыңы1/с");
+  await expect(r).toContainText("Шамадан тыс0 с");
 });

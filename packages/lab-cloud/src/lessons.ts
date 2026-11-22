@@ -1,4 +1,4 @@
-import { cloudMiddleContent, lessonLb, lessonProbes, lessonQueues, lessonRetries } from "./middle";
+import { cloudMiddleContent, lessonLb, lessonProbes, lessonQueues, lessonRetries, lessonStampede } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { cloudContent } from "./content";
 import { BAD_ORDER, ROOT_CAUSE } from "./core";
@@ -227,4 +227,5 @@ export const cloudLessons: L[] = [
   lessonQueues,
   lessonLb,
   lessonRetries,
+  lessonStampede,
 ].map((l) => withDeepDives(withContent(l, cloudContent[l.id] ?? cloudMiddleContent[l.id] ?? {}), cloudDeepDives[l.id] ?? {}));

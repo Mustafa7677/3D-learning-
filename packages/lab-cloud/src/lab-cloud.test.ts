@@ -131,6 +131,18 @@ const scripts: Record<string, Record<string, (d: D, tick: T) => void>> = {
     },
     backpressure: (d) => d({ type: "queue/run" }),
   },
+  "cloud-14-stampede": {
+    stampede: (d) => {
+      d({ type: "stampede/run" });
+      d({ type: "stampede/set", strategy: "ttl" });
+      d({ type: "stampede/run" });
+    },
+    flight: (d) => {
+      d({ type: "stampede/run" });
+      d({ type: "stampede/set", strategy: "early" });
+      d({ type: "stampede/run" });
+    },
+  },
   "cloud-13-retries": {
     storm: (d) => {
       d({ type: "retries/run" });
