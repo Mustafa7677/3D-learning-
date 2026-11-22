@@ -33,11 +33,11 @@ test("a Parsons problem: the distractor is caught, the first wrong line is named
   await board.getByRole("button", { name: `Жоғары: ${SQL[3]}` }).click();
   await board.getByRole("button", { name: "Басып шығару: тексеру" }).click();
   await expect(board.getByRole("status")).toContainText("Дұрыс тізілді. 1 ұпай.");
-  await expect(page.getByLabel("Ұпай", { exact: true })).toHaveText("1/10 есеп · 1/30 ұпай");
+  await expect(page.getByLabel("Ұпай", { exact: true })).toHaveText("1/14 есеп · 1/42 ұпай");
 
   // Saved: still there after a reload.
   await page.reload();
-  await expect(page.getByLabel("Ұпай", { exact: true })).toHaveText("1/10 есеп · 1/30 ұпай");
+  await expect(page.getByLabel("Ұпай", { exact: true })).toHaveText("1/14 есеп · 1/42 ұпай");
 });
 
 test("hints alone solve a problem, at the lowest score", async ({ page }) => {
