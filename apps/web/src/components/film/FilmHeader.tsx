@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PlayerBadge } from "./PlayerBadge";
+import { FocusChip } from "../focus/FocusChip";
 import styles from "./film.module.css";
 
 /**
@@ -36,6 +37,7 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
         </Link>
       </nav>
       <div className={styles.headerEnd}>
+        <FocusChip />
         {badge && (
           <span className={styles.badgeSlot}>
             <PlayerBadge />
@@ -60,6 +62,7 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
             <Link href="/parsons">Ретке келтір</Link>
             <Link href="/tactics">Тактика алаңы</Link>
             <Link href="/problems">Есептер залы</Link>
+            <Link href="/focus">Фокус бөлмесі</Link>
             <Link href="/sky">Білім аспаны</Link>
             <Link href="/create">Сабақ жасау</Link>
             <Link href="/teacher">Мұғалімге</Link>

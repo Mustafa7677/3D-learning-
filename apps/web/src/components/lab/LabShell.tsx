@@ -7,6 +7,7 @@ import type { LabSession } from "@/lib/useAiLabSession";
 import { findLab } from "@/lib/catalog";
 import { LessonPanel } from "./LessonPanel";
 import { PlayerBadge } from "../film/PlayerBadge";
+import { FocusChip } from "../focus/FocusChip";
 import { StageFrame } from "./StageFrame";
 import styles from "./lab.module.css";
 
@@ -40,6 +41,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
           </span>
         </nav>
         <span className={styles.hud}>
+          <FocusChip />
           <PlayerBadge />
         </span>
         <span className={styles.progress} aria-label="Сабақ прогресі">

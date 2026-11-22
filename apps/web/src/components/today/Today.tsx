@@ -12,6 +12,7 @@ import { dailyProblem, loadProblems, streakLength } from "@/lib/problems";
 import { progressStore } from "@/lib/progress";
 import { GOALS, activeThisWeek, greeting, heatmap, loadGoal, mastery, saveGoal, todayPlan, type PlanItem } from "@/lib/today";
 import { XP_EVENT, usePlayer } from "@/lib/xp";
+import { FOCUS_EVENT, focusWeek, loadActive, loadHistory, type FocusSession } from "@/lib/focus";
 import { FilmHeader } from "../film/FilmHeader";
 import film from "../film/film.module.css";
 import styles from "./today.module.css";
@@ -55,6 +56,7 @@ export function Today() {
   const [now, setNow] = useState<Date | null>(null);
   const [data, setData] = useState<Data | null>(null);
   const [goal, setGoal] = useState(3);
+  const [focus, setFocus] = useState<{ history: FocusSession[]; active: boolean }>({ history: [], active: false });
   const player = usePlayer();
 
   const load = useCallback(() => {
@@ -74,6 +76,7 @@ export function Today() {
       /* storage unavailable */
     }
     const problems = loadProblems();
+    setFocus({ history: loadHistory(), active: !!loadActive() });
     void progressStore()
       .list()
       .catch(() => [] as LessonProgress[])
@@ -88,7 +91,9 @@ export function Today() {
     load();
     window.addEventListener(ACTIVITY_EVENT, load);
     window.addEventListener(XP_EVENT, load);
+    window.addEventListener(FOCUS_EVENT, load);
     return () => {
+      window.removeEventListener(FOCUS_EVENT, load);
       window.removeEventListener(ACTIVITY_EVENT, load);
       window.removeEventListener(XP_EVENT, load);
     };
@@ -100,6 +105,10 @@ export function Today() {
   const heat = now && data ? heatmap(data.activity, now, 16) : [];
   const labs = data ? mastery(lessonEntries, data.progress) : [];
   const activeDays = data ? Object.keys(data.activity.days).length : 0;
+  const fWeek = now ? focusWeek(focus.history, now) : [];
+  const fToday = fWeek.at(-1)?.min ?? 0;
+  const fTotal = fWeek.reduce((a, d) => a + d.min, 0);
+  const fMax = Math.max(25, ...fWeek.map((d) => d.min));
 
   return (
     <div className={film.page}>
@@ -146,6 +155,28 @@ export function Today() {
                     {x.done ? "✓ Орындалды" : "Бастау →"}
                   </span>
                 </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className={`${styles.panel} ${styles.focusPanel}`} aria-labelledby="focus-title">
+          <div>
+            <h2 id="focus-title" className={styles.h2}>
+              Фокус уақыты
+            </h2>
+            <p className={styles.focusNum}>
+              <strong>{fToday}</strong> мин бүгін · {fTotal} мин осы 7 күнде
+            </p>
+            <p className={styles.note}>Бір мақсат, таймер, телефон алыста. 25 минут терең жұмыс бір сағат шашыраңқы оқудан артық.</p>
+            <Link href="/focus" className={styles.focusGo}>
+              {focus.active ? "Жүріп жатқан сессияға оралу" : "Фокус сессиясын бастау"}
+            </Link>
+          </div>
+          <ol className={styles.focusBars} aria-label="Соңғы жеті күндегі фокус минуттары">
+            {fWeek.map((d) => (
+              <li key={d.key} data-today={d.today || undefined} title={`${d.key}: ${d.min} мин`}>
+                <span style={{ height: `${Math.round((d.min / fMax) * 100)}%` }} />
               </li>
             ))}
           </ol>

@@ -4,7 +4,7 @@
  */
 import { dayKey } from "./problems";
 
-export type ActivityKind = "lesson" | "review" | "problem";
+export type ActivityKind = "lesson" | "review" | "problem" | "focus";
 export type DayActivity = Partial<Record<ActivityKind, number>>;
 export interface ActivityLog {
   days: Record<string, DayActivity>;
@@ -12,7 +12,7 @@ export interface ActivityLog {
 
 const KEY = "inside-tech:activity";
 export const ACTIVITY_EVENT = "inside-tech:activity";
-const KINDS: ActivityKind[] = ["lesson", "review", "problem"];
+const KINDS: ActivityKind[] = ["lesson", "review", "problem", "focus"];
 
 export function sanitizeActivity(raw: unknown): ActivityLog {
   const days: Record<string, DayActivity> = {};
@@ -62,4 +62,4 @@ export function recordActivity(kind: ActivityKind) {
   window.dispatchEvent(new Event(ACTIVITY_EVENT));
 }
 
-export const dayTotal = (d: DayActivity | undefined) => (d ? (d.lesson ?? 0) + (d.review ?? 0) + (d.problem ?? 0) : 0);
+export const dayTotal = (d: DayActivity | undefined) => (d ? (d.lesson ?? 0) + (d.review ?? 0) + (d.problem ?? 0) + (d.focus ?? 0) : 0);
