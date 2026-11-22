@@ -37,6 +37,8 @@ export interface Server {
   adminToken?: string;
   /** Answer conditional GETs: a cached copy that is still current gets 304 with no body. */
   etag?: boolean;
+  /** Origins allowed to read responses from scripts (Access-Control-Allow-Origin). */
+  corsOrigins?: string[];
 }
 
 export interface DnsRecord {
@@ -50,6 +52,8 @@ export interface RequestSpec {
   token?: string;
   /** Form-like body for POST/PUT: key=value pairs. */
   body?: Record<string, string>;
+  /** The page whose script sends this request (fetch). Absent: typed in the address bar. */
+  origin?: string;
 }
 
 export interface Stage {
@@ -70,6 +74,10 @@ export interface Response {
   fromCache: boolean;
   ms: number;
   error?: string;
+  /** The browser kept the response from the page's script (CORS). */
+  corsBlocked?: boolean;
+  /** A CORS preflight (OPTIONS) went out before the request. */
+  preflight?: boolean;
 }
 
 export interface CacheEntry {
@@ -163,6 +171,19 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
   });
 
   const url = parseUrl(req.url);
+  // CORS: a script on another origin may send, but may read only if the server allows that origin.
+  const target = url ? `${url.protocol}://${url.host}` : "";
+  const cross = !!req.origin && !!url && req.origin !== target;
+  const corsServer = url ? world.servers.find((s) => s.ip === world.dns.find((r) => r.name === url.host)?.ip) : undefined;
+  const corsAllowed = !cross || !!corsServer?.corsOrigins?.some((o) => o === "*" || o === req.origin);
+  const simple = !req.token && (req.method === "GET" || req.method === "POST");
+  let preflight = false;
+  const finishBase = finish;
+  const finishCors = (status: number, body: string, contentType: Response["contentType"], w: World, extra: Partial<Response> = {}, query?: QueryResult): Resolution => {
+    if (!cross || corsAllowed || status === 0) return finishBase(status, body, contentType, w, { ...extra, ...(preflight ? { preflight } : {}) }, query);
+    add({ kind: "error", from: "browser", to: "browser", dur: 2, title: "CORS: оқуға тыйым", detail: `Жауапта ${req.origin} үшін Access-Control-Allow-Origin жоқ: браузер оны скриптке бермеді (сервер бәрібір орындады)`, ok: false });
+    return finishBase(status, "", contentType, w, { ...extra, corsBlocked: true, error: "CORS: жауапты оқуға рұқсат жоқ" }, query);
+  };
   add({ kind: "url", from: "browser", to: "browser", dur: 2, title: "URL талдау", detail: url ? `${url.protocol}://${url.host} + ${url.path}` : "URL дұрыс емес", ok: !!url });
   if (!url) return finish(0, "", "text", world, { error: "URL дұрыс емес. Мысал: https://inside.kz/" });
 
@@ -174,7 +195,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
     if (hit) {
       add({ kind: "cache", from: "browser", to: "browser", dur: 1, title: "Браузер кэші", detail: `Кэште бар (тағы ${Math.round((hit.expiresAt - world.clock) / 1000)} с жарамды): серверге бармаймыз`, ok: true });
       add({ kind: "render", from: "browser", to: "browser", dur: 8, title: "Көрсету", detail: "Кэштегі нұсқа көрсетілді", ok: true });
-      return { stages, response: { status: hit.status, body: hit.body, contentType: hit.contentType, fromCache: true, ms: t }, world };
+      return finishCors(hit.status, hit.body, hit.contentType, world, { fromCache: true });
     }
   }
 
@@ -218,6 +239,15 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
     add({ kind: "tls", from: "server", to: "browser", dur: lat, title: "TLS: сертификат", detail: `${url.host} сертификаты тексерілді, кілттер келісілді`, ok: true });
   }
 
+  if (cross && !simple) {
+    preflight = true;
+    add({ kind: "http", from: "browser", to: "server", dur: lat, title: "HTTP OPTIONS (preflight)", detail: `Origin: ${req.origin}, Access-Control-Request-Method: ${req.method}`, ok: true });
+    if (!corsAllowed) {
+      add({ kind: "error", from: "server", to: "browser", dur: lat, title: "Preflight сәтсіз", detail: `${req.origin} рұқсат етілмеген: браузер ${req.method} сұранысын мүлде жібермеді`, ok: false });
+      return finishBase(0, "", "text", w, { corsBlocked: true, preflight: true, error: "CORS preflight: бұл origin-ге рұқсат жоқ" });
+    }
+    add({ kind: "response", from: "server", to: "browser", dur: lat, title: "204 (preflight)", detail: `Access-Control-Allow-Origin: ${req.origin}`, ok: true });
+  }
   const bodyText = req.body ? Object.entries(req.body).map(([k, v]) => `${k}=${v}`).join("&") : "";
   add({
     kind: "http",
@@ -237,7 +267,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
       const entry: CacheEntry = { url: req.url, body, status, contentType, expiresAt: world.clock + t + server.maxAge * 1000, version: world.deployVersion };
       next = { ...next, cache: [...next.cache.filter((c) => c.url !== req.url), entry] };
     }
-    return finish(status, body, contentType, next, {}, query);
+    return finishCors(status, body, contentType, next, {}, query);
   };
 
   const match = matchRoute(server.routes, req.method, url.path);
@@ -263,7 +293,7 @@ export function resolveRequest(world: World, req: RequestSpec): Resolution {
     add({ kind: "response", from: "server", to: "browser", dur: lat, title: "304 Not Modified", detail: `ETag "v${conditional.version}" сәйкес: дене жіберілмеді, кэштегі көшірме жарамды`, ok: true });
     add({ kind: "render", from: "browser", to: "browser", dur: 8, title: "Көрсету", detail: "Кэштегі нұсқа көрсетілді", ok: true });
     const refreshed: CacheEntry = { ...conditional, expiresAt: world.clock + t + server.maxAge * 1000 };
-    return finish(304, conditional.body, conditional.contentType, { ...w, cache: [...w.cache.filter((c) => c.url !== req.url), refreshed] });
+    return finishCors(304, conditional.body, conditional.contentType, { ...w, cache: [...w.cache.filter((c) => c.url !== req.url), refreshed] });
   }
   if (route.kind === "crash") {
     add({ kind: "route", from: "server", to: "server", dur: 3, title: "Код қатесі", detail: "TypeError: Cannot read properties of undefined", ok: false });

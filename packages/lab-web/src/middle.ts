@@ -111,6 +111,44 @@ export const lessonIdempotency: L = {
   ],
 };
 
+const cors = (s: WebLabState) => s.stats.corsRuns ?? [];
+
+export const lessonCors: L = {
+  id: "web-13-cors",
+  labId: "web",
+  order: 13,
+  title: "CORS: Who May Read the Answer",
+  summary: "Бөтен сайттың скрипті API-ге сұраныс жібере алады, бірақ жауапты оқи ала ма? Origin, preflight және CORS-тың нені қорғамайтыны.",
+  estimatedMinutes: 25,
+  steps: [
+    {
+      id: "simple",
+      title: "Бөтен бет",
+      body: "",
+      focus: "network",
+      onEnter: [
+        { type: "scenario/load", id: "api" },
+        { type: "req/set", params: { method: "GET", url: "https://api.inside.kz/api/users", token: "", origin: "https://evil.kz", body: { name: "Хакер", city: "Белгісіз" } } },
+      ],
+      objectives: [
+        { id: "read", text: "evil.kz бетінен GET /api/users: сервер 200 берді, бірақ браузер жауапты бермеді", check: (s) => cors(s).some((r) => r.method === "GET" && r.status === 200 && r.blocked) },
+        { id: "write", text: "evil.kz бетінен POST /api/users: жауап бұғатталды, бірақ жазба бәрібір қосылды (201)", check: (s) => cors(s).some((r) => r.method === "POST" && r.status === 201 && r.blocked) },
+      ],
+    },
+    {
+      id: "preflight",
+      title: "Алдын ала сұрау",
+      body: "",
+      focus: "network",
+      onEnter: [{ type: "req/set", params: { method: "GET", url: "https://api.inside.kz/api/secret", token: "secret-123", origin: "https://evil.kz", body: {} } }],
+      objectives: [
+        { id: "stopped", text: "Token-мен сұраныс: OPTIONS сәтсіз, негізгі сұраныс мүлде кетпейді", check: (s) => cors(s).some((r) => r.preflight && r.status === 0 && r.blocked) },
+        { id: "allowed", text: "shop.kz-ке рұқсат бер де, сол беттен token-мен сұра: 200 және оқылады", check: (s) => cors(s).some((r) => r.origin === "https://shop.kz" && r.preflight && !r.blocked && r.status === 200) },
+      ],
+    },
+  ],
+};
+
 export const webMiddleContent: Record<string, Record<string, StepContent>> = {
   "web-10-cache": {
     maxage: {
@@ -373,6 +411,115 @@ PUT сұранысын екі рет жібер. Сосын GET /api/users/1 а�
           options: ["PUT /api/users/1 (city=Тараз)", "POST /api/orders", "POST /api/payments"],
           answer: 0,
           explain: "Соңғы күйді көрсететін PUT-ты қайталау ештеңені бұзбайды. Ал POST-ты қайталау қосымша тапсырыс не төлем жасайды.",
+        },
+      ],
+    },
+  },
+  "web-13-cors": {
+    simple: {
+      predict: {
+        question: "evil.kz бетіндегі скрипт https://api.inside.kz/api/users-ке fetch жібереді. API тек inside.kz-ке рұқсат береді. Сервер не істейді?",
+        options: ["Сұранысты мүлде қабылдамайды", "Сұранысты орындап, 200 қайтарады; ал браузер жауапты скриптке бермейді", "403 Forbidden қайтарады"],
+        answer: 1,
+        explain: "Қарапайым GET-те браузер сұранысты жібереді, сервер оны әдеттегідей орындайды. Тыйым соңында, браузерде: Access-Control-Allow-Origin жоқ болса, жауап evil.kz скриптіне берілмейді.",
+      },
+      body: `## Идея
+**Same-origin policy**: браузердің негізгі қорғанысы. Бір сайттың скрипті басқа **origin**-нің (протокол + хост + порт) жауабын оқи алмайды. Әйтпесе кез келген бет сенің атыңнан банкке сұраныс жіберіп, жауабын (шотыңды) оқып алар еді, себебі браузер cookie-ді өзі тіркейді.
+
+**CORS** (Cross-Origin Resource Sharing): серверге «мына origin-дерге менің жауабымды оқуға болады» деп айтуға мүмкіндік беретін тақырыптар:
+\`\`\`
+Access-Control-Allow-Origin: https://inside.kz
+\`\`\`
+
+## Ең маңызды тұс
+CORS **оқуды** бұғаттайды, **жіберуді** емес. Қарапайым сұраныс (GET, токенсіз форма POST) серверге жетеді және **орындалады**. Тыйым тек соңында, браузерде болады: жауап скриптке берілмейді.
+
+Модельде evil.kz-тен:
+- GET /api/users: сервер **200** қайтарды, браузер жауапты **бермеді**;
+- POST /api/users: браузер жауапты бермеді, бірақ дерекқорға **жаңа жол қосылды** (201).
+
+Яғни CORS серверді қорғамайды. Өзгеріс жасайтын сұраныстарды **CSRF** токендері мен **SameSite** cookie қорғауы керек (Senior деңгейде).
+
+## Нақты әлемде
+Консольдағы «blocked by CORS policy» қатесі: ең жиі кездесетін фронтенд қателерінің бірі. Оны браузерде «өшіру» мүмкін емес, тек сервер өз тақырыптарын түзетеді. \`Access-Control-Allow-Origin: *\` токен не cookie бар сұраныстарға жұмыс істемейді.
+
+## Енді сен
+evil.kz бетінен GET, сосын POST жібер. Сервердің жауап кодына және браузердің шешіміне қара.`,
+      quiz: [
+        {
+          id: "origin",
+          question: "Origin неден тұрады?",
+          options: ["Протокол, хост және порт", "Тек домен", "URL-дің толық жолы"],
+          answer: 0,
+          explain: "https://inside.kz мен http://inside.kz әр түрлі origin: протоколы басқа. api.inside.kz та inside.kz-тен бөлек.",
+        },
+        {
+          id: "server",
+          question: "evil.kz-тен келген қарапайым POST сервердегі деректі өзгерте ме?",
+          options: ["Жоқ, CORS оны тоқтатады", "Иә: сервер сұранысты орындайды, браузер тек жауапты жасырады", "Тек сервер CORS-ты өшірсе"],
+          answer: 1,
+          explain: "CORS: оқуға тыйым. Өзгерістен CSRF токені мен SameSite cookie қорғайды.",
+        },
+        {
+          id: "fix",
+          question: "Консольда «blocked by CORS policy». Қай жерде түзету керек?",
+          options: ["Серверде: Access-Control-Allow-Origin тақырыбын қосу", "Браузерде CORS-ты өшіру", "fetch-ті екі рет шақыру"],
+          answer: 0,
+          explain: "Рұқсат беретін: ресурстың иесі, яғни сервер. Браузер тек соны орындайды.",
+        },
+      ],
+    },
+    preflight: {
+      predict: {
+        question: "evil.kz скрипті енді Authorization тақырыбымен (token) сұраныс жібереді. API evil.kz-ке рұқсат бермейді. Сұраныс серверге жете ме?",
+        options: ["Иә, бұрынғыдай: сервер орындайды, браузер жауапты жасырады", "Жоқ: браузер алдымен OPTIONS сұрайды, рұқсат болмаса негізгі сұранысты мүлде жібермейді", "Иә, бірақ 401 алады"],
+        answer: 1,
+        explain: "Токені бар не PUT/DELETE сияқты «қарапайым емес» сұраныс алдында браузер preflight жібереді. Сервер бұл origin-ге рұқсат бермесе, негізгі сұраныс жіберілмейді.",
+      },
+      body: `## Preflight
+Кейбір сұраныстар қауіптірек: **PUT**, **DELETE**, **Authorization** тақырыбы, JSON денесі. Олар үшін браузер алдымен **алдын ала сұрау** (preflight) жібереді:
+\`\`\`
+OPTIONS /api/secret
+Origin: https://evil.kz
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: authorization
+\`\`\`
+Сервер рұқсат берсе (Access-Control-Allow-Origin, Allow-Headers), браузер негізгі сұранысты жібереді. Бермесе: **жібермейді**, сервер ештеңе орындамайды.
+
+## Неге екі түрлі ереже?
+Қарапайым сұраныстар (форма, сурет, сілтеме) веб CORS-тан бұрын да болған: оларды тоқтату ескі сайттарды бұзар еді. Ал жаңа, қуатты сұраныстар үшін браузер серверден алдын ала сұрайды.
+
+## Бағасы
+Preflight: қосымша бір айналым (RTT). Модельде ол 2 × кідіріс қосады. Сондықтан \`Access-Control-Max-Age\` тақырыбымен браузерге preflight жауабын кэштеуге рұқсат береді.
+
+## Нақты әлемде
+- Фронтенд (app.inside.kz) мен API (api.inside.kz) бөлек тұрса, API сол бір origin-ді нақты тізімдейді.
+- \`*\` тек ашық, токенсіз деректерге.
+- Әзірлеуде (localhost:3000 → localhost:8080) де порттары әр түрлі болғандықтан CORS керек.
+
+## Енді сен
+evil.kz-тен токенмен сұра (preflight сәтсіз), сосын API-ге shop.kz-ті қосып, сол беттен сұра.`,
+      quiz: [
+        {
+          id: "when",
+          question: "Браузер қашан preflight (OPTIONS) жібереді?",
+          options: ["Бөтен origin-ге қарапайым емес сұраныс кезінде: PUT, DELETE, Authorization", "Әр сұраныс алдында", "Тек HTTPS-те"],
+          answer: 0,
+          explain: "Қарапайым GET пен форма POST-қа preflight жоқ, қалғанына бар.",
+        },
+        {
+          id: "fail",
+          question: "Preflight сәтсіз болса, негізгі сұраныс не болады?",
+          options: ["Жіберілмейді: сервер ештеңе орындамайды", "Жіберіледі, бірақ жауап жасырылады", "Қайталанады"],
+          answer: 0,
+          explain: "Бұл қарапайым сұраныстан айырмашылығы: preflight негізгі сұранысты алдын ала тоқтатады.",
+        },
+        {
+          id: "star",
+          question: "Неге Access-Control-Allow-Origin: * токен не cookie бар сұраныстарға жарамайды?",
+          options: ["Браузер оны credentials бар сұраныстарда қабылдамайды: кез келген сайт сенің атыңнан оқымауы үшін", "Жұлдызша синтаксис қатесі", "Ол тек GET-ке"],
+          answer: 0,
+          explain: "Credentials бар болса, сервер нақты origin-ді атауы керек. Бұл кездейсоқ «бәріне ашып қою» қатесінен қорғайды.",
         },
       ],
     },

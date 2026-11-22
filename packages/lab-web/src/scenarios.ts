@@ -54,6 +54,7 @@ export function scenario(id: ScenarioId): World {
   };
   const api = {
     host: "api.inside.kz",
+    corsOrigins: ["https://inside.kz"],
     ip: "93.184.10.2",
     up: true,
     https: true,

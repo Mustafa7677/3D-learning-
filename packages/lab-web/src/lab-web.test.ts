@@ -182,6 +182,17 @@ const scripts: Record<string, Record<string, (d: D, s: () => WebLabState, tick: 
       send(d, t);
     },
   },
+  "web-13-cors": {
+    simple: (d, _s, t) => {
+      send(d, t);
+      send(d, t, { method: "POST", body: { name: "Hacker", city: "X" } });
+    },
+    preflight: (d, _s, t) => {
+      send(d, t);
+      d({ type: "server/set", ip: API, patch: { corsOrigins: ["https://inside.kz", "https://shop.kz"] } });
+      send(d, t, { origin: "https://shop.kz" });
+    },
+  },
   "web-1-internet": {
     journey: (d, _s, t) => send(d, t),
     "dns-cache": (d, _s, t) => send(d, t),

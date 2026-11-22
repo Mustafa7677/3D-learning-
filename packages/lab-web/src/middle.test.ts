@@ -49,6 +49,30 @@ describe("web middle: the simulation", () => {
   });
 });
 
+describe("CORS", () => {
+  const go = (spec: Parameters<typeof resolveRequest>[1]) => resolveRequest(scenario("api"), spec);
+  it("a simple cross-origin GET runs on the server, the browser hides the answer", () => {
+    const r = go({ method: "GET", url: "https://api.inside.kz/api/users", origin: "https://evil.kz" });
+    expect(r.response).toMatchObject({ status: 200, corsBlocked: true, body: "" });
+  });
+  it("a cross-origin POST still writes to the database", () => {
+    const w = scenario("api");
+    const before = w.db.users!.rows.length;
+    const r = resolveRequest(w, { method: "POST", url: "https://api.inside.kz/api/users", origin: "https://evil.kz", body: { name: "X", city: "Y" } });
+    expect(r.response).toMatchObject({ status: 201, corsBlocked: true });
+    expect(r.world.db.users!.rows.length).toBe(before + 1);
+  });
+  it("a token makes it non-simple: a failed preflight stops it before the server", () => {
+    const r = go({ method: "GET", url: "https://api.inside.kz/api/secret", token: "secret-123", origin: "https://evil.kz" });
+    expect(r.response).toMatchObject({ status: 0, corsBlocked: true, preflight: true });
+    expect(r.stages.some((s) => s.kind === "route")).toBe(false);
+  });
+  it("the site's own origin reads freely; the address bar is not CORS at all", () => {
+    expect(go({ method: "GET", url: "https://api.inside.kz/api/secret", token: "secret-123", origin: "https://inside.kz" }).response).toMatchObject({ status: 200, preflight: true });
+    expect(go({ method: "GET", url: "https://api.inside.kz/api/users" }).response.corsBlocked).toBeUndefined();
+  });
+});
+
 describe("web middle: the lessons", () => {
   const scripts: Record<string, Record<string, (rt: SimulationRuntime<WebLabState, WebLabAction>) => void>> = {
     "web-10-cache": {

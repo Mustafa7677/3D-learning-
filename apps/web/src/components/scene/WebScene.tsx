@@ -262,7 +262,7 @@ const FRAME: Record<WebFocus, { width: number; height: number; target: [number, 
 };
 
 export default function WebScene(props: Props) {
-  const fr = FRAME[props.focus];
+  const fr = FRAME[props.focus] ?? FRAME.network;
   const q = QUALITY[useQuality()];
   const film = props.focus === "network";
   return (

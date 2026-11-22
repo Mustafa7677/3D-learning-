@@ -5,6 +5,9 @@ import { parseUrl, resolveRequest, type Method, type RequestSpec, type Response,
 import { STARTER_HTML, scenario, type ScenarioId } from "./scenarios";
 import { execute, type QueryResult } from "./sql";
 
+/** Pages that can send scripted requests in the lab. */
+export const ORIGINS = ["https://inside.kz", "https://shop.kz", "https://evil.kz"];
+
 export interface BoxModel {
   width: number;
   padding: number;
@@ -80,6 +83,8 @@ export interface WebStats {
   latencyChanged: boolean;
   /** Finished requests by "METHOD status", e.g. "PUT 200": what idempotency is about. */
   calls: Record<string, number>;
+  /** Requests sent by a page's script: from which origin, and what the browser let it read. */
+  corsRuns?: { origin: string; method: string; status: number; blocked: boolean; preflight: boolean }[];
 }
 
 export interface WebLabState {
@@ -108,7 +113,7 @@ export type WebLabAction =
   | { type: "speed/set"; speed: number }
   | { type: "dns/set"; name: string; ip: string }
   | { type: "dns/remove"; name: string }
-  | { type: "server/set"; ip: string; patch: Partial<Pick<Server, "up" | "https" | "latency" | "maxAge" | "etag">> }
+  | { type: "server/set"; ip: string; patch: Partial<Pick<Server, "up" | "https" | "latency" | "maxAge" | "etag" | "corsOrigins">> }
   | { type: "route/add"; ip: string; route: Omit<Route, "id"> }
   | { type: "route/update"; ip: string; id: number; patch: Partial<Omit<Route, "id">> }
   | { type: "route/remove"; ip: string; id: number }
@@ -158,6 +163,7 @@ const emptyStats = (): WebStats => ({
   freshAfterStale: false,
   latencyChanged: false,
   calls: {},
+  corsRuns: [],
 });
 
 export function initialWebState(_seed: number): WebLabState {
@@ -245,6 +251,7 @@ function finishTrace(s: WebLabState): WebLabState {
   st.stageKinds = [...new Set([...st.stageKinds, ...tr.stages.filter((x) => x.ok).map((x) => x.kind)])];
   if (url?.protocol === "https" && !res.fromCache && res.status > 0) st.httpsRequests++;
   if (url?.protocol === "http" && !res.fromCache && res.status > 0) st.httpRequests++;
+  if (tr.spec.origin) st.corsRuns = [...(st.corsRuns ?? []), { origin: tr.spec.origin, method: tr.spec.method, status: res.status, blocked: !!res.corsBlocked, preflight: !!res.preflight }].slice(-40);
   if (res.fromCache) st.cacheHits++;
   if (tr.stages.some((x) => x.title === "DNS (кэш)")) st.dnsCacheHits++;
   if (stale) st.staleSeen = true;
@@ -306,6 +313,7 @@ function reduce(s: WebLabState, a: WebLabAction): WebLabState {
       if (a.params.method && ["GET", "POST", "PUT", "DELETE"].includes(a.params.method)) r.method = a.params.method;
       if (typeof a.params.url === "string") r.url = a.params.url.slice(0, 200);
       if (a.params.token !== undefined) r.token = a.params.token.slice(0, 100) || undefined;
+      if (a.params.origin !== undefined) r.origin = ORIGINS.includes(a.params.origin) ? a.params.origin : undefined;
       if (a.params.body !== undefined) r.body = Object.fromEntries(Object.entries(a.params.body).slice(0, 8).map(([k, v]) => [k.slice(0, 30), String(v).slice(0, 100)]));
       return { ...s, request: r };
     }
@@ -346,6 +354,7 @@ function reduce(s: WebLabState, a: WebLabAction): WebLabState {
           ...(a.patch.latency !== undefined ? { latency: clamp(a.patch.latency, 1, 1000) } : {}),
           ...(a.patch.maxAge !== undefined ? { maxAge: clamp(a.patch.maxAge, 0, 3600) } : {}),
           ...(a.patch.etag !== undefined ? { etag: !!a.patch.etag } : {}),
+          ...(a.patch.corsOrigins !== undefined ? { corsOrigins: a.patch.corsOrigins.filter((o) => o === "*" || ORIGINS.includes(o)).slice(0, 5) } : {}),
         })),
         stats: { ...s.stats, latencyChanged: s.stats.latencyChanged || a.patch.latency !== undefined },
       };

@@ -17,13 +17,14 @@ import {
   type Route,
   type WebLabAction,
   type WebLabState,
+  ORIGINS,
 } from "@inside-tech/lab-web";
 import type { WebFocus } from "../scene/WebScene";
 import styles from "./lab.module.css";
 import lang from "./lang.module.css";
 import web from "./web.module.css";
 
-export type WebSection = "request" | "server" | "dns" | "routes" | "cache" | "html" | "deploy" | "box" | "flex" | "loop" | "sql";
+export type WebSection = "request" | "server" | "dns" | "routes" | "cache" | "html" | "deploy" | "box" | "flex" | "loop" | "sql" | "cors";
 
 interface Props {
   state: WebLabState;
@@ -84,7 +85,7 @@ const statusClass = (code: number) => (code === 0 ? web.bad : code < 300 ? web.g
 
 // ---------------- request ----------------
 
-function RequestSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
+function RequestSection({ state, dispatch, cors = false }: { state: WebLabState; dispatch: D; cors?: boolean }) {
   const r = state.request;
   const tr = state.trace;
   const at = tr ? traceProgress(tr) : undefined;
@@ -106,6 +107,19 @@ function RequestSection({ state, dispatch }: { state: WebLabState; dispatch: D }
         </div>
       </div>
       <Debounced id="req-token" label="Authorization: Bearer (token)" value={r.token ?? ""} onCommit={(token) => dispatch({ type: "req/set", params: { token } })} />
+      {cors && (
+        <label className={styles.row}>
+          <span>Сұранысты жіберетін бет (Origin)</span>
+          <select className={web.select} value={r.origin ?? ""} onChange={(e) => dispatch({ type: "req/set", params: { origin: e.target.value } })}>
+            <option value="">мекенжай жолы (CORS жоқ)</option>
+            {ORIGINS.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {(r.method === "POST" || r.method === "PUT") && (
         <div className={web.twoCol}>
           {["name", "city"].map((k) => (
@@ -329,6 +343,28 @@ function RoutesSection({ state, dispatch }: { state: WebLabState; dispatch: D })
         Маршрут қосу
       </button>
       {server.token && <p className={styles.small}>Бұл сервердің token-і: {server.token}</p>}
+    </fieldset>
+  );
+}
+
+function CorsSection({ state, dispatch }: { state: WebLabState; dispatch: D }) {
+  const api = state.world.servers.find((s) => s.host === "api.inside.kz");
+  if (!api) return null;
+  const allowed = api.corsOrigins ?? [];
+  return (
+    <fieldset className={styles.group}>
+      <legend>api.inside.kz: Access-Control-Allow-Origin</legend>
+      {ORIGINS.map((o) => (
+        <label key={o} className={styles.row}>
+          <input
+            type="checkbox"
+            checked={allowed.includes(o)}
+            onChange={(e) => dispatch({ type: "server/set", ip: api.ip, patch: { corsOrigins: e.target.checked ? [...allowed, o] : allowed.filter((x) => x !== o) } })}
+          />{" "}
+          {o} оқи алады
+        </label>
+      ))}
+      <p className={styles.small}>Бұл тізім тек скрипттің жауапты оқуын шешеді. Қарапайым сұраныс серверге бәрібір жетеді.</p>
     </fieldset>
   );
 }
@@ -620,11 +656,12 @@ export function WebControlPanel({ state, sections, focus, dispatch, canUndo, onU
       {cssFirst.map((k) => (k === "box" ? has("box") && <BoxSection key="box" state={state} dispatch={dispatch} /> : has("flex") && <FlexSection key="flex" state={state} dispatch={dispatch} />))}
       {has("loop") && <LoopSection state={state} dispatch={dispatch} />}
       {has("sql") && <SqlSection state={state} dispatch={dispatch} />}
-      {has("request") && <RequestSection state={state} dispatch={dispatch} />}
+      {has("request") && <RequestSection state={state} dispatch={dispatch} cors={has("cors")} />}
       {has("dns") && <DnsSection state={state} dispatch={dispatch} />}
       {has("routes") && <RoutesSection state={state} dispatch={dispatch} />}
       {has("server") && <ServerSection state={state} dispatch={dispatch} />}
       {has("cache") && <CacheSection state={state} dispatch={dispatch} />}
+      {has("cors") && <CorsSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

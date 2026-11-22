@@ -18,8 +18,8 @@ test.beforeEach(async ({ page }) => {
 
 test("web lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/web");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("predict, observe, explain: the guess is locked, then revealed after the experiment", async ({ page }) => {
@@ -130,4 +130,22 @@ test("lesson 8: deploy your page and open it", async ({ page }) => {
   await page.getByRole("button", { name: "Deploy", exact: true }).click();
   await send(page);
   await expect(objective(page, "сенің бетің")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+});
+
+test("Middle 13: CORS hides a cross-origin answer but the POST still lands; a token needs a preflight", async ({ page }) => {
+  await page.goto("/labs/web/web-13-cors");
+  await expect(page.getByRole("combobox", { name: /Origin/ })).toHaveValue("https://evil.kz");
+  await send(page);
+  await expect(objective(page, "сервер 200 берді")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await page.locator("#req-method").selectOption("POST");
+  await send(page);
+  await expect(objective(page, "жазба бәрібір қосылды")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await nextStep(page);
+  await send(page);
+  await expect(objective(page, "OPTIONS сәтсіз")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
+  await page.getByLabel("https://shop.kz оқи алады").click();
+  await expect(page.getByLabel("https://shop.kz оқи алады")).toBeChecked();
+  await page.getByRole("combobox", { name: /Origin/ }).selectOption("https://shop.kz");
+  await send(page);
+  await expect(objective(page, "shop.kz-ке рұқсат бер")).toHaveAttribute("data-done", "true", { timeout: 10_000 });
 });
