@@ -1,6 +1,6 @@
 "use client";
 
-import { PWM_FREQS, SUPPLY_V, type FusionMode, type IotLabAction, type IotLabState } from "@inside-tech/lab-iot";
+import { PWM_FREQS, SUPPLY_V, type WatchdogMode, type FusionMode, type IotLabAction, type IotLabState } from "@inside-tech/lab-iot";
 import styles from "./lab.module.css";
 
 type D = (a: IotLabAction) => void;
@@ -242,6 +242,48 @@ export function DebounceSection({ state, dispatch }: { state: IotLabState; dispa
           </div>
         </div>
       )}
+    </fieldset>
+  );
+}
+
+const WD_WORD: [WatchdogMode, string][] = [
+  ["none", "Watchdog жоқ"],
+  ["isr", "Таймер үзілісінде тамақтандыру"],
+  ["loop", "Негізгі циклде тамақтандыру"],
+];
+
+export function WatchdogSection({ state, dispatch }: { state: IotLabState; dispatch: D }) {
+  const w = state.watchdog ?? { mode: "none" as WatchdogMode, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Далалық датчик · секундына 1 өлшем · I2C шинасы 40 және 90 с-та қатады</legend>
+      <div className={styles.row} role="group" aria-label="Watchdog">
+        {WD_WORD.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={w.mode === k} onClick={() => dispatch({ type: "watchdog/set", mode: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "watchdog/run" })}>
+        2 минут жұмыс
+      </button>
+      {w.last && (
+        <div className={styles.metrics} role="status" aria-label="Құрылғы нәтижесі">
+          <div>
+            <span>Өлшем жіберілді</span>
+            <strong>{w.last.readings}</strong>
+          </div>
+          <div>
+            <span>Үнсіздік</span>
+            <strong>{w.last.downtime} с</strong>
+          </div>
+          <div>
+            <span>Қайта жүктелу</span>
+            <strong>{w.last.resets}</strong>
+          </div>
+        </div>
+      )}
+      <p className={styles.small}>Watchdog 2 с ішінде тамақтандырылмаса, чипті қайта жүктейді (1 с).</p>
     </fieldset>
   );
 }

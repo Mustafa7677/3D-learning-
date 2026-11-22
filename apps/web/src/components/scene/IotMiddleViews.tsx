@@ -210,3 +210,27 @@ export function DebounceView({ state }: { state: IotLabState }) {
     </group>
   );
 }
+
+const WD_COLOR = { ok: OK, hung: BAD, boot: new Color("#c9a24a") };
+
+export function WatchdogView({ state }: { state: IotLabState }) {
+  const w = state.watchdog;
+  const last = w?.last;
+  const n = last?.timeline.length ?? 120;
+  const step = 16 / n;
+  return (
+    <group>
+      {last?.timeline.map((st, t) => (
+        <mesh key={t} position={[-8 + t * step + step / 2, st === "ok" ? 0.6 : 0.15, 0]}>
+          <boxGeometry args={[step * 0.85, st === "ok" ? 1.2 : 0.3, 0.8]} />
+          <meshStandardMaterial color={WD_COLOR[st]} />
+        </mesh>
+      ))}
+      {[40, 90].map((t) => (
+        <Label key={t} text={`I2C қатты: ${t} с`} position={[-8 + t * step, 1.9, 0]} size={0.38} />
+      ))}
+      <Label text={last ? `${last.readings} өлшем · ${last.downtime} с үнсіз · ${last.resets} рет қайта жүктелді` : "2 минут жұмыс істет"} position={[0, 3.2, 0]} size={0.6} />
+      <Label text="жасыл: өлшем жіберілді · қызыл: цикл қатып тұр · алтын: қайта жүктелу" position={[0, 2.6, 0]} size={0.42} />
+    </group>
+  );
+}

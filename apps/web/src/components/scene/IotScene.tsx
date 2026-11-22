@@ -30,12 +30,12 @@ import {
   type IotLabState,
 } from "@inside-tech/lab-iot";
 import { FitCamera } from "./FitCamera";
-import { DebounceView, FusionView, PwmView, RtosView, SerialView } from "./IotMiddleViews";
+import { DebounceView, FusionView, PwmView, RtosView, SerialView, WatchdogView } from "./IotMiddleViews";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
 
-export type IotFocus = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion" | "debounce";
+export type IotFocus = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion" | "debounce" | "watchdog";
 
 const OFF = new Color("#c9d0de");
 const OK = new Color("#17895c");
@@ -388,6 +388,7 @@ function Contents({ state, focus }: { state: IotLabState; focus: IotFocus }) {
     rtos: { w: 17, h: 4.5, t: [0, 0.4, -0.3], d: [0, 1.3, 1] },
     fusion: { w: 17, h: 5.5, t: [0, 2.2, 0], d: [0, 0.12, 1] },
     debounce: { w: 18, h: 7, t: [0, 2, -0.8], d: [0, 0.6, 1] },
+    watchdog: { w: 17.5, h: 5, t: [0, 1.4, 0], d: [0, 0.45, 1] },
   };
   const f = frames[focus];
   return (
@@ -410,6 +411,7 @@ function Contents({ state, focus }: { state: IotLabState; focus: IotFocus }) {
       {focus === "rtos" && <RtosView state={state} />}
       {focus === "fusion" && <FusionView state={state} />}
       {focus === "debounce" && <DebounceView state={state} />}
+      {focus === "watchdog" && <WatchdogView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>

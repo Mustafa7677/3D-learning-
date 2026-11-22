@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextStep } from "./helpers";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 
@@ -11,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("robotics lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/iot");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Robotics & IoT");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("lesson 1: an 8-bit ADC reads 23.20 °C", async ({ page }) => {
@@ -97,4 +98,20 @@ test("Middle 14: three presses read as 15; a 10 ms debounce counts 3", async ({ 
   await page.getByRole("button", { name: "10 мс", exact: true }).click();
   await page.getByRole("button", { name: "Басуларды санау" }).click();
   await expect(r).toContainText("Саналды3");
+});
+
+test("Middle 15: a watchdog fed from an interrupt misses the hang; fed from the loop it recovers in 3 s", async ({ page }) => {
+  await page.goto("/labs/iot/iot-15-watchdog");
+  const r = page.getByRole("status", { name: "Құрылғы нәтижесі" });
+  const go = page.getByRole("button", { name: "2 минут жұмыс" });
+  await go.click();
+  await expect(r).toContainText("Үнсіздік80 с");
+  await page.getByRole("button", { name: "Таймер үзілісінде тамақтандыру" }).click();
+  await go.click();
+  await expect(r).toContainText("Үнсіздік80 с");
+  await nextStep(page);
+  await go.click();
+  await expect(r).toContainText("Үнсіздік6 с");
+  await expect(r).toContainText("Қайта жүктелу2");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });

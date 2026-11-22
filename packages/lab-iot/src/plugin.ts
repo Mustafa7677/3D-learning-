@@ -1,5 +1,6 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { countPresses } from "./debounce";
+import { WATCHDOG_MODES, runWatchdog, type WatchdogMode, type WatchdogRun } from "./watchdog";
 import { runFusion, type FusionMode, type FusionRun } from "./fusion";
 import { TASKS, dec, enc, i2cRead, pwm, schedule, transferTime, uartReceive, type Bus, type PwmResult, type Schedule, type Scheduler } from "./middle-core";
 import {
@@ -23,7 +24,7 @@ import {
   type Radio,
 } from "./core";
 
-export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion" | "debounce";
+export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion" | "debounce" | "watchdog";
 export type PlantId = "lift" | "heavy";
 
 /** Targets for the arm; the last one is out of reach. */
@@ -53,6 +54,7 @@ export interface IotStats {
   rtosRuns: { kind: Scheduler; logger: number; controlMisses: number; loggerMisses: number; utilization: number }[];
   fusionRuns?: { mode: FusionMode; alpha: number; rms: number; finalError: number }[];
   debounceRuns?: { window: number; counted: number }[];
+  watchdogRuns?: { mode: WatchdogMode; downtime: number; resets: number }[];
 }
 
 export interface IotLabState {
@@ -71,6 +73,7 @@ export interface IotLabState {
   rtos: { kind: Scheduler; logger: number; last: Schedule | null };
   fusion?: { mode: FusionMode; alpha: number; last: FusionRun | null };
   debounce?: { window: number; counted: number | null };
+  watchdog?: { mode: WatchdogMode; last: WatchdogRun | null };
   stats: IotStats;
 }
 
@@ -104,7 +107,9 @@ export type IotLabAction =
   | { type: "fusion/set"; mode?: FusionMode; alpha?: number }
   | { type: "fusion/run" }
   | { type: "debounce/set"; window: number }
-  | { type: "debounce/run" };
+  | { type: "debounce/run" }
+  | { type: "watchdog/set"; mode: WatchdogMode }
+  | { type: "watchdog/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -269,6 +274,13 @@ function reduce(s: IotLabState, a: IotLabAction): IotLabState {
     case "bus/send": {
       const ms = Math.round(transferTime(a.bus, 1024) * 100000) / 100;
       return { ...s, mode: "serial", serial: { ...s.serial, bus: a.bus, ms }, stats: { ...st, busRuns: cap([...st.busRuns, { bus: a.bus, ms }]) } };
+    }
+    case "watchdog/set":
+      return WATCHDOG_MODES.includes(a.mode) ? { ...s, mode: "watchdog", watchdog: { mode: a.mode, last: null } } : s;
+    case "watchdog/run": {
+      const mode = s.watchdog?.mode ?? "none";
+      const r = runWatchdog(mode);
+      return { ...s, mode: "watchdog", watchdog: { mode, last: r }, stats: { ...s.stats, watchdogRuns: [...(s.stats.watchdogRuns ?? []), { mode, downtime: r.downtime, resets: r.resets }].slice(-40) } };
     }
     case "debounce/set":
       return [0, 2, 10, 60].includes(a.window) ? { ...s, mode: "debounce", debounce: { window: a.window, counted: null } } : s;
