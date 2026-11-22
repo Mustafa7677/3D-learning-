@@ -242,7 +242,7 @@ export const algoMiddleContent: Record<string, Record<string, StepContent>> = {
         title: "Пәтерақы мен күнделікті шығын",
         panels: [
           {
-            who: "aliya",
+            who: "nuray",
             mood: "confused",
             say: "Массивке push жасау O(1) дейді. Бірақ кейде ол бүкіл массивті көшіреді ғой. Бұл өтірік емес пе?",
           },
@@ -252,7 +252,7 @@ export const algoMiddleContent: Record<string, Record<string, StepContent>> = {
             say: "Ай бойы күнделікті шығынды ойла. Күніне аз жұмсайсың, бірақ айына бір рет пәтерақы төлейсің.",
           },
           {
-            who: "arman",
+            who: "sayat",
             mood: "think",
             say: "Пәтерақы күні қалтам бос. Бірақ айдың орташасы қалыпты.",
           },
@@ -263,7 +263,7 @@ export const algoMiddleContent: Record<string, Record<string, StepContent>> = {
             board: "1 + 2 + 4 + ... + 64 = 127 < 2·65",
           },
           {
-            who: "aliya",
+            who: "nuray",
             mood: "wow",
             say: "Ал массивті әр жолы тек бір орынға үлкейтсек, әр push бәрін көшіреді: 1 + 2 + ... + 64!",
           },

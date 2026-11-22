@@ -19,10 +19,12 @@ interface Props {
   controls: ReactNode;
   /** A test run (e.g. from the Lesson Creator): no rewards. */
   preview?: boolean;
+  /** For labs whose scene can show a solution film. */
+  onFilmScene?(patch: Record<string, unknown> | null): void;
 }
 
 /** Shared lesson page frame: top bar, lesson steps on the left, stage, controls on the right. */
-export function LabShell({ labId, lesson, nextLessonId, session, stage, controls, preview = false }: Props) {
+export function LabShell({ labId, lesson, nextLessonId, session, stage, controls, preview = false, onFilmScene }: Props) {
   const { step } = session;
   return (
     <div className={styles.shell}>
@@ -58,6 +60,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
               onAnswer={session.answer}
               onPredict={session.predict}
               onExplain={session.explainSelf}
+              onFilmScene={onFilmScene}
               nextLessonHref={nextLessonId ? `/labs/${labId}/${nextLessonId}` : undefined}
               labHref={`/labs/${labId}`}
               labId={labId}

@@ -8,7 +8,7 @@
  * None of them is graded; they prepare the experiment and the quiz.
  */
 
-export type Character = "aliya" | "arman" | "ustaz" | "narrator";
+export type Character = "nuray" | "sayat" | "ustaz" | "narrator";
 export type Mood = "think" | "wow" | "confused" | "smile" | "explain";
 
 export interface ComicPanel {
@@ -47,4 +47,30 @@ export interface ErrorHunt {
   fix: string;
 }
 
-export const CHARACTER_NAME: Record<Character, string> = { aliya: "Әлия", arman: "Арман", ustaz: "Ұстаз", narrator: "" };
+export const CHARACTER_NAME: Record<Character, string> = { nuray: "Нұрай", sayat: "Саят", ustaz: "Ұстаз", narrator: "" };
+
+/**
+ * A solution film: the solving of one problem played like a video. Each
+ * frame adds to the board, says one sentence, marks where the eye should
+ * go and may move the 3D scene. Frames are grouped by Pólya's four stages,
+ * so the learner sees the route, not only the steps.
+ */
+export const FILM_STAGES = ["Түсіну", "Жоспар", "Шешу", "Тексеру"] as const;
+
+export interface FilmFrame {
+  /** Index into FILM_STAGES. */
+  stage: 0 | 1 | 2 | 3;
+  /** The whole board at this frame; a line longer than the previous frame's is written out. */
+  board: string[];
+  /** A piece of the board to highlight. */
+  mark?: string;
+  /** The narration, shown as a subtitle. */
+  say: string;
+  /** A lab-specific patch for the 3D scene (display only, never graded). */
+  scene?: Record<string, unknown>;
+}
+
+export interface SolutionFilm {
+  title: string;
+  frames: FilmFrame[];
+}

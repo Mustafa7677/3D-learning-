@@ -15,7 +15,7 @@ import type { OptimLabAction, OptimLabState } from "@inside-tech/lab-ai";
 import { OptimControlPanel, type OptimFocus } from "./OptimControlPanel";
 import type { CloudLabAction, CloudLabState } from "@inside-tech/lab-cloud";
 import type { IotLabAction, IotLabState } from "@inside-tech/lab-iot";
-import type { MathLabAction, MathLabState, MathMode } from "@inside-tech/lab-math";
+import { mathLabPlugin, type MathLabAction, type MathLabState, type MathMode } from "@inside-tech/lab-math";
 import { MathControlPanel } from "./MathControlPanel";
 import { findLesson } from "@/lib/lessons";
 import { useLabSession, type LabSession } from "@/lib/useAiLabSession";
@@ -633,6 +633,10 @@ function MathLesson({ labId, lesson, nextLessonId, persist }: LessonProps<MathLa
   const webgl = useWebGL();
   const { state, step } = session;
   const focus = (MATH_FOCI.includes(step?.focus as MathMode) ? step!.focus : "vectors") as MathMode;
+  // A solution film is display only: it lives here, not in the simulation, so it is never
+  // undone, logged or graded. The plugin's own reducer checks the patch.
+  const [film, setFilm] = useState<Record<string, unknown> | null>(null);
+  const scene = useMemo(() => (state && film ? mathLabPlugin.dispatch(state, { type: "film/scene", patch: film }) : state), [state, film]);
   return (
     <LabShell
       labId={labId}
@@ -642,10 +646,11 @@ function MathLesson({ labId, lesson, nextLessonId, persist }: LessonProps<MathLa
       session={session as LabSession<unknown, unknown>}
       stage={
         <div className={styles.stageInner}>
-          {state && webgl !== false ? <MathScene state={state} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
+          {scene && webgl !== false ? <MathScene state={scene} focus={focus} /> : webgl === false ? <Unsupported /> : <div className={styles.sceneLoading}>Симуляция іске қосылуда…</div>}
         </div>
       }
       controls={state && <MathControlPanel state={state} focus={focus} dispatch={session.dispatch} canUndo={session.canUndo} onUndo={session.undo} />}
+      onFilmScene={setFilm}
     />
   );
 }

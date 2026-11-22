@@ -100,7 +100,7 @@ export function DhView({ state }: { state: SecLabState }) {
   const fmt = (n: number) => n.toLocaleString("ru-RU");
   return (
     <group>
-      <Person x={-5} z={0} color={C0} name="Әлия" lines={[`a = ${fmt(d.a)}`, x && !x.aborted ? `кілт ${fmt(x.alice)}` : ""].filter(Boolean)} />
+      <Person x={-5} z={0} color={C0} name="Нұрай" lines={[`a = ${fmt(d.a)}`, x && !x.aborted ? `кілт ${fmt(x.alice)}` : ""].filter(Boolean)} />
       <Person x={5} z={0} color={C0} name="Бекзат" lines={[`b = ${fmt(d.b)}`, x && !x.aborted ? `кілт ${fmt(x.bob)}` : ""].filter(Boolean)} />
       {d.mitm && <Person x={0} z={0} color={BAD} name="Мәлік" lines={x?.mallory ? ["екі кілтті де біледі"] : x?.aborted ? ["ұсталды"] : ["ортада"]} />}
       {!d.mitm && <Person x={0} z={2.6} color={OFF} name="Ева" lines={d.eve ? [d.eve.found !== null ? `a = ${d.eve.found} тапты` : "таба алмады"] : ["тыңдап тұр"]} />}

@@ -10,6 +10,7 @@ import { XP_LESSON, announceXp } from "@/lib/xp";
 import styles from "./lab.module.css";
 import { OyuRule } from "./Oyu";
 import { ComicStrip, ErrorHuntBoard, WorkedBoard } from "./StepMedia";
+import { SolutionFilmPlayer } from "./SolutionFilm";
 
 interface Props {
   lessonTitle: string;
@@ -22,6 +23,8 @@ interface Props {
   onPredict?(option: number): void;
   /** Save the learner's own explanation; false if too short. */
   onExplain?(text: string): boolean;
+  /** Lets a solution film move the 3D scene (display only). */
+  onFilmScene?(patch: Record<string, unknown> | null): void;
   nextLessonHref?: string;
   labHref?: string;
   /** Which lab this is, for the emblem behind the 3D lecture. */
@@ -158,7 +161,7 @@ function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPred
   );
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, onExplain, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, onExplain, onFilmScene, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
   const [cinema, setCinema] = useState(false);
   const [reward, setReward] = useState(false);
@@ -207,6 +210,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
       {step.predict && <Predict key={step.id} p={step.predict} onPredict={onPredict} />}
       {step.comic && <ComicStrip comic={step.comic} />}
       <Prose text={step.body} />
+      {step.film && <SolutionFilmPlayer key={`${step.id}-film`} film={step.film} onScene={onFilmScene} />}
       {step.worked && <WorkedBoard key={`${step.id}-worked`} w={step.worked} />}
       {cinema && (
         <LectureCinema

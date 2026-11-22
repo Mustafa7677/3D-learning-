@@ -1,4 +1,4 @@
-import type { Comic, ErrorHunt, WorkedExample } from "./media";
+import type { Comic, ErrorHunt, SolutionFilm, WorkedExample } from "./media";
 import { MIN_EXPLANATION, coverage, type Coverage, type SelfExplain } from "./explain";
 import { EventBus, type AssessmentResult } from "@inside-tech/sim-core";
 import type { LessonDefinition, LessonProgress, LessonStep } from "./lesson";
@@ -43,6 +43,7 @@ export interface StepView {
   comic?: Comic;
   worked?: WorkedExample;
   hunt?: ErrorHunt;
+  film?: SolutionFilm;
   complete: boolean;
   isLast: boolean;
   lessonComplete: boolean;
@@ -220,6 +221,7 @@ export class LessonEngine<S, A = unknown> {
       comic: step.comic,
       worked: step.worked,
       hunt: step.hunt,
+      film: step.film,
       selfExplain: step.selfExplain && this.selfExplainView(step.id, step.selfExplain, step.objectives.every((o) => done.has(o.id))),
       complete: this.isStepComplete(),
       isLast: this.isLastStep(),

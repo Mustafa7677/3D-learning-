@@ -1,5 +1,5 @@
 import type { SelfExplain } from "./explain";
-import type { Comic, ErrorHunt, WorkedExample } from "./media";
+import type { Comic, ErrorHunt, SolutionFilm, WorkedExample } from "./media";
 import type { AssessmentResult } from "@inside-tech/sim-core";
 
 export interface ObjectiveContext {
@@ -64,6 +64,8 @@ export interface LessonStep<S, A = unknown> {
   comic?: Comic;
   worked?: WorkedExample;
   hunt?: ErrorHunt;
+  /** The solving of a problem played like a film, with the 3D scene following. */
+  film?: SolutionFilm;
   /** Scene anchor id the camera should focus on for this step. */
   focus?: string;
   /** Actions dispatched when the step is entered (e.g. load a dataset). */
@@ -109,6 +111,7 @@ export interface StepContent {
   comic?: Comic;
   worked?: WorkedExample;
   hunt?: ErrorHunt;
+  film?: SolutionFilm;
 }
 
 /**
@@ -124,7 +127,7 @@ export function withContent<S, A>(lesson: LessonDefinition<S, A>, content: Recor
     steps: lesson.steps.map((s) => {
       const c = content[s.id];
       if (!c) return s;
-      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict, selfExplain: c.selfExplain ?? s.selfExplain, comic: c.comic ?? s.comic, worked: c.worked ?? s.worked, hunt: c.hunt ?? s.hunt };
+      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict, selfExplain: c.selfExplain ?? s.selfExplain, comic: c.comic ?? s.comic, worked: c.worked ?? s.worked, hunt: c.hunt ?? s.hunt, film: c.film ?? s.film };
     }),
   };
 }

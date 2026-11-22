@@ -100,8 +100,8 @@ export function hmac(key: string, message: string): string {
 
 export type MacScheme = "none" | "hash" | "hmac";
 export const BANK_KEY = "bank-7f3a-secret";
-export const PAYMENT = "Кімге: Әлия · Сома: 1000 ₸";
-export const FORGED = "Кімге: Әлия · Сома: 9000 ₸";
+export const PAYMENT = "Кімге: Нұрай · Сома: 1000 ₸";
+export const FORGED = "Кімге: Нұрай · Сома: 9000 ₸";
 
 export const tagOf = (scheme: MacScheme, message: string, key = BANK_KEY) => (scheme === "none" ? "" : scheme === "hash" ? sha256(message) : hmac(key, message));
 

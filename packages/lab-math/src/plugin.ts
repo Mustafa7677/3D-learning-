@@ -85,8 +85,15 @@ export interface MathLabState {
   b: number;
   eigen: EigenPreset;
   probe: number;
+  /** What a solution film is showing right now; drawn over the learner's state, never graded. */
+  film?: FilmScene | null;
   stats: MathStats;
 }
+
+export type FilmScene = Partial<Pick<MathLabState, "u" | "v" | "k" | "sys" | "A" | "showInverse" | "b1" | "b2" | "a" | "b" | "eigen" | "probe">>;
+
+/** The state the 3D scene draws: the learner's, with the film's patch on top. */
+export const shown = (s: MathLabState): MathLabState => (s.film ? { ...s, ...s.film } : s);
 
 export type MathLabAction =
   | { type: "mode/set"; mode: MathMode }
@@ -101,7 +108,8 @@ export type MathLabAction =
   | { type: "inverse/toggle"; on: boolean }
   | { type: "basis/set"; b1?: V2; b2?: V2; a?: number; b?: number }
   | { type: "eigen/preset"; name: EigenPreset }
-  | { type: "eigen/probe"; deg: number };
+  | { type: "eigen/probe"; deg: number }
+  | { type: "film/scene"; patch: Record<string, unknown> | null };
 
 const fin = (x: unknown, lo = -10, hi = 10) => (typeof x === "number" && Number.isFinite(x) ? Math.min(hi, Math.max(lo, Math.round(x * 1000) / 1000)) : 0);
 const v3 = (v: readonly unknown[]): V3 => [fin(v[0]), fin(v[1]), fin(v[2])];
@@ -181,6 +189,24 @@ function reduce(s: MathLabState, a: MathLabAction): MathLabState {
     }
     case "basis/set":
       return snapBasis({ ...s, b1: a.b1 ? v2(a.b1) : s.b1, b2: a.b2 ? v2(a.b2) : s.b2, a: a.a !== undefined ? fin(a.a, -6, 6) : s.a, b: a.b !== undefined ? fin(a.b, -6, 6) : s.b });
+    case "film/scene": {
+      if (!a.patch) return { ...s, film: null };
+      const q = a.patch;
+      const f: FilmScene = { ...(s.film ?? {}) };
+      if (Array.isArray(q.u)) f.u = v3(q.u);
+      if (Array.isArray(q.v)) f.v = v3(q.v);
+      if (typeof q.k === "number") f.k = fin(q.k, -5, 5);
+      if (Array.isArray(q.sys) && q.sys.length === 3) f.sys = (q.sys as unknown[][]).map((r) => [0, 1, 2, 3].map((i) => fin(r[i], -100, 100))) as System;
+      if (Array.isArray(q.A)) f.A = m3(q.A as unknown[][]);
+      if (typeof q.showInverse === "boolean") f.showInverse = q.showInverse && !!inverse(f.A ?? s.A);
+      if (Array.isArray(q.b1)) f.b1 = v2(q.b1);
+      if (Array.isArray(q.b2)) f.b2 = v2(q.b2);
+      if (typeof q.a === "number") f.a = fin(q.a, -6, 6);
+      if (typeof q.b === "number") f.b = fin(q.b, -6, 6);
+      if (typeof q.eigen === "string" && q.eigen in EIGEN_PRESETS) f.eigen = q.eigen as EigenPreset;
+      if (typeof q.probe === "number") f.probe = ((Math.round(fin(q.probe, -360, 360)) % 180) + 180) % 180;
+      return { ...s, film: f };
+    }
     case "eigen/preset":
       return EIGEN_PRESETS[a.name] ? { ...s, eigen: a.name, probe: 0 } : s;
     case "eigen/probe": {

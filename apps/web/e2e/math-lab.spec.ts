@@ -130,3 +130,28 @@ test("a comic explains theory in other labs too: Diffie-Hellman as mixing paint"
   await expect(comic.locator("li")).toHaveCount(8);
   await expect(comic).toContainText("gᵃᵇ mod p");
 });
+
+test("a solution film plays the Gaussian solution frame by frame along Pólya's route, and completes nothing", async ({ page }) => {
+  await page.goto("/labs/math/la-3-gauss");
+  await page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Көру/ }).click();
+  const film = page.getByRole("region", { name: /Шешім фильмі/ });
+  await film.getByRole("button", { name: "Тоқтату" }).click();
+  const route = film.getByRole("list", { name: "Шешу жолы" });
+  await expect(route.locator("[aria-current=step]")).toHaveText("Түсіну");
+  for (let k = 0; k < 8; k++) await film.getByRole("button", { name: "Келесі кадр" }).click();
+  await expect(film.getByText("9/9")).toBeVisible();
+  await expect(route.locator("[aria-current=step]")).toHaveText("Тексеру");
+  await expect(film.locator("p[aria-live]")).toContainText("шешім (1, 2, 3)");
+  await expect(film).toContainText("x + 2 + 3 = 6");
+  await expect(page.locator("li[data-done]", { hasText: "Бірінші бағанда" })).toHaveAttribute("data-done", "false");
+  await film.getByRole("button", { name: "Фильмді жабу" }).click();
+  await expect(page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Көру/ })).toBeVisible();
+});
+
+test("the comic characters are Нұрай and Саят", async ({ page }) => {
+  await page.goto("/labs/math/la-5-inverse");
+  const comic = page.getByRole("region", { name: "Комикс: Шифр және кілт" });
+  await expect(comic).toContainText("Нұрай Саятқа құпия хат жібермек");
+  await expect(comic).toContainText("Саят");
+  await expect(comic).not.toContainText("Әлия");
+});

@@ -128,7 +128,7 @@ export function DhSection({ state, dispatch }: { state: SecLabState; dispatch: D
           dispatch({ type: "dh/set", a: Number(f.get("a")), b: Number(f.get("b")) });
         }}
       >
-        <label htmlFor="dh-a">Әлияның құпиясы a</label>
+        <label htmlFor="dh-a">Нұрайдың құпиясы a</label>
         <input id="dh-a" className={styles.numInput} type="number" name="a" defaultValue={d.a} />
         <label htmlFor="dh-b">Бекзаттың құпиясы b</label>
         <input id="dh-b" className={styles.numInput} type="number" name="b" defaultValue={d.b} />
@@ -165,7 +165,7 @@ export function DhSection({ state, dispatch }: { state: SecLabState; dispatch: D
             </>
           ) : (
             <>
-              <dt>Әлияның кілті</dt>
+              <dt>Нұрайдың кілті</dt>
               <dd>{x.alice.toLocaleString("ru-RU")}</dd>
               <dt>Бекзаттың кілті</dt>
               <dd>
@@ -175,7 +175,7 @@ export function DhSection({ state, dispatch }: { state: SecLabState; dispatch: D
                 <>
                   <dt>Мәлік біледі</dt>
                   <dd>
-                    {x.mallory[0]} (Әлиямен) және {x.mallory[1]} (Бекзатпен)
+                    {x.mallory[0]} (Нұраймен) және {x.mallory[1]} (Бекзатпен)
                   </dd>
                 </>
               )}

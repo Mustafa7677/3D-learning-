@@ -225,7 +225,7 @@ export const optimContent: Record<string, Record<string, StepContent>> = {
         title: "Ауа райы болжаушысы",
         panels: [
           {
-            who: "arman",
+            who: "sayat",
             mood: "smile",
             say: "Менің моделім «99% сенімдімін» деді. Демек дұрыс!",
           },
@@ -235,7 +235,7 @@ export const optimContent: Record<string, Record<string, StepContent>> = {
             say: "Ауа райы болжаушысын ойла. Ол «жаңбыр 90%» деген күндердің 90-ында жаңбыр жауса ғана, оның сандарына сенуге болады.",
           },
           {
-            who: "aliya",
+            who: "nuray",
             mood: "think",
             say: "Ал «90%» деген күндердің тек жартысында жауса ше?",
           },
@@ -246,7 +246,7 @@ export const optimContent: Record<string, Record<string, StepContent>> = {
             board: "айтқан сенімі ≈ шын дұрыстық үлесі",
           },
           {
-            who: "arman",
+            who: "sayat",
             mood: "confused",
             say: "Бұл менің Емтихан билетімдегі «Сенімдімін» батырмасына ұқсайды ғой.",
           },

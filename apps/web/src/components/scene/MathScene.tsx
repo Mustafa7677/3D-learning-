@@ -23,6 +23,7 @@ import {
   projLen,
   scale,
   type M3,
+  shown,
   type MathLabState,
   type MathMode,
   type V3,
@@ -367,7 +368,9 @@ const FRAMES: Record<MathFocus, { w: number; h: number; t: [number, number, numb
   eigen: { w: 9, h: 7, t: [0, 0.5, 0], d: [0, 1.8, 0.8] },
 };
 
-function Contents({ state, focus }: { state: MathLabState; focus: MathFocus }) {
+function Contents({ state: learner, focus }: { state: MathLabState; focus: MathFocus }) {
+  // A solution film draws over the learner's own state while it plays.
+  const state = shown(learner);
   const f = FRAMES[focus] ?? FRAMES.vectors;
   return (
     <>

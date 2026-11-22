@@ -8,6 +8,7 @@ import { add, combo, det, det2, eigenFactor, dirOf, isEchelon, len, near, nearV,
 import { EIGEN_PRESETS, PRESETS, type MathLabAction, type MathLabState } from "./plugin";
 import { mathContent } from "./content";
 import { mathMedia } from "./media";
+import { mathFilms } from "./films";
 import type { StepContent } from "@inside-tech/lesson-engine";
 
 type L = LessonDefinition<MathLabState, MathLabAction>;
@@ -294,5 +295,6 @@ function merged(id: string): Record<string, StepContent> {
   const out: Record<string, StepContent> = {};
   for (const [step, c] of Object.entries(mathContent[id] ?? {})) out[step] = { ...c };
   for (const [step, m] of Object.entries(mathMedia[id] ?? {})) out[step] = { ...(out[step] ?? {}), ...m };
+  for (const [step, film] of Object.entries(mathFilms[id] ?? {})) out[step] = { ...(out[step] ?? {}), film };
   return out;
 }
