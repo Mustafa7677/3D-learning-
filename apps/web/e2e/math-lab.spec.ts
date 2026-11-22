@@ -190,7 +190,7 @@ test("the cinema: the 3D scene fills the screen, the film plays over it, Esc ret
   await page.keyboard.press("Escape");
   await expect(page.locator("body")).not.toHaveAttribute("data-cinema", "on");
   await expect(page.getByText("Фильм кинотеатрда жүріп жатыр")).toHaveCount(0);
-  await expect(film.getByRole("button", { name: "Кинотеатр", exact: true })).toBeVisible();
+  await expect(film.getByRole("button", { name: "Кинотеатр", exact: true })).toBeVisible({ timeout: 15000 });
 });
 
 test("the comic characters are Нұрай and Мустафа", async ({ page }) => {

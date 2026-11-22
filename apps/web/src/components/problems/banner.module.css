@@ -1,0 +1,104 @@
+.banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+  max-width: 1120px;
+  min-height: 150px;
+  margin: 48px auto;
+  padding: 22px 26px;
+  color: #ece4cf;
+  background:
+    radial-gradient(90% 160% at 0% 50%, rgb(240 181 74 / 0.22), transparent 60%),
+    linear-gradient(180deg, #1a2131, #121722);
+  border: 1px solid rgb(240 181 74 / 0.4);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
+}
+.lamp {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #fff3c4, #f0b54a 45%, rgb(240 181 74 / 0) 72%);
+  animation: glow 2.4s ease-in-out infinite alternate;
+}
+@keyframes glow {
+  to {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+.body {
+  min-width: 0;
+}
+.kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #f0b54a;
+}
+.title {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 3vw, 30px);
+}
+.text {
+  margin: 0 0 10px;
+  max-width: 70ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgb(236 228 207 / 0.8);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+}
+.streak b {
+  font-size: 18px;
+  color: #f0b54a;
+}
+.dots {
+  display: inline-flex;
+  gap: 5px;
+}
+.dots i {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgb(236 228 207 / 0.35);
+  border-radius: 50%;
+}
+.dots i[data-on="true"] {
+  background: #f0b54a;
+  border-color: #f0b54a;
+}
+.go {
+  padding: 12px 18px;
+  font-weight: 700;
+  color: #1b1410;
+  text-decoration: none;
+  white-space: nowrap;
+  background: #f0b54a;
+  border-radius: 999px;
+  box-shadow: 0 0 0 4px rgb(240 181 74 / 0.2);
+}
+@media (max-width: 760px) {
+  .banner {
+    grid-template-columns: auto 1fr;
+    margin: 32px 16px;
+    padding: 18px;
+  }
+  .go {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lamp {
+    animation: none;
+  }
+}

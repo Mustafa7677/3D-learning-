@@ -25,7 +25,20 @@ function marked(line: string, mark?: string): ReactNode {
  * line, a subtitle narrates, the route (Pólya's four stages) shows where we
  * are, and the 3D scene follows through `onScene`.
  */
-export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onScene?(patch: Record<string, unknown> | null): void }) {
+export function SolutionFilmPlayer({
+  film,
+  onScene,
+  kicker = "ПРАКТИКАДАН КЕЙІН · ШЕШІМ ФИЛЬМІ",
+  note = "Өзің шығарып болдың ба? Енді маманның шешімін фильм сияқты көр: қай жолмен, қандай қадаммен.",
+  onEnd,
+}: {
+  film: SolutionFilm;
+  onScene?(patch: Record<string, unknown> | null): void;
+  kicker?: string;
+  note?: string;
+  /** Called once the last frame has been reached. */
+  onEnd?(): void;
+}) {
   const [started, setStarted] = useState(false);
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -75,11 +88,16 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
     const body = document.body;
     body.dataset.cinema = "on";
     let wentFull = false;
+    let left = false;
     const root = document.documentElement;
     if (root.requestFullscreen && !document.fullscreenElement) {
       root
         .requestFullscreen()
-        .then(() => (wentFull = true))
+        .then(() => {
+          // Left the cinema before the browser said yes: do not stay in full screen.
+          if (left) void document.exitFullscreen?.().catch(() => undefined);
+          else wentFull = true;
+        })
         .catch(() => undefined);
     }
     const onKey = (e: KeyboardEvent) => {
@@ -93,6 +111,7 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
     // The canvas measures its box: tell it the box changed.
     window.dispatchEvent(new Event("resize"));
     return () => {
+      left = true;
       delete body.dataset.cinema;
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("fullscreenchange", onFull);
@@ -100,6 +119,12 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
       window.dispatchEvent(new Event("resize"));
     };
   }, [cinema]);
+
+  const endRef = useRef(onEnd);
+  endRef.current = onEnd;
+  useEffect(() => {
+    if (started && i === film.frames.length - 1) endRef.current?.();
+  }, [i, started, film.frames.length]);
 
   const go = (n: number) => {
     setI(Math.max(0, Math.min(film.frames.length - 1, n)));
@@ -121,14 +146,14 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
   if (!started)
     return (
       <section className={styles.poster} aria-label={`Шешім фильмі: ${film.title}`}>
-        <p className={styles.kicker}>ПРАКТИКАДАН КЕЙІН · ШЕШІМ ФИЛЬМІ</p>
+        <p className={styles.kicker}>{kicker}</p>
         <p className={styles.posterTitle}>{film.title}</p>
         <ol className={styles.route} aria-label="Шешу жолы">
           {FILM_STAGES.map((s) => (
             <li key={s}>{s}</li>
           ))}
         </ol>
-        <p className={styles.posterNote}>Өзің шығарып болдың ба? Енді маманның шешімін фильм сияқты көр: қай жолмен, қандай қадаммен.</p>
+        <p className={styles.posterNote}>{note}</p>
         <div className={styles.posterButtons}>
           {onScene && (
             <button type="button" className={styles.play} onClick={() => start(true)}>
