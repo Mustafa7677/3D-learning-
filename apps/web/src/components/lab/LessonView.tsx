@@ -137,6 +137,7 @@ const GAME_FOCUS_SECTIONS: Record<string, GameSection[]> = {
   broad: ["broad"],
   pool: ["pool"],
   timestep: ["timestep"],
+  tunnel: ["tunnel"],
 };
 
 /** Algorithms lessons show the controls of the step's mode; authored lessons do the same by focus. */

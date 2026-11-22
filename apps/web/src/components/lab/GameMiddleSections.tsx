@@ -1,6 +1,7 @@
 "use client";
 
-import type { GameLabAction, GameLabState, PathAlgo, Stepper } from "@inside-tech/lab-game";
+import type { CollideMethod, GameLabAction, GameLabState, PathAlgo, Stepper } from "@inside-tech/lab-game";
+import { SPEEDS } from "@inside-tech/lab-game";
 import styles from "./lab.module.css";
 
 type D = (a: GameLabAction) => void;
@@ -211,6 +212,54 @@ export function TimestepSection({ state, dispatch }: { state: GameLabState; disp
           <div>
             <span>Физика қадамы</span>
             <strong>{t.last.steps}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+const METHOD_WORD: [CollideMethod, string][] = [
+  ["discrete", "Әр кадрда нүкте"],
+  ["substeps", "4 ішкі қадам"],
+  ["ccd", "Үздіксіз (CCD)"],
+];
+
+export function TunnelSection({ state, dispatch }: { state: GameLabState; dispatch: D }) {
+  const t = state.mid.tunnel ?? { method: "discrete" as CollideMethod, speed: 5, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Оқ 60 FPS · қабырға қалыңдығы 15 см</legend>
+      <div className={styles.row} role="group" aria-label="Соқтығысуды тексеру">
+        {METHOD_WORD.map(([k, label]) => (
+          <button key={k} type="button" className="btn" aria-pressed={t.method === k} onClick={() => dispatch({ type: "tunnel/set", method: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className={styles.row} role="group" aria-label="Оқтың жылдамдығы">
+        {SPEEDS.map((v) => (
+          <button key={v} type="button" className="btn" aria-pressed={t.speed === v} onClick={() => dispatch({ type: "tunnel/set", speed: v })}>
+            {v} м/с
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "tunnel/run" })}>
+        Атып көру
+      </button>
+      {t.last && (
+        <div className={styles.metrics} role="status" aria-label="Оқ нәтижесі">
+          <div>
+            <span>Нәтиже</span>
+            <strong>{t.last.hit ? "тиді" : "өтіп кетті"}</strong>
+          </div>
+          <div>
+            <span>Бір қадам</span>
+            <strong>{t.last.step} м</strong>
+          </div>
+          <div>
+            <span>Тексеру</span>
+            <strong>{t.last.tests}</strong>
           </div>
         </div>
       )}

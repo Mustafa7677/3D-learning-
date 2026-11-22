@@ -321,6 +321,18 @@ const scripts: Record<string, Record<string, (b: Bot) => void>> = {
       b.d({ type: "fsm/run" });
     },
   },
+  "game-15-tunneling": {
+    tunnel: (b) => {
+      b.d({ type: "tunnel/run" });
+      b.d({ type: "tunnel/set", speed: 20 });
+      b.d({ type: "tunnel/run" });
+    },
+    fix: (b) => {
+      b.d({ type: "tunnel/run" });
+      b.d({ type: "tunnel/set", method: "ccd", speed: 60 });
+      b.d({ type: "tunnel/run" });
+    },
+  },
   "game-14-timestep": {
     explode: (b) => {
       b.d({ type: "timestep/run" });

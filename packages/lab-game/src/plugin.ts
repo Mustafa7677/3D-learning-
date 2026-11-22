@@ -1,3 +1,4 @@
+import { METHODS, SPEEDS, runTunnel, type CollideMethod, type TunnelRun } from "./tunnel";
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { runSpring, type StepRun, type Stepper } from "./timestep";
 import { runPool, type PoolRun } from "./pool";
@@ -82,6 +83,7 @@ export interface GameStats {
   fsmRuns: { see: number; lose: number; switches: number; attacked: boolean }[];
   broadRuns: { n: number; cell: number; brute: number; grid: number; hits: number }[];
   poolRuns?: { perFrame: number; pooled: boolean; janky: number; gcRuns: number; allocations: number }[];
+  tunnelRuns?: { method: CollideMethod; speed: number; hit: boolean; tests: number }[];
   stepRuns?: { stepper: Stepper; fps: number; amplitude: number; steps: number }[];
 }
 
@@ -104,6 +106,7 @@ export interface GameLabState {
     broad: { brute: BroadPhase; grid: BroadPhase; points: [number, number][] } | null;
     pool?: { perFrame: number; pooled: boolean; last: PoolRun | null };
     timestep?: { stepper: Stepper; fps: number; last: StepRun | null };
+    tunnel?: { method: CollideMethod; speed: number; last: TunnelRun | null };
   };
   stats: GameStats;
 }
@@ -141,7 +144,9 @@ export type GameLabAction =
   | { type: "pool/set"; perFrame?: number; pooled?: boolean }
   | { type: "pool/run" }
   | { type: "timestep/set"; stepper?: Stepper; fps?: number }
-  | { type: "timestep/run" };
+  | { type: "timestep/run" }
+  | { type: "tunnel/set"; method?: CollideMethod; speed?: number }
+  | { type: "tunnel/run" };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
 const uniq = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
@@ -414,6 +419,17 @@ function reduce(s: GameLabState, a: GameLabAction): GameLabState {
       const cur = s.mid.timestep ?? { stepper: "frame-euler" as Stepper, fps: 60, last: null };
       const r = runSpring(cur.stepper, cur.fps);
       return { ...s, mid: { ...s.mid, timestep: { ...cur, last: r } }, stats: { ...st, stepRuns: [...(st.stepRuns ?? []), { stepper: cur.stepper, fps: cur.fps, amplitude: r.amplitude, steps: r.steps }].slice(-40) } };
+    }
+    case "tunnel/set": {
+      const cur = s.mid.tunnel ?? { method: "discrete" as CollideMethod, speed: 5, last: null };
+      const method = a.method && METHODS.includes(a.method) ? a.method : cur.method;
+      const speed = a.speed !== undefined && SPEEDS.includes(a.speed) ? a.speed : cur.speed;
+      return { ...s, mid: { ...s.mid, tunnel: { method, speed, last: null } } };
+    }
+    case "tunnel/run": {
+      const cur = s.mid.tunnel ?? { method: "discrete" as CollideMethod, speed: 5, last: null };
+      const r = runTunnel(cur.method, cur.speed);
+      return { ...s, mid: { ...s.mid, tunnel: { ...cur, last: r } }, stats: { ...st, tunnelRuns: [...(st.tunnelRuns ?? []), { method: cur.method, speed: cur.speed, hit: r.hit, tests: r.tests }].slice(-40) } };
     }
     case "pool/set": {
       const cur = s.mid.pool ?? { perFrame: 40, pooled: false, last: null };

@@ -14,11 +14,11 @@ import {
   type Tile,
 } from "@inside-tech/lab-game";
 import { FitCamera } from "./FitCamera";
-import { BroadView, FsmView, PathView, PoolView, TimestepView } from "./GameMiddleViews";
+import { BroadView, FsmView, PathView, PoolView, TimestepView, TunnelView } from "./GameMiddleViews";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
-export type GameFocus = "scene" | "camera" | "loop" | "physics" | "graphics" | "game" | "editor" | "path" | "fsm" | "broad" | "pool" | "timestep";
+export type GameFocus = "scene" | "camera" | "loop" | "physics" | "graphics" | "game" | "editor" | "path" | "fsm" | "broad" | "pool" | "timestep" | "tunnel";
 
 interface Props {
   state: GameLabState;
@@ -326,6 +326,7 @@ const FRAME: Record<GameFocus, { width: number; height: number; target: [number,
   broad: { width: 11, height: 11, target: [0, 0, 0], dir: [0, 1.6, 1] },
   pool: { width: 18, height: 6, target: [0, 1.8, 0], dir: [0, 0.4, 1] },
   timestep: { width: 16, height: 7.5, target: [0, 3.2, 0], dir: [0, 0.15, 1] },
+  tunnel: { width: 14, height: 5.5, target: [0, 2, 0], dir: [0, 0.3, 1] },
 };
 
 export default function GameScene(props: Props) {
@@ -353,6 +354,7 @@ export default function GameScene(props: Props) {
       {focus === "broad" && <BroadView state={state} />}
       {focus === "pool" && <PoolView state={state} />}
       {focus === "timestep" && <TimestepView state={state} />}
+      {focus === "tunnel" && <TunnelView state={state} />}
       {gameView ? (
         <GameCamera state={state} />
       ) : (

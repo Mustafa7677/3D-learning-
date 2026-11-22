@@ -7,3 +7,4 @@ export * from "./pset";
 export * from "./middle-core";
 export * from "./pool";
 export * from "./timestep";
+export * from "./tunnel";

@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { Mesh } from "three";
 import { Color } from "three";
-import { BUDGET_MS, FRAMES, PATH_H, PATH_MAP, PATH_W, PLAYER_DISTANCE, WORLD, type GameLabState } from "@inside-tech/lab-game";
+import { WALL as TUNNEL_WALL, BUDGET_MS, FRAMES, PATH_H, PATH_MAP, PATH_W, PLAYER_DISTANCE, WORLD, type GameLabState } from "@inside-tech/lab-game";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -182,6 +182,42 @@ export function TimestepView({ state }: { state: GameLabState }) {
       </mesh>
       <Label text={last ? `амплитуда ${last.amplitude >= 1000 ? Math.round(last.amplitude).toLocaleString("ru-RU") : last.amplitude} · ${last.steps} физика қадамы` : "3 секунд ойнат"} position={[1, 6.4, 0]} size={0.55} />
       <Label text="қызыл: шектен шықты (±2,5)" position={[1, -0.1, 0.6]} size={0.4} />
+    </group>
+  );
+}
+
+export function TunnelView({ state }: { state: GameLabState }) {
+  const t = state.mid.tunnel;
+  const last = t?.last;
+  // Zoom on the last 2 m before the wall and 1 m after it.
+  const x = (m: number) => (m - TUNNEL_WALL[0]) * 4;
+  const thick = (TUNNEL_WALL[1] - TUNNEL_WALL[0]) * 4;
+  const shown = last?.checks.filter((m) => m >= TUNNEL_WALL[0] - 2 && m <= TUNNEL_WALL[1] + 1.2) ?? [];
+  return (
+    <group>
+      <mesh position={[x(TUNNEL_WALL[0]) + thick / 2, 1.2, 0]}>
+        <boxGeometry args={[thick, 2.4, 2]} />
+        <meshStandardMaterial color={last ? (last.hit ? OK : BAD) : OFF} transparent opacity={0.85} />
+      </mesh>
+      <Label text="қабырға 15 см" position={[x(TUNNEL_WALL[0]) + thick / 2, 2.8, 0]} size={0.38} />
+      {shown.map((m, i) => (
+        <mesh key={i} position={[x(m), 1.2, 0]}>
+          <sphereGeometry args={[0.14, 16, 12]} />
+          <meshStandardMaterial color={i === shown.length - 1 ? (last!.hit ? OK : BAD) : C0} emissive={C0} emissiveIntensity={0.2} />
+        </mesh>
+      ))}
+      {last && t?.method === "ccd" && shown.length > 1 && (
+        <mesh position={[(x(shown.at(-2)!) + x(shown.at(-1)!)) / 2, 1.2, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.04, 0.04, x(shown.at(-1)!) - x(shown.at(-2)!), 8]} />
+          <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.5} />
+        </mesh>
+      )}
+      <mesh position={[x(TUNNEL_WALL[0] - 2) + 6, 0, 0]}>
+        <boxGeometry args={[12.8, 0.04, 0.6]} />
+        <meshStandardMaterial color={OFF} />
+      </mesh>
+      <Label text={last ? `${last.speed} м/с · әр тексеру ${last.step} м · ${last.hit ? "тиді" : "қабырғадан өтіп кетті"}` : "Атып көр"} position={[0, 4.2, 0]} size={0.6} />
+      <Label text="шарлар: соқтығыс тексерілген орындар · алтын сызық: CCD тексерген кесінді" position={[0, 3.6, 0]} size={0.4} />
     </group>
   );
 }

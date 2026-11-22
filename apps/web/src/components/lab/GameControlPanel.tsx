@@ -13,10 +13,10 @@ import {
 } from "@inside-tech/lab-game";
 import { useState } from "react";
 import styles from "./lab.module.css";
-import { BroadSection, FsmSection, PathSection, PoolSection, TimestepSection } from "./GameMiddleSections";
+import { BroadSection, FsmSection, PathSection, PoolSection, TimestepSection, TunnelSection } from "./GameMiddleSections";
 import web from "./web.module.css";
 
-export type GameSection = "scene" | "camera" | "loop" | "physics" | "graphics" | "rules" | "ai" | "play" | "editor" | "path" | "fsm" | "broad" | "pool" | "timestep";
+export type GameSection = "scene" | "camera" | "loop" | "physics" | "graphics" | "rules" | "ai" | "play" | "editor" | "path" | "fsm" | "broad" | "pool" | "timestep" | "tunnel";
 
 interface Props {
   state: GameLabState;
@@ -428,6 +428,7 @@ export function GameControlPanel({ state, sections, brush, onBrush, dispatch, ca
       {has("broad") && <BroadSection state={state} dispatch={dispatch} />}
       {has("pool") && <PoolSection state={state} dispatch={dispatch} />}
       {has("timestep") && <TimestepSection state={state} dispatch={dispatch} />}
+      {has("tunnel") && <TunnelSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау
