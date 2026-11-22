@@ -137,3 +137,41 @@ export function BroadSection({ state, dispatch }: { state: GameLabState; dispatc
     </fieldset>
   );
 }
+
+export function PoolSection({ state, dispatch }: { state: GameLabState; dispatch: D }) {
+  const p = state.mid.pool ?? { perFrame: 40, pooled: false, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Шутер · 300 кадр, оқ 30 кадр өмір сүреді</legend>
+      <div className={styles.row} role="group" aria-label="Кадрына оқ">
+        {[10, 20, 40].map((n) => (
+          <button key={n} type="button" className="btn" aria-pressed={p.perFrame === n} onClick={() => dispatch({ type: "pool/set", perFrame: n })}>
+            кадрына {n} оқ
+          </button>
+        ))}
+      </div>
+      <label className={styles.row}>
+        <input type="checkbox" checked={p.pooled} onChange={(e) => dispatch({ type: "pool/set", pooled: e.target.checked })} /> Объектілер пулы
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "pool/run" })}>
+        300 кадр ойнау
+      </button>
+      {p.last && (
+        <div className={styles.metrics} role="status" aria-label="Пул нәтижесі">
+          <div>
+            <span>Қатқан кадр</span>
+            <strong>{p.last.janky}</strong>
+          </div>
+          <div>
+            <span>Ең баяу</span>
+            <strong>{p.last.worst} мс</strong>
+          </div>
+          <div>
+            <span>Жаңа объект</span>
+            <strong>{p.last.allocations.toLocaleString("ru-RU")}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}

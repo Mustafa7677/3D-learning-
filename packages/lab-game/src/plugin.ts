@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { runPool, type PoolRun } from "./pool";
 import { bodies, bruteForce, findPath, gridPhase, runGuard, type BroadPhase, type FsmRun, type PathAlgo, type PathResult } from "./middle-core";
 import { EFFECT_TEXT, TRIGGER_TEXT, initialGame, sanitizeLevel, spawn, tickGame, type AiParams, type Effect, type EnemyState, type GameState, type Tile, type Trigger, GRID } from "./game";
 import { ARENA, THIN_WALL, stepPhysics, type Ball, type PhysicsParams, type PhysicsWorld } from "./physics";
@@ -79,6 +80,7 @@ export interface GameStats {
   pathRuns: { algo: PathAlgo; weight: number; cost: number; expanded: number }[];
   fsmRuns: { see: number; lose: number; switches: number; attacked: boolean }[];
   broadRuns: { n: number; cell: number; brute: number; grid: number; hits: number }[];
+  poolRuns?: { perFrame: number; pooled: boolean; janky: number; gcRuns: number; allocations: number }[];
 }
 
 export interface GameLabState {
@@ -98,6 +100,7 @@ export interface GameLabState {
     n: number;
     cell: number;
     broad: { brute: BroadPhase; grid: BroadPhase; points: [number, number][] } | null;
+    pool?: { perFrame: number; pooled: boolean; last: PoolRun | null };
   };
   stats: GameStats;
 }
@@ -131,7 +134,9 @@ export type GameLabAction =
   | { type: "fsm/set"; see?: number; lose?: number }
   | { type: "fsm/run" }
   | { type: "broad/set"; n?: number; cell?: number }
-  | { type: "broad/run" };
+  | { type: "broad/run" }
+  | { type: "pool/set"; perFrame?: number; pooled?: boolean }
+  | { type: "pool/run" };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
 const uniq = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
@@ -170,6 +175,7 @@ const emptyStats = (): GameStats => ({
   pathRuns: [],
   fsmRuns: [],
   broadRuns: [],
+  poolRuns: [],
 });
 
 function newLoop(useDeltaTime: boolean, speed: number): LoopDemo {
@@ -185,7 +191,7 @@ export function initialGameLabState(_seed: number): GameLabState {
     physics: { balls: [], walls: [], params: { gravity: 9.8, restitution: 0.6, friction: 0.2, substeps: 4 }, time: 0, running: true, nextId: 1 },
     graphics: { ambient: 0.4, directional: 1.2, point: 0, color: "#2f5bea", roughness: 0.5, metalness: 0, emissive: 0, flatShading: false },
     game: initialGame(),
-    mid: { algo: "bfs", weight: 1, path: null, see: 5, lose: 5, guard: null, n: 200, cell: 50, broad: null },
+    mid: { algo: "bfs", weight: 1, path: null, see: 5, lose: 5, guard: null, n: 200, cell: 50, broad: null, pool: { perFrame: 40, pooled: false, last: null } },
     stats: emptyStats(),
   };
 }
@@ -391,6 +397,17 @@ function reduce(s: GameLabState, a: GameLabAction): GameLabState {
       const n = a.n !== undefined && [50, 200, 1000].includes(a.n) ? a.n : s.mid.n;
       const cell = a.cell !== undefined && [2, 10, 50].includes(a.cell) ? a.cell : s.mid.cell;
       return { ...s, mid: { ...s.mid, n, cell, broad: null } };
+    }
+    case "pool/set": {
+      const cur = s.mid.pool ?? { perFrame: 40, pooled: false, last: null };
+      const perFrame = a.perFrame !== undefined && [10, 20, 40].includes(a.perFrame) ? a.perFrame : cur.perFrame;
+      return { ...s, mid: { ...s.mid, pool: { perFrame, pooled: a.pooled ?? cur.pooled, last: null } } };
+    }
+    case "pool/run": {
+      const cur = s.mid.pool ?? { perFrame: 40, pooled: false, last: null };
+      const r = runPool(cur.perFrame, cur.pooled);
+      const run = { perFrame: cur.perFrame, pooled: cur.pooled, janky: r.janky, gcRuns: r.gcRuns, allocations: r.allocations };
+      return { ...s, mid: { ...s.mid, pool: { ...cur, last: r } }, stats: { ...st, poolRuns: [...(st.poolRuns ?? []), run].slice(-40) } };
     }
     case "broad/run": {
       const points = bodies(s.mid.n);

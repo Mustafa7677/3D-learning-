@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Color } from "three";
-import { PATH_H, PATH_MAP, PATH_W, PLAYER_DISTANCE, WORLD, type GameLabState } from "@inside-tech/lab-game";
+import { BUDGET_MS, FRAMES, PATH_H, PATH_MAP, PATH_W, PLAYER_DISTANCE, WORLD, type GameLabState } from "@inside-tech/lab-game";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -107,6 +107,28 @@ export function BroadView({ state }: { state: GameLabState }) {
         position={[0, 1.4, -5.6]}
         size={0.55}
       />
+    </group>
+  );
+}
+
+export function PoolView({ state }: { state: GameLabState }) {
+  const last = state.mid.pool?.last;
+  const w = 15 / FRAMES;
+  const k = 0.1;
+  return (
+    <group>
+      {last?.frames.map((ms, i) => (
+        <mesh key={i} position={[-7.5 + i * w + w / 2, (ms * k) / 2, 0]}>
+          <boxGeometry args={[w * 0.9, ms * k, 0.6]} />
+          <meshStandardMaterial color={ms > BUDGET_MS ? BAD : C0} emissive={ms > BUDGET_MS ? BAD : new Color("#000")} emissiveIntensity={ms > BUDGET_MS ? 0.4 : 0} />
+        </mesh>
+      ))}
+      <mesh position={[0, BUDGET_MS * k, -0.4]}>
+        <boxGeometry args={[15.2, 0.04, 0.04]} />
+        <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.5} />
+      </mesh>
+      <Label text="16,7 мс: 60 FPS шегі" position={[-5.5, BUDGET_MS * k + 0.35, -0.4]} size={0.42} />
+      <Label text={last ? `${last.janky} кадр қатты · ең баяуы ${last.worst} мс` : "300 кадр ойна"} position={[0, 4.6, 0]} size={0.6} />
     </group>
   );
 }

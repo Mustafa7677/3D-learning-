@@ -321,6 +321,13 @@ const scripts: Record<string, Record<string, (b: Bot) => void>> = {
       b.d({ type: "fsm/run" });
     },
   },
+  "game-13-pooling": {
+    spikes: (b) => b.d({ type: "pool/run" }),
+    pool: (b) => {
+      b.d({ type: "pool/set", pooled: true });
+      b.d({ type: "pool/run" });
+    },
+  },
   "game-12-broadphase": {
     brute: (b) => {
       b.d({ type: "broad/run" });
