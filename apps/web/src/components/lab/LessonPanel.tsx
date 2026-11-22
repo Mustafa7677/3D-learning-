@@ -214,7 +214,6 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
       {step.predict && <Predict key={step.id} p={step.predict} onPredict={onPredict} />}
       {step.comic && <ComicStrip comic={step.comic} />}
       <Prose text={step.body} />
-      {step.film && <SolutionFilmPlayer key={`${step.id}-film`} film={step.film} onScene={onFilmScene} />}
       {step.worked && <WorkedBoard key={`${step.id}-worked`} w={step.worked} />}
       {cinema && (
         <LectureCinema
@@ -266,6 +265,8 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
         </>
       )}
 
+      {/* The end of practice: the solution as a film, in the cinema if the learner wants. */}
+      {step.film && <SolutionFilmPlayer key={`${step.id}-film`} film={step.film} onScene={onFilmScene} />}
       {reward && <Reward xp={XP_LESSON} nextHref={nextLessonHref} onClose={() => setReward(false)} />}
       <div className={styles.lessonActions} aria-live="polite">
         {step.lessonComplete && step.isLast ? (

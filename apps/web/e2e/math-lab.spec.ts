@@ -131,9 +131,28 @@ test("a comic explains theory in other labs too: Diffie-Hellman as mixing paint"
   await expect(comic).toContainText("gᵃᵇ mod p");
 });
 
-test("a solution film plays the Gaussian solution frame by frame along Pólya's route, and completes nothing", async ({ page }) => {
+async function gaussPractised(page: Page) {
   await page.goto("/labs/math/la-3-gauss");
-  await page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Көру/ }).click();
+  // No film before practice: the learner tries first.
+  await expect(page.getByRole("region", { name: /Шешім фильмі/ })).toHaveCount(0);
+  const op = page.getByRole("group", { name: "Жол амалы" });
+  for (const [i, c] of [[1, "-2"], [2, "-1"]] as const) {
+    await op.getByLabel("Амал").selectOption("add");
+    await op.getByLabel("i жолы").selectOption(String(i));
+    await op.getByLabel("j жолы").selectOption("0");
+    await op.getByLabel("Коэффициент c").fill(c);
+    await page.getByRole("button", { name: "Амалды орындау" }).click();
+  }
+  await op.getByLabel("i жолы").selectOption("2");
+  await op.getByLabel("j жолы").selectOption("1");
+  await op.getByLabel("Коэффициент c").fill("-2");
+  await page.getByRole("button", { name: "Амалды орындау" }).click();
+  await nextStep(page);
+}
+
+test("after practice, a solution film plays the Gaussian solution frame by frame along Pólya's route, and completes nothing", async ({ page }) => {
+  await gaussPractised(page);
+  await page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Осы жерде көру/ }).click();
   const film = page.getByRole("region", { name: /Шешім фильмі/ });
   await film.getByRole("button", { name: "Тоқтату" }).click();
   const route = film.getByRole("list", { name: "Шешу жолы" });
@@ -143,9 +162,35 @@ test("a solution film plays the Gaussian solution frame by frame along Pólya's 
   await expect(route.locator("[aria-current=step]")).toHaveText("Тексеру");
   await expect(film.locator("p[aria-live]")).toContainText("шешім (1, 2, 3)");
   await expect(film).toContainText("x + 2 + 3 = 6");
-  await expect(page.locator("li[data-done]", { hasText: "Бірінші бағанда" })).toHaveAttribute("data-done", "false");
+  await expect(objective(page, "бірлік матрицаға")).toHaveAttribute("data-done", "false");
   await film.getByRole("button", { name: "Фильмді жабу" }).click();
-  await expect(page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Көру/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Кинотеатрда көру/ })).toBeVisible();
+});
+
+test("the cinema: the 3D scene fills the screen, the film plays over it, Esc returns", async ({ page }) => {
+  await gaussPractised(page);
+  await page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Кинотеатрда көру/ }).click();
+  await expect(page.locator("body")).toHaveAttribute("data-cinema", "on");
+  await expect(page.getByText("Фильм кинотеатрда жүріп жатыр")).toBeVisible();
+  const film = page.getByRole("region", { name: /Шешім фильмі/ });
+  await expect(film.getByRole("button", { name: "Кинотеатрдан шығу" })).toBeVisible();
+  const vp = page.viewportSize()!;
+  const stage = await page.evaluate(() => {
+    const c = document.querySelector("canvas") ?? document.querySelector("[data-scene-fallback]");
+    const r = (c?.closest("div[class*=stage]") as HTMLElement | null)?.getBoundingClientRect();
+    return r ? { w: r.width, h: r.height } : null;
+  });
+  if (stage) {
+    expect(stage.w).toBeGreaterThanOrEqual(vp.width - 1);
+    expect(stage.h).toBeGreaterThanOrEqual(vp.height - 1);
+  }
+  await film.getByRole("button", { name: "Тоқтату" }).click();
+  for (let k = 0; k < 8; k++) await film.getByRole("button", { name: "Келесі кадр" }).click();
+  await expect(film.locator("p[aria-live]")).toContainText("шешім (1, 2, 3)");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("body")).not.toHaveAttribute("data-cinema", "on");
+  await expect(page.getByText("Фильм кинотеатрда жүріп жатыр")).toHaveCount(0);
+  await expect(film.getByRole("button", { name: "Кинотеатр", exact: true })).toBeVisible();
 });
 
 test("the comic characters are Нұрай and Мустафа", async ({ page }) => {

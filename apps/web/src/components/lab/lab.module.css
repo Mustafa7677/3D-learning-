@@ -1635,3 +1635,22 @@ div.walkSteps {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+
+/* Cinema (a solution film in full screen): the 3D stage covers the page. */
+:global(body[data-cinema="on"]) .stage {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  /* The narrow layouts give the stage a fixed height; the cinema needs all of it. */
+  height: auto;
+  min-height: 0;
+}
+:global(body[data-cinema="on"]) .plate {
+  display: none;
+}
+@media (max-width: 760px) {
+  :global(body[data-cinema="on"]) .stage {
+    inset: 100px 0 auto 0;
+    height: 40vh;
+  }
+}

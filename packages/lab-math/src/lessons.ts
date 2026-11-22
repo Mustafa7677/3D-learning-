@@ -288,13 +288,16 @@ const eigen: L = {
   ],
 };
 
-export const mathLessons: L[] = [vectors, dotLesson, gauss, matrices, inverseLesson, determinant, basis, eigen].map((l) => withContent(l, merged(l.id)));
+export const mathLessons: L[] = [vectors, dotLesson, gauss, matrices, inverseLesson, determinant, basis, eigen].map((l) => withContent(l, merged(l.id, l.steps.at(-1)!.id)));
 
-/** Prose, questions and the math-specific forms (comic, board, error hunt) of one lesson. */
-function merged(id: string): Record<string, StepContent> {
+/**
+ * Prose, questions and the math-specific forms (comic, board, error hunt) of one lesson. The
+ * solution film plays at the end, on the last step: practice first, then the cinema.
+ */
+function merged(id: string, last: string): Record<string, StepContent> {
   const out: Record<string, StepContent> = {};
   for (const [step, c] of Object.entries(mathContent[id] ?? {})) out[step] = { ...c };
   for (const [step, m] of Object.entries(mathMedia[id] ?? {})) out[step] = { ...(out[step] ?? {}), ...m };
-  for (const [step, film] of Object.entries(mathFilms[id] ?? {})) out[step] = { ...(out[step] ?? {}), film };
+  for (const film of Object.values(mathFilms[id] ?? {})) out[last] = { ...(out[last] ?? {}), film };
   return out;
 }

@@ -141,19 +141,20 @@ describe("math: the lessons", () => {
       expect(last.hunt!.lines).not.toContain(last.hunt!.fix);
       const media = JSON.stringify({ c: first.comic, w: first.worked, h: last.hunt });
       expect(/[\u2013\u2014]/.test(media), "dashes in media").toBe(false);
-      expect(first.film, "solution film").toBeDefined();
-      const stages = first.film!.frames.map((f) => f.stage);
+      expect(first.film, "no film before practice").toBeUndefined();
+      expect(last.film, "solution film at the end").toBeDefined();
+      const stages = last.film!.frames.map((f) => f.stage);
       expect(stages[0], "the film starts by understanding").toBe(0);
       expect(stages.at(-1), "and ends with a check").toBe(3);
       expect(stages.every((x, i) => i === 0 || x >= stages[i - 1]!), "stages never go back").toBe(true);
-      for (const f of first.film!.frames) if (f.mark) expect(f.board.join(" "), `mark ${f.mark}`).toContain(f.mark);
-      expect(/[\u2013\u2014]/.test(JSON.stringify(first.film)), "dashes in film").toBe(false);
+      for (const f of last.film!.frames) if (f.mark) expect(f.board.join(" "), `mark ${f.mark}`).toContain(f.mark);
+      expect(/[\u2013\u2014]/.test(JSON.stringify(last.film)), "dashes in film").toBe(false);
       // A film moves the scene but completes nothing.
       {
         const rt = new SimulationRuntime<MathLabState, MathLabAction>(mathLabPlugin, 1);
         const e = new LessonEngine(lesson);
         e.step.onEnter?.forEach((a) => rt.dispatch(a));
-        for (const f of first.film!.frames) if (f.scene) rt.dispatch({ type: "film/scene", patch: f.scene });
+        for (const f of last.film!.frames) if (f.scene) rt.dispatch({ type: "film/scene", patch: f.scene });
         e.update(rt.getState(), rt.evaluate());
         expect(e.view().objectives.every((o) => !o.done), "film completes nothing").toBe(true);
       }
@@ -190,7 +191,7 @@ describe("math: the lessons", () => {
 
 describe("math: the Gaussian film", () => {
   it("ends on the reduced system, so the scene lights the solution", () => {
-    const film = mathLessons.find((l) => l.id === "la-3-gauss")!.steps[0]!.film!;
+    const film = mathLessons.find((l) => l.id === "la-3-gauss")!.steps.at(-1)!.film!;
     const rt = new SimulationRuntime<MathLabState, MathLabAction>(mathLabPlugin, 1);
     for (const f of film.frames) if (f.scene) rt.dispatch({ type: "film/scene", patch: f.scene });
     expect(solutionOf(shown(rt.getState()).sys)).toEqual([1, 2, 3]);
@@ -199,7 +200,7 @@ describe("math: the Gaussian film", () => {
     expect(shown(rt.getState()).sys).toEqual(GAUSS_START);
   });
   it("every Gaussian frame keeps (1, 2, 3) on all three planes", () => {
-    const film = mathLessons.find((l) => l.id === "la-3-gauss")!.steps[0]!.film!;
+    const film = mathLessons.find((l) => l.id === "la-3-gauss")!.steps.at(-1)!.film!;
     for (const f of film.frames) {
       const sys = f.scene?.sys as number[][] | undefined;
       if (sys) for (const r of sys) expect(r[0]! * 1 + r[1]! * 2 + r[2]! * 3).toBeCloseTo(r[3]!, 9);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { FILM_STAGES, type SolutionFilm } from "@inside-tech/lesson-engine";
 import styles from "./film.module.css";
 
@@ -30,6 +31,8 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [typed, setTyped] = useState(0);
+  // Cinema: the 3D scene fills the screen and the film plays over it.
+  const [cinema, setCinema] = useState(false);
   const frame = film.frames[i]!;
   const prevLen = i > 0 ? film.frames[i - 1]!.board.length : 0;
   const newLines = frame.board.slice(prevLen).join("\n");
@@ -67,15 +70,48 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
     return () => clearTimeout(t);
   }, [playing, doneTyping, i, frame.say.length, speed, film.frames.length]);
 
+  useEffect(() => {
+    if (!cinema) return;
+    const body = document.body;
+    body.dataset.cinema = "on";
+    let wentFull = false;
+    const root = document.documentElement;
+    if (root.requestFullscreen && !document.fullscreenElement) {
+      root
+        .requestFullscreen()
+        .then(() => (wentFull = true))
+        .catch(() => undefined);
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setCinema(false);
+    };
+    const onFull = () => {
+      if (wentFull && !document.fullscreenElement) setCinema(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onFull);
+    // The canvas measures its box: tell it the box changed.
+    window.dispatchEvent(new Event("resize"));
+    return () => {
+      delete body.dataset.cinema;
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("fullscreenchange", onFull);
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => undefined);
+      window.dispatchEvent(new Event("resize"));
+    };
+  }, [cinema]);
+
   const go = (n: number) => {
     setI(Math.max(0, Math.min(film.frames.length - 1, n)));
   };
-  const start = () => {
+  const start = (big = false) => {
     setStarted(true);
     setI(0);
     setPlaying(true);
+    setCinema(big);
   };
   const stop = () => {
+    setCinema(false);
     setStarted(false);
     setPlaying(false);
     setI(0);
@@ -85,16 +121,24 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
   if (!started)
     return (
       <section className={styles.poster} aria-label={`Шешім фильмі: ${film.title}`}>
-        <p className={styles.kicker}>ШЕШІМ ФИЛЬМІ</p>
+        <p className={styles.kicker}>ПРАКТИКАДАН КЕЙІН · ШЕШІМ ФИЛЬМІ</p>
         <p className={styles.posterTitle}>{film.title}</p>
         <ol className={styles.route} aria-label="Шешу жолы">
           {FILM_STAGES.map((s) => (
             <li key={s}>{s}</li>
           ))}
         </ol>
-        <button type="button" className={styles.play} onClick={start}>
-          <span aria-hidden>▶</span> Көру{onScene ? ": 3D сахна да қозғалады" : ""}
-        </button>
+        <p className={styles.posterNote}>Өзің шығарып болдың ба? Енді маманның шешімін фильм сияқты көр: қай жолмен, қандай қадаммен.</p>
+        <div className={styles.posterButtons}>
+          {onScene && (
+            <button type="button" className={styles.play} onClick={() => start(true)}>
+              <span aria-hidden>⛶</span> Кинотеатрда көру
+            </button>
+          )}
+          <button type="button" className={onScene ? styles.playGhost : styles.play} onClick={() => start(false)}>
+            <span aria-hidden>▶</span> Осы жерде көру
+          </button>
+        </div>
       </section>
     );
 
@@ -107,16 +151,23 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
     return s;
   });
 
-  return (
-    <section className={styles.player} aria-label={`Шешім фильмі: ${film.title}`}>
+  const player = (
+    <section className={cinema ? `${styles.player} ${styles.cinema}` : styles.player} aria-label={`Шешім фильмі: ${film.title}`}>
       <div className={styles.strip} aria-hidden />
-      <ol className={styles.route} aria-label="Шешу жолы">
-        {FILM_STAGES.map((s, k) => (
-          <li key={s} data-state={k < frame.stage ? "done" : k === frame.stage ? "now" : undefined} aria-current={k === frame.stage ? "step" : undefined}>
-            {s}
-          </li>
-        ))}
-      </ol>
+      <div className={cinema ? styles.cinemaTop : undefined}>
+        {cinema && (
+          <p className={styles.cinemaTitle}>
+            <span>ШЕШІМ ФИЛЬМІ</span> {film.title}
+          </p>
+        )}
+        <ol className={styles.route} aria-label="Шешу жолы">
+          {FILM_STAGES.map((s, k) => (
+            <li key={s} data-state={k < frame.stage ? "done" : k === frame.stage ? "now" : undefined} aria-current={k === frame.stage ? "step" : undefined}>
+              {s}
+            </li>
+          ))}
+        </ol>
+      </div>
       <div className={styles.board}>
         {old.map((l, k) => (
           <p key={k} className={styles.line}>
@@ -152,11 +203,23 @@ export function SolutionFilmPlayer({ film, onScene }: { film: SolutionFilm; onSc
         <button type="button" aria-label="Жылдамдық" onClick={() => setSpeed((v) => SPEEDS[(SPEEDS.indexOf(v) + 1) % SPEEDS.length]!)}>
           {speed}×
         </button>
+        {onScene && (
+          <button type="button" aria-label={cinema ? "Кинотеатрдан шығу" : "Кинотеатр"} aria-pressed={cinema} onClick={() => setCinema((c) => !c)}>
+            ⛶
+          </button>
+        )}
         <button type="button" aria-label="Фильмді жабу" onClick={stop}>
           ✕
         </button>
       </div>
       <div className={styles.strip} aria-hidden />
     </section>
+  );
+  if (!cinema) return player;
+  return (
+    <>
+      <p className={styles.inCinema}>Фильм кинотеатрда жүріп жатыр. Шығу үшін Esc.</p>
+      {createPortal(player, document.body)}
+    </>
   );
 }
