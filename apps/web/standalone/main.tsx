@@ -16,6 +16,7 @@ import { Comic } from "../src/components/comic/Comic";
 import { Cards } from "../src/components/cards/Cards";
 import { Sky } from "../src/components/sky/Sky";
 import { Notebook } from "../src/components/notebook/Notebook";
+import { Ticket } from "../src/components/ticket/Ticket";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
 import "../src/app/globals.css";
@@ -41,7 +42,7 @@ function App() {
   const lesson = lessonEntries.find((e) => e.lesson.id === route)?.lesson;
   useEffect(() => {
     const lab = openLabs.find((l) => l.id === route);
-    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : route === "journey" ? "Бір басудың саяхаты | INSIDE TECH" : route === "blackbox" ? "Қара жәшік | INSIDE TECH" : route === "passport" ? "Оқу паспорты | INSIDE TECH" : route === "mission" ? "Миссия: Бір қаланың интернеті | INSIDE TECH" : route === "gazette" ? "INSIDE TECH газеті, № 1 | INSIDE TECH" : route === "comic" ? "Комикс: Үш қол алысу | INSIDE TECH" : route === "cards" ? "Есте сақтау карточкалары | INSIDE TECH" : route === "sky" ? "Білім аспаны | INSIDE TECH" : route === "notebook" ? "Қателер дәптері | INSIDE TECH" : "INSIDE TECH";
+    document.title = lesson ? `${lesson.title} | INSIDE TECH` : lab ? `${lab.title} | INSIDE TECH` : route === "journey" ? "Бір басудың саяхаты | INSIDE TECH" : route === "blackbox" ? "Қара жәшік | INSIDE TECH" : route === "passport" ? "Оқу паспорты | INSIDE TECH" : route === "mission" ? "Миссия: Бір қаланың интернеті | INSIDE TECH" : route === "gazette" ? "INSIDE TECH газеті, № 1 | INSIDE TECH" : route === "comic" ? "Комикс: Үш қол алысу | INSIDE TECH" : route === "cards" ? "Есте сақтау карточкалары | INSIDE TECH" : route === "sky" ? "Білім аспаны | INSIDE TECH" : route === "notebook" ? "Қателер дәптері | INSIDE TECH" : route === "ticket" ? "Емтихан билеті | INSIDE TECH" : "INSIDE TECH";
   }, [route, lesson]);
 
   if (lesson) return <LessonView key={lesson.id} lessonId={lesson.id} />;
@@ -55,6 +56,7 @@ function App() {
   if (route === "cards") return <Cards />;
   if (route === "sky") return <Sky />;
   if (route === "notebook") return <Notebook />;
+  if (route === "ticket") return <Ticket />;
   if (route === "account") return <AccountPage />;
   if (route === "teacher") return <TeacherPage />;
   if (route === "create" || route.startsWith("import=")) return <CreatorPage />;
