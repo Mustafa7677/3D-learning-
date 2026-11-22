@@ -1,4 +1,4 @@
-import { lessonCerts, lessonCsp, lessonDh, lessonHmac, lessonModes, secMiddleContent } from "./middle";
+import { lessonCerts, lessonCsp, lessonDh, lessonHmac, lessonModes, lessonTiming, secMiddleContent } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { secContent } from "./content";
 import { sha256 } from "./crypto";
@@ -290,4 +290,5 @@ export const secLessons: L[] = [
   lessonDh,
   lessonCerts,
   lessonCsp,
+  lessonTiming,
 ].map((l) => withDeepDives(withContent(l, secContent[l.id] ?? secMiddleContent[l.id] ?? {}), secDeepDives[l.id] ?? {}));

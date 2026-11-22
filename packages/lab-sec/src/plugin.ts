@@ -3,6 +3,7 @@ import { crack, login, strength, isXss, type LoginResult, type Storage } from ".
 import { bitDistance, caesar, modPow, rsaKeys, sha256, utf8, xorBytes, type RsaKeys } from "./crypto";
 import { CHALLENGES, type ChallengeId } from "./text";
 import { evaluateCsp, type Policy } from "./csp";
+import { SAMPLE_COUNTS, runTiming, type Compare, type TimingRun } from "./timing";
 import { FAULTS, scenarioChain, verifyChain, type CertError, type Fault, type Verdict } from "./certs";
 import {
   BLOCK_KEY,
@@ -22,7 +23,7 @@ import {
   type MacScheme,
 } from "./middle-core";
 
-export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs" | "csp";
+export type SecMode = "cipher" | "xor" | "hash" | "passwords" | "rsa" | "attack" | "blocks" | "mac" | "dh" | "certs" | "csp" | "timing";
 
 export interface SecStats {
   modes: SecMode[];
@@ -51,6 +52,7 @@ export interface SecStats {
   dhRuns: { p: number; match: boolean; mitm: boolean; signed: boolean; aborted: boolean }[];
   eveRuns: { p: number; found: boolean; tries: number }[];
   certRuns?: { fault: Fault; ok: boolean; error: CertError }[];
+  timingRuns?: { compare: Compare; samples: number; correct: number; requests: number }[];
   cspRuns?: { policy: Policy; attacks: number; brokenLegit: number }[];
 }
 
@@ -67,6 +69,7 @@ export interface SecLabState {
   dh: { big: boolean; a: number; b: number; mitm: boolean; signed: boolean; last: DhExchange | null; eve: { p: number; found: number | null; tries: number } | null };
   certs?: { fault: Fault; last: Verdict | null };
   csp?: { policy: Policy; ran: string[] | null };
+  timing?: { compare: Compare; samples: number; last: TimingRun | null };
   stats: SecStats;
 }
 
@@ -103,7 +106,9 @@ export type SecLabAction =
   | { type: "certs/fault"; fault: Fault }
   | { type: "certs/connect" }
   | { type: "csp/policy"; policy: Policy }
-  | { type: "csp/load" };
+  | { type: "csp/load" }
+  | { type: "timing/set"; compare?: Compare; samples?: number }
+  | { type: "timing/run" };
 
 const uniq = <T>(xs: T[], x: T, max = 60) => (xs.includes(x) ? xs : [...xs, x].slice(-max));
 const mod = (k: number, n: number) => ((Math.round(k) % n) + n) % n;
@@ -340,6 +345,17 @@ function reduce(s: SecLabState, a: SecLabAction): SecLabState {
       const policy = s.csp?.policy ?? "none";
       const r = evaluateCsp(policy);
       return { ...s, mode: "csp", csp: { policy, ran: r.ran }, stats: { ...st, cspRuns: cap([...(st.cspRuns ?? []), { policy, attacks: r.attacks, brokenLegit: r.brokenLegit }]) } };
+    }
+    case "timing/set": {
+      const t = s.timing ?? { compare: "early" as Compare, samples: 1, last: null };
+      const compare = a.compare === "early" || a.compare === "constant" ? a.compare : t.compare;
+      const samples = a.samples !== undefined && SAMPLE_COUNTS.includes(a.samples) ? a.samples : t.samples;
+      return { ...s, mode: "timing", timing: { compare, samples, last: null } };
+    }
+    case "timing/run": {
+      const t = s.timing ?? { compare: "early" as Compare, samples: 1, last: null };
+      const r = runTiming(t.compare, t.samples);
+      return { ...s, mode: "timing", timing: { ...t, last: r }, stats: { ...st, timingRuns: cap([...(st.timingRuns ?? []), { compare: t.compare, samples: t.samples, correct: r.correct, requests: r.requests }]) } };
     }
     case "certs/fault":
       return FAULTS.includes(a.fault) ? { ...s, mode: "certs", certs: { fault: a.fault, last: null } } : s;

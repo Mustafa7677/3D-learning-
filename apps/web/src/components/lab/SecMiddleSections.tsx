@@ -1,6 +1,6 @@
 "use client";
 
-import { PAGE_SCRIPTS, POLICY_HEADER, type Policy, DH_LARGE, DH_SMALL, FAULTS, FORGED, PAYMENT, type Fault, type MacScheme, type SecLabAction, type SecLabState } from "@inside-tech/lab-sec";
+import { SAMPLE_COUNTS, SECRET, type Compare, PAGE_SCRIPTS, POLICY_HEADER, type Policy, DH_LARGE, DH_SMALL, FAULTS, FORGED, PAYMENT, type Fault, type MacScheme, type SecLabAction, type SecLabState } from "@inside-tech/lab-sec";
 import styles from "./lab.module.css";
 
 type D = (a: SecLabAction) => void;
@@ -279,6 +279,51 @@ export function CspSection({ state, dispatch }: { state: SecLabState; dispatch: 
             );
           })}
         </ol>
+      )}
+    </fieldset>
+  );
+}
+
+export function TimingSection({ state, dispatch }: { state: SecLabState; dispatch: D }) {
+  const t = state.timing ?? { compare: "early" as Compare, samples: 1, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Сервер токенді тексереді · {SECRET.length} hex таңба · шу ±2 мкс</legend>
+      <div className={styles.row} role="group" aria-label="Салыстыру тәсілі">
+        <button type="button" className="btn" aria-pressed={t.compare === "early"} onClick={() => dispatch({ type: "timing/set", compare: "early" })}>
+          Бірінші айырмада тоқтау
+        </button>
+        <button type="button" className="btn" aria-pressed={t.compare === "constant"} onClick={() => dispatch({ type: "timing/set", compare: "constant" })}>
+          Тұрақты уақыт
+        </button>
+      </div>
+      <div className={styles.row} role="group" aria-label="Әр болжамды өлшеу саны">
+        {SAMPLE_COUNTS.map((n) => (
+          <button key={n} type="button" className="btn" aria-pressed={t.samples === n} onClick={() => dispatch({ type: "timing/set", samples: n })}>
+            {n} рет өлшеу
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "timing/run" })}>
+        Шабуылдау
+      </button>
+      {t.last && (
+        <div className={styles.metrics} role="status" aria-label="Шабуыл нәтижесі">
+          <div>
+            <span>Тапқаны</span>
+            <strong>{t.last.guess}</strong>
+          </div>
+          <div>
+            <span>Дұрыс таңба</span>
+            <strong>
+              {t.last.correct}/{SECRET.length}
+            </strong>
+          </div>
+          <div>
+            <span>Сұраныс</span>
+            <strong>{t.last.requests}</strong>
+          </div>
+        </div>
       )}
     </fieldset>
   );

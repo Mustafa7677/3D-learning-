@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextStep } from "./helpers";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 
@@ -11,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("cybersecurity lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/sec");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Cybersecurity");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("Middle 10: ECB keeps the picture's 10 distinct blocks, CBC makes all 64 different", async ({ page }) => {
@@ -105,4 +106,20 @@ test("Middle 14: without CSP the injected scripts run; a nonce policy keeps the 
   await page.getByRole("button", { name: "Бетті ашу" }).click();
   await expect(list.locator("li", { hasText: "шабуыл бұғатталды" })).toHaveCount(3);
   await expect(list.locator("li", { hasText: "✓ жүрді" })).toHaveCount(2);
+});
+
+test("Middle 15: timing leaks the secret with 100 measurements per guess; constant time does not", async ({ page }) => {
+  await page.goto("/labs/sec/sec-15-timing");
+  const r = page.getByRole("status", { name: "Шабуыл нәтижесі" });
+  const go = page.getByRole("button", { name: "Шабуылдау" });
+  await go.click();
+  await expect(r).not.toContainText("Дұрыс таңба8/8");
+  await page.getByRole("button", { name: "100 рет өлшеу" }).click();
+  await go.click();
+  await expect(r).toContainText("Тапқаныa7f3c9e1");
+  await expect(r).toContainText("Сұраныс12800");
+  await nextStep(page);
+  await go.click();
+  await expect(r).not.toContainText("a7f3c9e1");
+  await expect(page.getByRole("region", { name: "Өз сөзіңмен түсіндір" })).toBeVisible();
 });

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Color } from "three";
-import { PAGE_SCRIPTS, POLICY_HEADER, BLOCK, IMG, ROOT, picture, scenarioChain, type SecLabState } from "@inside-tech/lab-sec";
+import { HEX, SECRET, PAGE_SCRIPTS, POLICY_HEADER, BLOCK, IMG, ROOT, picture, scenarioChain, type SecLabState } from "@inside-tech/lab-sec";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -185,6 +185,38 @@ export function CspView({ state }: { state: SecLabState }) {
           </group>
         );
       })}
+    </group>
+  );
+}
+
+export function TimingView({ state }: { state: SecLabState }) {
+  const last = state.timing?.last;
+  const cx = (c: number) => (c - 7.5) * 0.62;
+  const rz = (p: number) => (p - 3.5) * 0.9;
+  return (
+    <group>
+      {last?.times.map((row, p) => {
+        const pick = row.indexOf(Math.max(...row));
+        const low = Math.min(...row);
+        return row.map((v, c) => {
+          // Height above the row's quietest candidate: the leak shows as one spike.
+          const h = 0.08 + (v - low) * 1.4;
+          const chosen = c === pick;
+          const right = HEX[c] === SECRET[p];
+          return (
+            <mesh key={`${p}-${c}`} position={[cx(c), h / 2, rz(p)]}>
+              <boxGeometry args={[0.5, h, 0.7]} />
+              <meshStandardMaterial color={chosen ? (right ? OK : BAD) : OFF} />
+            </mesh>
+          );
+        });
+      })}
+      {[...HEX].map((c, i) => (
+        <Label key={c} text={c} position={[cx(i), -0.3, rz(7) + 0.9]} size={0.32} />
+      ))}
+      {last && [...last.guess].map((c, p) => <Label key={p} text={`${p + 1}: ${c}`} position={[cx(15) + 1.2, 0.3, rz(p)]} size={0.32} />)}
+      <Label text={last ? `${state.timing!.compare === "early" ? "бірінші айырмада тоқтау" : "тұрақты уақыт"} · ${last.samples} өлшем · табылды ${last.correct}/8` : "Шабуылда"} position={[0, 3.6, -3.4]} size={0.55} />
+      <Label text="баған: әр таңбаның орташа жауап уақыты (қатардағы ең тезінен артығы) · жасыл: дұрыс табылды · қызыл: шу алдады" position={[0, 3, -3.4]} size={0.4} />
     </group>
   );
 }

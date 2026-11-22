@@ -165,6 +165,14 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "mac/send", tamper: true, recompute: true });
     },
   },
+  "sec-15-timing": {
+    leak: (d) => {
+      d({ type: "timing/run" });
+      d({ type: "timing/set", samples: 100 });
+      d({ type: "timing/run" });
+    },
+    fix: (d) => d({ type: "timing/run" }),
+  },
   "sec-14-csp": {
     inject: (d) => d({ type: "csp/load" }),
     policy: (d) => {

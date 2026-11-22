@@ -19,7 +19,7 @@ import {
 } from "@inside-tech/lab-sec";
 import type { SecFocus } from "../scene/SecScene";
 import styles from "./lab.module.css";
-import { BlocksSection, CertsSection, CspSection, DhSection, MacSection } from "./SecMiddleSections";
+import { BlocksSection, CertsSection, CspSection, DhSection, MacSection, TimingSection } from "./SecMiddleSections";
 
 type D = (a: SecLabAction) => void;
 
@@ -366,6 +366,7 @@ export function SecControlPanel({ state, focus, dispatch, canUndo, onUndo }: { s
       {focus === "dh" && <DhSection state={state} dispatch={dispatch} />}
       {focus === "certs" && <CertsSection state={state} dispatch={dispatch} />}
       {focus === "csp" && <CspSection state={state} dispatch={dispatch} />}
+      {focus === "timing" && <TimingSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау
