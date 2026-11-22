@@ -149,6 +149,7 @@ const ALGO_SECTIONS: Record<string, AlgoSection[]> = {
   dp: ["dp"],
   uf: ["uf"],
   topo: ["topo"],
+  amort: ["amort"],
 };
 
 const KEYS: Record<string, "up" | "down" | "left" | "right"> = {

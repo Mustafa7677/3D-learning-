@@ -14,6 +14,7 @@ import {
   type AlgoLabState,
   type DpPreset,
 } from "@inside-tech/lab-algo";
+import { PUSHES, type Growth } from "@inside-tech/lab-algo";
 import { TOPO_NODES, type UfVariant } from "@inside-tech/lab-algo";
 import styles from "./lab.module.css";
 
@@ -280,6 +281,51 @@ export function TopoSection({ state, dispatch }: { state: AlgoLabState; dispatch
               </li>
             ))}
           </ol>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+const GROWTH_WORD: [Growth, string][] = [
+  ["plus1", "+1 орын"],
+  ["x1.5", "×1.5"],
+  ["x2", "×2"],
+];
+
+export function AmortSection({ state, dispatch }: { state: AlgoLabState; dispatch: D }) {
+  const a = state.amort ?? { growth: "plus1" as Growth, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Динамикалық массив · {PUSHES} push</legend>
+      <div className={styles.row} role="group" aria-label="Өсу">
+        {GROWTH_WORD.map(([g, label]) => (
+          <button key={g} type="button" className="btn" aria-pressed={a.growth === g} onClick={() => dispatch({ type: "amort/set", growth: g })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "amort/run" })}>
+        {PUSHES} рет push
+      </button>
+      {a.last && (
+        <div className={styles.metrics} role="status" aria-label="Массив нәтижесі">
+          <div>
+            <span>Көшіру</span>
+            <strong>{a.last.copies}</strong>
+          </div>
+          <div>
+            <span>Орташа баға</span>
+            <strong>{a.last.average}</strong>
+          </div>
+          <div>
+            <span>Ең қымбат push</span>
+            <strong>{a.last.maxCost}</strong>
+          </div>
+          <div>
+            <span>Бос орын</span>
+            <strong>{a.last.unused}</strong>
+          </div>
         </div>
       )}
     </fieldset>

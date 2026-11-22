@@ -104,6 +104,18 @@ const scripts: Record<string, Record<string, (d: D, s: () => AlgoLabState) => vo
       for (let i = 0; i < 9; i++) d({ type: "heap/pop" });
     },
   },
+  "algo-15-amortized": {
+    growth: (d) => {
+      d({ type: "amort/run" });
+      d({ type: "amort/set", growth: "x2" });
+      d({ type: "amort/run" });
+    },
+    tradeoff: (d) => {
+      d({ type: "amort/run" });
+      d({ type: "amort/set", growth: "x2" });
+      d({ type: "amort/run" });
+    },
+  },
   "algo-14-toposort": {
     order: (d) => d({ type: "topo/run" }),
     cycle: (d) => {

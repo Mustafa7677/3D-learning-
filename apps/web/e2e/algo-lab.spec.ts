@@ -12,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("algorithms lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/algo");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Algorithms");
-  await expect(page.locator("ol li")).toHaveCount(14);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
+  await expect(page.locator("ol li")).toHaveCount(15);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(6);
 });
 
 test("Middle 10: anagrams pile up under the sum hash; the polynomial hash and growth fix it", async ({ page }) => {
@@ -131,4 +131,17 @@ test("Middle 14: prerequisites give four semesters; a cycle locks three courses"
   await expect(page.getByLabel(/Жаңа ереже/)).toBeChecked();
   await page.getByRole("button", { name: "Оқу жоспарын құру" }).click();
   await expect(plan).toContainText("Цикл: Құрылымдар, Алгоритмдер, Бұлт");
+});
+
+test("Middle 15: growing by one copies 2080 times, doubling 127; x1.5 wastes less", async ({ page }) => {
+  await page.goto("/labs/algo/algo-15-amortized");
+  const r = page.getByRole("status", { name: "Массив нәтижесі" });
+  const run = page.getByRole("button", { name: "65 рет push" });
+  await run.click();
+  await expect(r).toContainText("Көшіру2080");
+  await page.getByRole("button", { name: "×2", exact: true }).click();
+  await run.click();
+  await expect(r).toContainText("Көшіру127");
+  await expect(r).toContainText("Ең қымбат push65");
+  await expect(page.locator("li[data-done]", { hasText: "Екі есе үлкейт" })).toHaveAttribute("data-done", "true");
 });

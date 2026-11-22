@@ -1,12 +1,13 @@
 import { DP_ITEMS, HASH_WORDS, HEAP_CALLS, LOAD_LIMIT, heapPop, heapPush, insertKey, knapsackGreedy, longestChain, lookupProbes, type DpPreset, type HashFn, type HashTable, type HeapOp } from "./ds";
 import { CYCLE_EDGE, TOPO_EDGES, topoSort, type TopoRun } from "./topo";
+import { GROWTHS, runAmort, type AmortRun, type Growth } from "./amort";
 import { runUnionFind, type UfRun, type UfVariant } from "./uf";
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { GRAPHS, pathCost, pathTo, traceGraph, type GraphAlg, type GraphPreset, type GraphTrace } from "./graph";
 import { traceSearch, type Probe, type SearchKind } from "./search";
 import { applyOp, countSort, makeArray, traceSort, type ArrayPreset, type Pivot, type SortAlg, type SortOp } from "./sort";
 
-export type AlgoMode = "sort" | "search" | "graph" | "hash" | "heap" | "dp" | "uf" | "topo";
+export type AlgoMode = "sort" | "search" | "graph" | "hash" | "heap" | "dp" | "uf" | "topo" | "amort";
 
 /** Middle level: a hash table, a min-heap and the knapsack table. */
 export interface DsView {
@@ -89,6 +90,7 @@ export interface BenchPoint {
 }
 
 export interface AlgoStats {
+  amortRuns?: { growth: Growth; copies: number; maxCost: number; average: number; unused: number }[];
   topoRuns?: { cycle: boolean; ordered: number; semesters: number; stuck: number }[];
   ufRuns?: { variant: UfVariant; height: number; firstPass: number; secondPass: number }[];
   manualSortSteps: number;
@@ -112,6 +114,7 @@ export interface AlgoLabState {
   ds: DsView;
   uf?: { variant: UfVariant; last: UfRun | null };
   topo?: { cycle: boolean; last: TopoRun | null };
+  amort?: { growth: Growth; last: AmortRun | null };
   stats: AlgoStats;
 }
 
@@ -121,6 +124,8 @@ export type AlgoLabAction =
   | { type: "uf/run" }
   | { type: "topo/cycle"; on: boolean }
   | { type: "topo/run" }
+  | { type: "amort/set"; growth: Growth }
+  | { type: "amort/run" }
   | { type: "speed/set"; speed: number }
   | { type: "sort/config"; alg?: SortAlg; pivot?: Pivot; preset?: ArrayPreset; n?: number }
   | { type: "sort/shuffle" }
@@ -470,6 +475,13 @@ function reduce(s: AlgoLabState, a: AlgoLabAction): AlgoLabState {
       const cycle = s.topo?.cycle ?? false;
       const r = topoSort(cycle ? [...TOPO_EDGES, CYCLE_EDGE] : TOPO_EDGES);
       return { ...s, mode: "topo", topo: { cycle, last: r }, stats: { ...s.stats, topoRuns: [...(s.stats.topoRuns ?? []), { cycle, ordered: r.order.length, semesters: r.semesters, stuck: r.stuck.length }].slice(-40) } };
+    }
+    case "amort/set":
+      return GROWTHS.includes(a.growth) ? { ...s, mode: "amort", amort: { growth: a.growth, last: null } } : s;
+    case "amort/run": {
+      const growth = s.amort?.growth ?? "plus1";
+      const r = runAmort(growth);
+      return { ...s, mode: "amort", amort: { growth, last: r }, stats: { ...s.stats, amortRuns: [...(s.stats.amortRuns ?? []), { growth, copies: r.copies, maxCost: r.maxCost, average: r.average, unused: r.unused }].slice(-40) } };
     }
     case "uf/set":
       return ["naive", "compress", "rank"].includes(a.variant) ? { ...s, mode: "uf", uf: { variant: a.variant, last: null } } : s;

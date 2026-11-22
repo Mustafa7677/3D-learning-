@@ -9,9 +9,9 @@ import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
 import { StageLook } from "./StageLook";
 import { C0, C1 } from "./palette";
-import { DpView, HashView, HeapView, TopoView, UfView } from "./AlgoDsViews";
+import { AmortView, DpView, HashView, HeapView, TopoView, UfView } from "./AlgoDsViews";
 
-export type AlgoFocus = "sort" | "search" | "graph" | "bench" | "hash" | "heap" | "dp" | "uf" | "topo";
+export type AlgoFocus = "sort" | "search" | "graph" | "bench" | "hash" | "heap" | "dp" | "uf" | "topo" | "amort";
 
 const BASE = new Color("#9fb0d4");
 const SWAP = new Color("#c23b3b");
@@ -138,8 +138,8 @@ function GraphView({ state }: { state: AlgoLabState }) {
 function Contents({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
   const mode = focus === "bench" ? "sort" : focus;
   const graph = mode === "graph";
-  const ds = mode === "hash" || mode === "heap" || mode === "dp" || mode === "uf" || mode === "topo";
-  const frame = mode === "topo" ? { w: 17, h: 9, t: [0.5, 0.5, 0.3] as [number, number, number], d: [0, 1.4, 1] as [number, number, number] } : mode === "uf" ? { w: 14, h: 8, t: [0, 3.4, 0] as [number, number, number], d: [0, 0.15, 1] as [number, number, number] } : mode === "hash" ? { w: 15, h: 6, t: [0, 2.2, 0] as [number, number, number], d: [0, 0.35, 1] as [number, number, number] } : mode === "heap" ? { w: 13, h: 6, t: [0, 2.2, 0] as [number, number, number], d: [0, 0.1, 1] as [number, number, number] } : { w: 13, h: 7, t: [0, 0.8, 0] as [number, number, number], d: [0, 1.1, 1] as [number, number, number] };
+  const ds = mode === "hash" || mode === "heap" || mode === "dp" || mode === "uf" || mode === "topo" || mode === "amort";
+  const frame = mode === "amort" ? { w: 16, h: 7, t: [0, 2.6, 0] as [number, number, number], d: [0, 0.3, 1] as [number, number, number] } : mode === "topo" ? { w: 17, h: 9, t: [0.5, 0.5, 0.3] as [number, number, number], d: [0, 1.4, 1] as [number, number, number] } : mode === "uf" ? { w: 14, h: 8, t: [0, 3.4, 0] as [number, number, number], d: [0, 0.15, 1] as [number, number, number] } : mode === "hash" ? { w: 15, h: 6, t: [0, 2.2, 0] as [number, number, number], d: [0, 0.35, 1] as [number, number, number] } : mode === "heap" ? { w: 13, h: 6, t: [0, 2.2, 0] as [number, number, number], d: [0, 0.1, 1] as [number, number, number] } : { w: 13, h: 7, t: [0, 0.8, 0] as [number, number, number], d: [0, 1.1, 1] as [number, number, number] };
   return (
     <>
       <ambientLight intensity={0.8} />
@@ -155,6 +155,7 @@ function Contents({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
       {mode === "dp" && <DpView state={state} />}
       {mode === "uf" && <UfView state={state} />}
       {mode === "topo" && <TopoView state={state} />}
+      {mode === "amort" && <AmortView state={state} />}
       <FitCamera
         key={mode}
         width={ds ? frame.w : graph ? 10.5 : WIDTH + 1}

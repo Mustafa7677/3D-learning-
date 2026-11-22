@@ -205,3 +205,28 @@ export function TopoView({ state }: { state: AlgoLabState }) {
     </group>
   );
 }
+
+export function AmortView({ state }: { state: AlgoLabState }) {
+  const last = state.amort?.last;
+  const w = 15 / 65;
+  const k = 5 / 65;
+  return (
+    <group>
+      {last?.costs.map((c, i) => (
+        <mesh key={i} position={[-7.5 + i * w + w / 2, (c * k) / 2 + 0.02, 0]}>
+          <boxGeometry args={[w * 0.8, Math.max(0.04, c * k), 0.8]} />
+          <meshStandardMaterial color={c > 1 ? new Color("#c23b3b") : new Color("#3d5bd9")} />
+        </mesh>
+      ))}
+      {last && (
+        <mesh position={[0, last.average * k, -0.5]}>
+          <boxGeometry args={[15.2, 0.05, 0.05]} />
+          <meshStandardMaterial color={new Color("#c9a24a")} emissive={new Color("#c9a24a")} emissiveIntensity={0.5} />
+        </mesh>
+      )}
+      {last && <Label text={`орташа ${last.average}`} position={[6.2, last.average * k + 0.35, -0.5]} size={0.4} />}
+      <Label text={last ? `көшіру ${last.copies} · ең қымбат push ${last.maxCost} · бос орын ${last.unused}` : "Массивке push жаса"} position={[0, 6, 0]} size={0.6} />
+      <Label text="баған: бір push-тың бағасы · қызыл: массив толып, бәрі көшірілді" position={[0, 5.4, 0]} size={0.42} />
+    </group>
+  );
+}
