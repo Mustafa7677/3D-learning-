@@ -12,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("algorithms lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/algo");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Algorithms");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("Middle 10: anagrams pile up under the sum hash; the polynomial hash and growth fix it", async ({ page }) => {
@@ -120,4 +120,15 @@ test("Middle 13: naive unions grow a chain of 15; union by rank keeps it at heig
   await page.getByRole("button", { name: "Union by rank" }).click();
   await page.getByRole("button", { name: "Біріктіріп, бәрін екі рет іздеу" }).click();
   await expect(r).toContainText("Биіктік1");
+});
+
+test("Middle 14: prerequisites give four semesters; a cycle locks three courses", async ({ page }) => {
+  await page.goto("/labs/algo/algo-14-toposort");
+  const plan = page.getByRole("status", { name: "Жоспар" });
+  await page.getByRole("button", { name: "Оқу жоспарын құру" }).click();
+  await expect(plan).toContainText("4 семестр");
+  await page.getByLabel(/Жаңа ереже/).click();
+  await expect(page.getByLabel(/Жаңа ереже/)).toBeChecked();
+  await page.getByRole("button", { name: "Оқу жоспарын құру" }).click();
+  await expect(plan).toContainText("Цикл: Құрылымдар, Алгоритмдер, Бұлт");
 });

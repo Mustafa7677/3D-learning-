@@ -14,7 +14,7 @@ import {
   type AlgoLabState,
   type DpPreset,
 } from "@inside-tech/lab-algo";
-import type { UfVariant } from "@inside-tech/lab-algo";
+import { TOPO_NODES, type UfVariant } from "@inside-tech/lab-algo";
 import styles from "./lab.module.css";
 
 type D = (a: AlgoLabAction) => void;
@@ -251,6 +251,35 @@ export function UfSection({ state, dispatch }: { state: AlgoLabState; dispatch: 
             <span>2-айналым</span>
             <strong>{u.last.secondPass}</strong>
           </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+export function TopoSection({ state, dispatch }: { state: AlgoLabState; dispatch: D }) {
+  const t = state.topo ?? { cycle: false, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Курстардың алғышарттары · 7 курс</legend>
+      <label className={styles.row}>
+        <input type="checkbox" checked={t.cycle} onChange={(e) => dispatch({ type: "topo/cycle", on: e.target.checked })} /> Жаңа ереже: «Құрылымдар» үшін «Бұлт» керек
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "topo/run" })}>
+        Оқу жоспарын құру
+      </button>
+      {t.last && (
+        <div role="status" aria-label="Жоспар">
+          <p className={styles.small}>
+            <strong>{t.last.stuck.length ? `Цикл: ${t.last.stuck.map((i) => TOPO_NODES[i]).join(", ")} ешқашан ашылмайды` : `${t.last.semesters} семестр`}</strong>
+          </p>
+          <ol className={styles.notes}>
+            {t.last.order.map((i) => (
+              <li key={i}>
+                {TOPO_NODES[i]} · {t.last!.semester[i]}-семестр
+              </li>
+            ))}
+          </ol>
         </div>
       )}
     </fieldset>

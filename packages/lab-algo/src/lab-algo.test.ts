@@ -104,6 +104,15 @@ const scripts: Record<string, Record<string, (d: D, s: () => AlgoLabState) => vo
       for (let i = 0; i < 9; i++) d({ type: "heap/pop" });
     },
   },
+  "algo-14-toposort": {
+    order: (d) => d({ type: "topo/run" }),
+    cycle: (d) => {
+      d({ type: "topo/cycle", on: true });
+      d({ type: "topo/run" });
+      d({ type: "topo/cycle", on: false });
+      d({ type: "topo/run" });
+    },
+  },
   "algo-13-unionfind": {
     chain: (d) => d({ type: "uf/run" }),
     flat: (d) => {

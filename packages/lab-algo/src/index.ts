@@ -6,3 +6,4 @@ export * from "./lessons";
 export * from "./pset";
 export * from "./ds";
 export * from "./uf";
+export * from "./topo";

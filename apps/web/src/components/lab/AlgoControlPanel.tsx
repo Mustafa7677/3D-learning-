@@ -15,9 +15,9 @@ import {
   type SortAlg,
 } from "@inside-tech/lab-algo";
 import styles from "./lab.module.css";
-import { DpSection, HashSection, HeapSection, UfSection } from "./AlgoDsSections";
+import { DpSection, HashSection, HeapSection, TopoSection, UfSection } from "./AlgoDsSections";
 
-export type AlgoSection = "sort" | "search" | "graph" | "bench" | "hash" | "heap" | "dp" | "uf";
+export type AlgoSection = "sort" | "search" | "graph" | "bench" | "hash" | "heap" | "dp" | "uf" | "topo";
 type D = (a: AlgoLabAction) => void;
 
 export const SORT_NAMES: Record<SortAlg, string> = {
@@ -390,6 +390,7 @@ export function AlgoControlPanel({ state, sections, dispatch, canUndo, onUndo }:
       {has("heap") && <HeapSection state={state} dispatch={dispatch} />}
       {has("dp") && <DpSection state={state} dispatch={dispatch} />}
       {has("uf") && <UfSection state={state} dispatch={dispatch} />}
+      {has("topo") && <TopoSection state={state} dispatch={dispatch} />}
       <label className={styles.slider}>
         <span>Ойнату жылдамдығы</span>
         <input type="range" min={1} max={60} step={1} value={Math.min(60, state.speed)} onChange={(e) => dispatch({ type: "speed/set", speed: Number(e.target.value) })} aria-label="Ойнату жылдамдығы (қадам/с)" />

@@ -146,6 +146,7 @@ const ALGO_SECTIONS: Record<string, AlgoSection[]> = {
   heap: ["heap"],
   dp: ["dp"],
   uf: ["uf"],
+  topo: ["topo"],
 };
 
 const KEYS: Record<string, "up" | "down" | "left" | "right"> = {

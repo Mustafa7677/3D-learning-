@@ -1,7 +1,7 @@
 "use client";
 
 import { Color } from "three";
-import { DP_ITEMS, buckets, dpCells, knapsackChoice, knapsackTable, type AlgoLabState } from "@inside-tech/lab-algo";
+import { CYCLE_EDGE, DP_ITEMS, TOPO_EDGES, TOPO_NODES, buckets, dpCells, knapsackChoice, knapsackTable, topoSort, type AlgoLabState } from "@inside-tech/lab-algo";
 import { Label } from "./Label";
 
 const GOLD = new Color("#c9a24a");
@@ -154,6 +154,54 @@ export function UfView({ state }: { state: AlgoLabState }) {
         </group>
       ))}
       <Label text={`биіктік ${last.height} · іздеу: ${last.firstPass}, сосын ${last.secondPass} секіріс`} position={[0, 0.9 + h * sy, 0]} size={0.5} />
+    </group>
+  );
+}
+
+export function TopoView({ state }: { state: AlgoLabState }) {
+  const cycle = state.topo?.cycle ?? false;
+  const r = state.topo?.last ?? topoSort(cycle ? [...TOPO_EDGES, CYCLE_EDGE] : TOPO_EDGES);
+  const shown = !!state.topo?.last;
+  const edges = cycle ? [...TOPO_EDGES, CYCLE_EDGE] : TOPO_EDGES;
+  const column = (i: number) => (r.semester[i]! > 0 ? r.semester[i]! : 0);
+  const byCol = new Map<number, number[]>();
+  TOPO_NODES.forEach((_, i) => byCol.set(column(i), [...(byCol.get(column(i)) ?? []), i]));
+  const pos = (i: number): [number, number, number] => {
+    const c = column(i);
+    const list = byCol.get(c)!;
+    const k = list.indexOf(i);
+    return [c === 0 ? 7 : -6 + (c - 1) * 3.6, 0.5, (k - (list.length - 1) / 2) * 2.2];
+  };
+  return (
+    <group>
+      {edges.map(([a, b], k) => {
+        const p = pos(a);
+        const q = pos(b);
+        const len = Math.hypot(q[0] - p[0], q[2] - p[2]);
+        const ang = Math.atan2(q[2] - p[2], q[0] - p[0]);
+        const bad = shown && (r.stuck.includes(a) && r.stuck.includes(b));
+        return (
+          <mesh key={k} position={[(p[0] + q[0]) / 2, 0.35, (p[2] + q[2]) / 2]} rotation={[0, -ang, 0]}>
+            <boxGeometry args={[len, 0.06, 0.06]} />
+            <meshStandardMaterial color={bad ? new Color("#c23b3b") : new Color("#c9a24a")} />
+          </mesh>
+        );
+      })}
+      {TOPO_NODES.map((name, i) => {
+        const stuck = shown && r.stuck.includes(i);
+        return (
+          <group key={name} position={pos(i)}>
+            <mesh>
+              <boxGeometry args={[2.4, 0.7, 1]} />
+              <meshStandardMaterial color={stuck ? new Color("#c23b3b") : new Color("#3d5bd9")} />
+            </mesh>
+            <Label text={name} position={[0, 0.8, 0]} size={0.58} />
+          </group>
+        );
+      })}
+      {shown &&
+        Array.from({ length: r.semesters }, (_, c) => <Label key={c} text={`${c + 1}-семестр`} position={[-6 + c * 3.6, 0.1, 4.2]} size={0.42} />)}
+      <Label text={shown ? (r.stuck.length ? "цикл: қызыл курстар бірін-бірі күтеді" : `${r.semesters} семестр`) : "Оқу жоспарын құр"} position={[0, 2.4, -3.2]} size={0.6} />
     </group>
   );
 }

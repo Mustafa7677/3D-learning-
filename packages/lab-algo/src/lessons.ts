@@ -1,4 +1,4 @@
-import { algoMiddleContent, lessonDp, lessonHash, lessonHeap, lessonUnionFind } from "./middle";
+import { algoMiddleContent, lessonDp, lessonHash, lessonHeap, lessonTopo, lessonUnionFind } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { algoContent } from "./content";
 import { algoDeepDives } from "./deep";
@@ -341,4 +341,5 @@ export const algoLessons: L[] = [
   lessonHeap,
   lessonDp,
   lessonUnionFind,
+  lessonTopo,
 ].map((l) => withDeepDives(withContent(l, algoContent[l.id] ?? algoMiddleContent[l.id] ?? {}), algoDeepDives[l.id] ?? {}));
