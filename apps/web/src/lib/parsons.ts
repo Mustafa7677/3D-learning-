@@ -1,0 +1,273 @@
+/**
+ * Парсонс есептері: the lines of a working program (or the steps of a
+ * process) are shuffled together with one or two plausible wrong lines. The
+ * learner builds the right order. Feedback names the first line that breaks
+ * the order; a hint places the next line for you (a fading scaffold), at a
+ * cost.
+ */
+
+export interface ParsonsPuzzle {
+  id: string;
+  labId: string;
+  title: string;
+  task: string;
+  /** "code" lines keep their indentation and are shown monospaced. */
+  kind: "code" | "steps";
+  /** The lines in one correct order. */
+  lines: string[];
+  /** Plausible lines that do not belong. */
+  distractors: { text: string; why: string }[];
+  /** Other correct orders, as indexes into `lines`. */
+  alt?: number[][];
+  explain: string;
+}
+
+export const PARSONS: ParsonsPuzzle[] = [
+  {
+    id: "sql-clauses",
+    labId: "db",
+    title: "SQL сөйлемдерінің реті",
+    task: "Екінші және одан жоғары курс студенттері ең көп тұратын үш қаланы тап: әр қалада кемінде үш студент болсын.",
+    kind: "code",
+    lines: ["SELECT city, COUNT(*) AS n", "FROM students", "WHERE year > 1", "GROUP BY city", "HAVING COUNT(*) >= 3", "ORDER BY n DESC", "LIMIT 3"],
+    distractors: [{ text: "WHERE COUNT(*) >= 3", why: "WHERE топтау алдында жеке жолдарды сүзеді, ол кезде COUNT әлі жоқ. Топтың шарты HAVING-те жазылады." }],
+    explain: "SQL жазылу реті: SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT. Орындалу реті басқа: FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT. Сондықтан ORDER BY-да SELECT-тегі n атауын қолдануға болады, ал WHERE-де болмайды.",
+  },
+  {
+    id: "page-load",
+    labId: "net",
+    title: "Бір беттің жүктелуі",
+    task: "Браузерге https://inside.kz/ деп жаздың. Желіде не болатынын ретімен қой.",
+    kind: "steps",
+    lines: [
+      "DNS: inside.kz қай IP адресте?",
+      "TCP: SYN",
+      "TCP: SYN-ACK",
+      "TCP: ACK, байланыс орнады",
+      "TLS: ClientHello",
+      "TLS: сертификат және кілт келісімі",
+      "HTTP: GET /",
+      "HTTP: 200 OK және HTML",
+    ],
+    distractors: [{ text: "TLS: сертификатты DNS сервер жібереді", why: "Сертификатты сайттың өз сервері TLS қол алысуында жібереді. DNS тек атауды IP-ге айналдырады." }],
+    explain: "Әр қабат өзінен төменгісіне сүйенеді: адресті білмей қосыла алмайсың (DNS), қосылмай шифрлай алмайсың (TCP, сосын TLS), шифрланған арнасыз HTTPS сұранысы жоқ.",
+  },
+  {
+    id: "binary-search",
+    labId: "algo",
+    title: "Екілік іздеу",
+    task: "Сұрыпталған a массивінен x-тің орнын тап, жоқ болса -1 қайтар.",
+    kind: "code",
+    lines: [
+      "function search(a, x) {",
+      "  let lo = 0, hi = a.length - 1;",
+      "  while (lo <= hi) {",
+      "    const mid = (lo + hi) >> 1;",
+      "    if (a[mid] === x) return mid;",
+      "    if (a[mid] < x) lo = mid + 1;",
+      "    else hi = mid - 1;",
+      "  }",
+      "  return -1;",
+      "}",
+    ],
+    distractors: [{ text: "    if (a[mid] < x) hi = mid - 1;", why: "a[mid] x-тен кіші болса, x оң жақта: lo-ны көтеру керек, hi-ді емес." }],
+    explain: "Әр қадамда іздеу аралығы екі есе тарылады: 1 000 000 элементте 20 қадам жеткілікті. lo <= hi шарты бір элементті аралықты да тексереді.",
+  },
+  {
+    id: "fetch-json",
+    labId: "web",
+    title: "fetch және JSON",
+    task: "Пайдаланушыны API-ден жүкте; сервер қате берсе, қатені лақтыр.",
+    kind: "code",
+    lines: [
+      "async function loadUser(id) {",
+      "  const res = await fetch(`/api/users/${id}`);",
+      "  if (!res.ok) throw new Error(`HTTP ${res.status}`);",
+      "  const user = await res.json();",
+      "  return user;",
+      "}",
+    ],
+    distractors: [{ text: "  const user = res.json();", why: "res.json() Promise қайтарады. await болмаса, user деректің өзі емес, күтіп тұрған уәде болады." }],
+    explain: "fetch 404 не 500 келгенде де сәтті аяқталады: желі жұмыс істеді. Сондықтан res.ok-ты өзің тексересің. Дене ағын түрінде келеді, оны оқу да асинхронды.",
+  },
+  {
+    id: "password",
+    labId: "sec",
+    title: "Құпиясөзді сақтау",
+    task: "Тіркелу және кіру кезінде құпиясөзбен не істеу керек? Ретімен қой.",
+    kind: "steps",
+    lines: [
+      "Тіркелу: әр пайдаланушыға жаңа кездейсоқ тұз (salt) жаса",
+      "Құпиясөз бен тұзды баяу хэш-функцияға бер (Argon2, bcrypt)",
+      "Дерекқорға тек хэш пен тұзды жаз",
+      "Кіру: сол пайдаланушының тұзын дерекқордан ал",
+      "Енгізілген құпиясөзді сол тұзбен қайта хэште",
+      "Хэштерді тұрақты уақытта салыстыр",
+    ],
+    distractors: [{ text: "Құпиясөзді AES-пен шифрлап, кілтін қасына сақта", why: "Шифр қайтымды: кілт пен база бірге ұрланса, барлық құпиясөз ашылады. Құпиясөзге қайтымсыз хэш керек." }],
+    explain: "Тұз бірдей құпиясөздердің хэшін әртүрлі етеді және дайын кестелерді (rainbow tables) пайдасыз қылады. Баяу хэш іріктеп табуды миллиондаған есе қымбаттатады.",
+  },
+  {
+    id: "dockerfile",
+    labId: "cloud",
+    title: "Кэшке ыңғайлы Dockerfile",
+    task: "Node.js қызметінің образын жина: код өзгерсе, тәуелділіктер қайта орнатылмасын.",
+    kind: "code",
+    lines: ["FROM node:20-alpine", "WORKDIR /app", "COPY package.json package-lock.json ./", "RUN npm ci", "COPY . .", 'CMD ["node", "server.js"]'],
+    distractors: [{ text: "COPY node_modules ./node_modules", why: "Компьютеріңдегі node_modules басқа ОЖ-ға жиналған болуы мүмкін және образды үлкейтеді. Тәуелділіктер образдың ішінде npm ci-мен орнатылады." }],
+    explain: "Әр нұсқау бір қабат, ал қабат өзгермесе, кэштен алынады. Алдымен тек package.json көшіріліп, npm ci орындалады: код қанша өзгерсе де, бұл баяу қабат қайта жиналмайды.",
+  },
+  {
+    id: "train-loop",
+    labId: "ai",
+    title: "Үйрету циклі",
+    task: "Модельді PyTorch-та бірнеше дәуір бойы үйрет.",
+    kind: "code",
+    lines: [
+      "for epoch in range(epochs):",
+      "    for x, y in batches:",
+      "        optimizer.zero_grad()",
+      "        pred = model(x)",
+      "        loss = loss_fn(pred, y)",
+      "        loss.backward()",
+      "        optimizer.step()",
+    ],
+    alt: [
+      [0, 1, 3, 2, 4, 5, 6],
+      [0, 1, 3, 4, 2, 5, 6],
+    ],
+    distractors: [{ text: "        model = Model()", why: "Модельді цикл ішінде қайта жасасаң, үйренген салмақтардың бәрі әр батчта жойылады." }],
+    explain: "Градиенттер PyTorch-та жинақталады, сондықтан backward-тан бұрын нөлдеу керек (ең болмаса бір рет, кез келген жерде backward-тан бұрын). Тура өту, қате, кері тарату, қадам: оқытудың бүкіл жүрегі осы бес жол.",
+  },
+  {
+    id: "cpu-cycle",
+    labId: "arch",
+    title: "Нұсқау циклі",
+    task: "Процессор бір нұсқауды қалай орындайды? Кезеңдерді ретімен қой.",
+    kind: "steps",
+    lines: [
+      "Fetch: PC көрсеткен адрестен нұсқауды жадтан ал",
+      "PC-ны келесі нұсқауға жылжыт",
+      "Decode: нұсқаудың түрі мен операндтарын анықта",
+      "Регистрлерден операндтарды оқы",
+      "Execute: ALU-да амалды орында",
+      "Write-back: нәтижені регистрге жаз",
+    ],
+    alt: [[0, 2, 3, 4, 5, 1]],
+    distractors: [{ text: "Нәтижені әр нұсқаудан кейін дискіге сақта", why: "Нәтиже регистрге жазылады: ол наносекундтар. Дискіге жазу миллиондаған есе баяу және оны процессор емес, бағдарлама сұрайды." }],
+    explain: "Бұл бес кезең конвейердің негізі: әр кезең бөлек блок болғандықтан, бір уақытта бес түрлі нұсқау әр кезеңде тұра алады.",
+  },
+  {
+    id: "game-loop",
+    labId: "game",
+    title: "Тұрақты қадамды ойын циклі",
+    task: "Физиканы әрқашан DT қадаммен жаңарт, ал суретті экран жиілігімен сал.",
+    kind: "code",
+    lines: [
+      "function frame(now) {",
+      "  acc += now - last;",
+      "  last = now;",
+      "  while (acc >= DT) {",
+      "    update(DT);",
+      "    acc -= DT;",
+      "  }",
+      "  render();",
+      "  requestAnimationFrame(frame);",
+      "}",
+    ],
+    alt: [
+      [0, 1, 2, 3, 5, 4, 6, 7, 8, 9],
+      [0, 1, 2, 3, 4, 5, 6, 8, 7, 9],
+      [0, 1, 2, 3, 5, 4, 6, 8, 7, 9],
+    ],
+    distractors: [{ text: "  update(now - last);", why: "Айнымалы қадам физиканы кадр жиілігіне тәуелді етеді: баяу компьютерде серіппе жарылып кетеді." }],
+    explain: "Уақыт жинақталады да, тұрақты DT бөліктерімен «жұмсалады». Сондықтан 30 FPS пен 144 FPS-те физика бірдей. last = now алдыңғы мәнді қолданғаннан кейін ғана жаңарады.",
+  },
+  {
+    id: "debounce",
+    labId: "iot",
+    title: "Батырманы сүзу",
+    task: "Arduino-да батырманың дірілін 20 мс сүзгімен елеме, әр басуды бір рет сана.",
+    kind: "code",
+    lines: [
+      "void loop() {",
+      "  int raw = digitalRead(BTN);",
+      "  if (raw != lastRaw) lastChange = millis();",
+      "  if (millis() - lastChange > 20 && raw != stable) {",
+      "    stable = raw;",
+      "    if (stable == LOW) presses++;",
+      "  }",
+      "  lastRaw = raw;",
+      "}",
+    ],
+    distractors: [{ text: "  delay(1000);", why: "delay бүкіл микроконтроллерді тоқтатады: бір секунд ішінде басқа батырма да, датчик те оқылмайды." }],
+    explain: "Сигнал 20 мс бойы өзгермей тұрғанда ғана «тұрақты» күй жаңарады. lastRaw ең соңында жаңарады, әйтпесе өзгерісті салыстыратын ештеңе қалмайды.",
+  },
+];
+
+const rng = (seed: number) => {
+  let s = seed >>> 0 || 1;
+  return () => {
+    s ^= s << 13;
+    s >>>= 0;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    s >>>= 0;
+    return s / 2 ** 32;
+  };
+};
+
+/** A tile is a line of the solution (index into `lines`) or a distractor (-1, -2, ...). */
+export type Tile = number;
+export const tileText = (p: ParsonsPuzzle, t: Tile) => (t >= 0 ? p.lines[t]! : p.distractors[-t - 1]!.text);
+
+/** All tiles, shuffled; never already in a correct order. */
+export function shuffled(p: ParsonsPuzzle, seed: number): Tile[] {
+  const tiles: Tile[] = [...p.lines.map((_, i) => i), ...p.distractors.map((_, i) => -i - 1)];
+  const r = rng(seed * 7919 + p.id.length);
+  for (let i = tiles.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [tiles[i], tiles[j]] = [tiles[j]!, tiles[i]!];
+  }
+  const sol = tiles.filter((t) => t >= 0);
+  if (orders(p).some((o) => o.every((x, i) => x === sol[i]))) tiles.push(tiles.shift()!);
+  return tiles;
+}
+
+export const orders = (p: ParsonsPuzzle): number[][] => [p.lines.map((_, i) => i), ...(p.alt ?? [])];
+
+export interface Verdict {
+  correct: boolean;
+  /** Lines in place from the top before the first mistake. */
+  prefix: number;
+  /** A distractor in the answer, if any. */
+  distractor: number | null;
+  missing: number;
+}
+
+export function check(p: ParsonsPuzzle, answer: Tile[]): Verdict {
+  const best = Math.max(
+    ...orders(p).map((o) => {
+      let k = 0;
+      while (k < answer.length && k < o.length && answer[k] === o[k]) k++;
+      return k;
+    }),
+  );
+  const d = answer.find((t) => t < 0);
+  const missing = p.lines.length - answer.filter((t) => t >= 0).length;
+  return { correct: best === p.lines.length && answer.length === p.lines.length, prefix: best, distractor: d === undefined ? null : -d - 1, missing };
+}
+
+/** Fading scaffold: the correct prefix stays, the next line of the closest order is placed after it. */
+export function hint(p: ParsonsPuzzle, answer: Tile[]): Tile[] {
+  const v = check(p, answer);
+  if (v.correct) return answer;
+  const order = orders(p).find((o) => o.slice(0, v.prefix).every((x, i) => x === answer[i])) ?? orders(p)[0]!;
+  const kept = answer.slice(0, v.prefix);
+  const next = order[v.prefix]!;
+  const rest = answer.slice(v.prefix).filter((t) => t !== next && t >= 0);
+  return [...kept, next, ...rest];
+}
+
+/** 3 points for a clean first check, minus a point per extra check and per hint, never below 1. */
+export const score = (checks: number, hints: number) => Math.max(1, 3 - Math.max(0, checks - 1) - hints);
