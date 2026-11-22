@@ -1,9 +1,10 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
 import { runStreams, type StreamRun, type Transport } from "./streams";
+import { PACKET_SIZES, runMtu, type MtuRun } from "./mtu";
 import { ageSwitch, lanSend, newLan, newTcp, resolve, tcpStep, zone, type CacheEntry, type DnsResult, type Lan, type Side, type Tcp, type TcpEvent, type TcpState } from "./middle-core";
 import { LINKS, cidr, congestion, natIn, natOut, newNat, packetize, sameSubnet, shortestPath, transfer, type Nat, type Protocol, type Variant } from "./core";
 
-export type NetMode = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat" | "dns" | "tcp" | "lan" | "streams";
+export type NetMode = "packets" | "ip" | "routing" | "transport" | "congestion" | "nat" | "dns" | "tcp" | "lan" | "streams" | "mtu";
 export const RTT = 10;
 export const PACKETS = 50;
 
@@ -27,6 +28,7 @@ export interface NetStats {
   tcpEstablished: number;
   lanRuns: { from: string; to: string; nextHop: string; arped: boolean; flooded: boolean[]; kinds: string[]; dstMac: string }[];
   lanAged: number;
+  mtuRuns?: { size: number; df: boolean; icmpBlocked: boolean; clamp: boolean; delivered: boolean; fragments: number; results: string[] }[];
   streamRuns?: { proto: Transport; loss: boolean; finish: Record<string, number | null>; maxDelay: number; lost: number }[];
 }
 
@@ -42,9 +44,19 @@ export interface NetLabState {
   tcp: Tcp;
   lan: Lan;
   streams?: { proto: Transport; loss: boolean; last: StreamRun | null };
+  mtu?: MtuSettings;
   speed: number;
   stats: NetStats;
 }
+
+export interface MtuSettings {
+  size: number;
+  df: boolean;
+  icmpBlocked: boolean;
+  clamp: boolean;
+  last: MtuRun | null;
+}
+export const defaultMtu = (): MtuSettings => ({ size: 1500, df: false, icmpBlocked: false, clamp: false, last: null });
 
 export type NetLabAction =
   | { type: "mode/set"; mode: NetMode }
@@ -73,7 +85,9 @@ export type NetLabAction =
   | { type: "lan/age" }
   | { type: "lan/reset" }
   | { type: "streams/set"; proto?: Transport; loss?: boolean }
-  | { type: "streams/run" };
+  | { type: "streams/run" }
+  | { type: "mtu/set"; size?: number; df?: boolean; icmpBlocked?: boolean; clamp?: boolean }
+  | { type: "mtu/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -263,6 +277,17 @@ function reduce(s: NetLabState, a: NetLabAction): NetLabState {
     }
     case "lan/reset":
       return { ...s, mode: "lan", lan: newLan() };
+    case "mtu/set": {
+      const cur = s.mtu ?? defaultMtu();
+      const size = a.size !== undefined && (PACKET_SIZES as readonly number[]).includes(a.size) ? a.size : cur.size;
+      return { ...s, mode: "mtu", mtu: { size, df: a.df ?? cur.df, icmpBlocked: a.icmpBlocked ?? cur.icmpBlocked, clamp: a.clamp ?? cur.clamp, last: null } };
+    }
+    case "mtu/run": {
+      const cur = s.mtu ?? defaultMtu();
+      const r = runMtu(cur.size, cur.df, cur.icmpBlocked, cur.clamp);
+      const run = { size: cur.size, df: cur.df, icmpBlocked: cur.icmpBlocked, clamp: cur.clamp, delivered: r.delivered, fragments: r.fragments, results: r.attempts.map((x) => x.result) };
+      return { ...s, mode: "mtu", mtu: { ...cur, last: r }, stats: { ...st, mtuRuns: cap([...(st.mtuRuns ?? []), run]) } };
+    }
   }
 }
 

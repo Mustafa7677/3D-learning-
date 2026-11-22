@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DNS_NAMES, LAN_HOSTS, pendingResend, type NetLabAction, type NetLabState, type Side, type Transport } from "@inside-tech/lab-net";
+import { DNS_NAMES, LAN_HOSTS, MTU_PATH, PACKET_SIZES, defaultMtu, pendingResend, type NetLabAction, type NetLabState, type Side, type Transport } from "@inside-tech/lab-net";
 import styles from "./lab.module.css";
 
 type D = (a: NetLabAction) => void;
@@ -255,6 +255,50 @@ export function StreamsSection({ state, dispatch }: { state: NetLabState; dispat
         <p className={styles.small}>
           Ең ұзақ кідіріс: {st.last.maxDelay} мс · жоғалды: {st.last.lost}
         </p>
+      )}
+    </fieldset>
+  );
+}
+
+const MTU_WORD = { delivered: "жетті", fragmented: "бөлшектенді", icmp: "ICMP қайтты", silent: "үнсіз жоғалды" } as const;
+
+export function MtuSection({ state, dispatch }: { state: NetLabState; dispatch: D }) {
+  const m = state.mtu ?? defaultMtu();
+  return (
+    <fieldset className={styles.group}>
+      <legend>Жол: роутер 1500 · VPN 1400 · сервер 1500</legend>
+      <div className={styles.row} role="group" aria-label="Пакет өлшемі">
+        {PACKET_SIZES.map((n) => (
+          <button key={n} type="button" className="btn" aria-pressed={m.size === n} onClick={() => dispatch({ type: "mtu/set", size: n })}>
+            {n} Б
+          </button>
+        ))}
+      </div>
+      <label className={styles.row}>
+        <input type="checkbox" checked={m.df} onChange={(e) => dispatch({ type: "mtu/set", df: e.target.checked })} /> DF: бөлшектеуге тыйым
+      </label>
+      <label className={styles.row}>
+        <input type="checkbox" checked={m.icmpBlocked} onChange={(e) => dispatch({ type: "mtu/set", icmpBlocked: e.target.checked })} /> Брандмауэр ICMP-ді бұғаттайды
+      </label>
+      <label className={styles.row}>
+        <input type="checkbox" checked={m.clamp} onChange={(e) => dispatch({ type: "mtu/set", clamp: e.target.checked })} /> MSS clamping (туннель шетінде)
+      </label>
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "mtu/run" })}>
+        Пакетті жіберу
+      </button>
+      {m.last && (
+        <div role="status" aria-label="Әрекеттер">
+          {m.last.attempts.map((a, i) => (
+            <p key={i} className={styles.small}>
+              {`${i + 1}. ${a.size} Б: ${MTU_WORD[a.result]}`}
+              {a.result === "fragmented" ? `, ${a.fragments} бөлік` : ""}
+              {a.result === "icmp" && a.hop !== null ? `, MTU ${MTU_PATH[a.hop]!.mtu}` : ""}
+            </p>
+          ))}
+          <p className={styles.small}>
+            <strong>{m.last.delivered ? `Нәтиже: жетті, ${m.last.ms} мс` : `Нәтиже: жетпеді, ${m.last.ms} мс күтті`}</strong>
+          </p>
+        </div>
       )}
     </fieldset>
   );

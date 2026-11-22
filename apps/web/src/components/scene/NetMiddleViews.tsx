@@ -1,7 +1,7 @@
 "use client";
 
 import { Color, Quaternion, Vector3 } from "three";
-import { LAN_HOSTS, TCP_STATES, type DnsServer, type NetLabState, type Side } from "@inside-tech/lab-net";
+import { LAN_HOSTS, MTU_PATH, TCP_STATES, type DnsServer, type NetLabState, type Side } from "@inside-tech/lab-net";
 import { Label } from "./Label";
 import { C0, C1 } from "./palette";
 
@@ -210,6 +210,52 @@ export function StreamsView({ state }: { state: NetLabState }) {
         )}
       <Label text={last ? `${state.streams!.proto.toUpperCase()} · ең ұзақ кідіріс ${last.maxDelay} мс` : "Бетті жүкте"} position={[0, 1.6, -2.2]} size={0.55} />
       <Label text="жолақ: пакет жіберілгеннен қолданбаға жеткенге дейін · қызыл: күтті · алтын: ағын бітті" position={[0, 1.1, -2.2]} size={0.45} />
+    </group>
+  );
+}
+
+const RESULT_WORD = { delivered: "жетті", fragmented: "бөлшектенді", icmp: "ICMP: тым үлкен", silent: "үнсіз жоғалды" } as const;
+
+export function MtuView({ state }: { state: NetLabState }) {
+  const m = state.mtu;
+  const last = m?.last;
+  const hx = (i: number) => -4.5 + i * 4.5;
+  return (
+    <group>
+      {MTU_PATH.map((h, i) => (
+        <group key={h.name} position={[hx(i), 0, 0]}>
+          <mesh position={[0, 0.1, 0]}>
+            <boxGeometry args={[3.6, 0.2, h.mtu < 1500 ? 1.5 : 2.4]} />
+            <meshStandardMaterial color={h.mtu < 1500 ? C1 : OFF} metalness={0.2} roughness={0.6} />
+          </mesh>
+          <Label text={h.name} position={[0, 0.35, 1.9]} size={0.5} />
+          <Label text={`MTU ${h.mtu}`} position={[0, -0.25, 1.9]} size={0.45} />
+        </group>
+      ))}
+      {last?.attempts.map((a, row) => {
+        const z = row * 0.75 - 0.6;
+        const stop = a.hop === null ? 2 : a.result === "fragmented" ? 2 : a.hop;
+        const color = a.result === "delivered" ? C0 : a.result === "fragmented" ? GOLD : a.result === "icmp" ? BAD : OFF;
+        const len = (a.size / 1500) * 1.1;
+        const pieces = a.result === "fragmented" ? a.fragments : 1;
+        return (
+          <group key={row}>
+            {Array.from({ length: pieces }, (_, k) => (
+              <mesh key={k} position={[hx(stop) - 0.5 + k * 0.7, 0.45, z]}>
+                <boxGeometry args={[pieces > 1 ? (k === 0 ? 0.9 : 0.25) : len, 0.35, 0.4]} />
+                <meshStandardMaterial color={color} transparent={a.result === "silent"} opacity={a.result === "silent" ? 0.35 : 1} />
+              </mesh>
+            ))}
+            <Label text={`${row + 1}. ${a.size} Б · ${RESULT_WORD[a.result]}${a.result === "fragmented" ? ` (${a.fragments})` : ""}`} position={[hx(stop), 1 + row * 0.55, z]} size={0.4} />
+          </group>
+        );
+      })}
+      <Label
+        text={last ? (last.delivered ? `Жетті · ${last.ms} мс` : `Ештеңе жетпеді · ${last.ms} мс күтті`) : "Пакетті жібер"}
+        position={[0, 3.4, -1.6]}
+        size={0.65}
+      />
+      {m && <Label text={`DF ${m.df ? "қосулы" : "өшік"} · ICMP ${m.icmpBlocked ? "бұғатталған" : "өтеді"} · MSS clamping ${m.clamp ? "қосулы" : "жоқ"}`} position={[0, 2.75, -1.6]} size={0.45} />}
     </group>
   );
 }

@@ -153,6 +153,18 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "tcp/event", event: { kind: "timer", side: "client" } });
     },
   },
+  "net-14-mtu": {
+    fragment: (d) => {
+      d({ type: "mtu/run" });
+      d({ type: "mtu/set", df: true });
+      d({ type: "mtu/run" });
+    },
+    blackhole: (d) => {
+      d({ type: "mtu/run" });
+      d({ type: "mtu/set", clamp: true });
+      d({ type: "mtu/run" });
+    },
+  },
   "net-13-quic": {
     hol: (d) => {
       d({ type: "streams/run" });

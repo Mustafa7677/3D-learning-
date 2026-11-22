@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextStep } from "./helpers";
 
 const objective = (page: Page, text: string | RegExp) => page.locator("li[data-done]", { hasText: text });
 
@@ -11,8 +12,8 @@ test.beforeEach(async ({ page }) => {
 test("networks lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/net");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Computer Networks");
-  await expect(page.locator("ol li")).toHaveCount(13);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
+  await expect(page.locator("ol li")).toHaveCount(14);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(5);
 });
 
 test("Middle 10: DNS goes root, TLD, zone; then the cache answers in 10 ms", async ({ page }) => {
@@ -90,4 +91,25 @@ test("Middle 13: one lost packet holds all TCP streams; QUIC holds only its own"
   await page.getByRole("button", { name: "Бетті жүктеу" }).click();
   await expect(r).toContainText("бет (A)65 мс");
   await expect(objective(page, "тек жоғалған пакеттің ағыны")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 14: fragments, PMTU discovery, a black hole and MSS clamping", async ({ page }) => {
+  await page.goto("/labs/net/net-14-mtu");
+  const send = page.getByRole("button", { name: "Пакетті жіберу" });
+  const r = page.getByRole("status", { name: "Әрекеттер" });
+  await send.click();
+  await expect(r).toContainText("1500 Б: бөлшектенді, 2 бөлік");
+  await page.getByLabel("DF: бөлшектеуге тыйым").click();
+  await send.click();
+  await expect(r).toContainText("1500 Б: ICMP қайтты, MTU 1400");
+  await expect(r).toContainText("1400 Б: жетті");
+  await expect(objective(page, "жіберуші пакетті кішірейтіп")).toHaveAttribute("data-done", "true");
+  await nextStep(page);
+  await expect(page.getByLabel("Брандмауэр ICMP-ді бұғаттайды")).toBeChecked();
+  await send.click();
+  await expect(r).toContainText("Нәтиже: жетпеді, 3000 мс күтті");
+  await page.getByLabel("MSS clamping (туннель шетінде)").click();
+  await send.click();
+  await expect(r).toContainText("Нәтиже: жетті, 40 мс");
+  await expect(objective(page, "MSS clamping қос")).toHaveAttribute("data-done", "true");
 });

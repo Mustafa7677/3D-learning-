@@ -1,4 +1,4 @@
-import { lessonDns, lessonStreams, lessonSwitch, lessonTcpStates, netMiddleContent } from "./middle";
+import { lessonDns, lessonMtu, lessonStreams, lessonSwitch, lessonTcpStates, netMiddleContent } from "./middle";
 import { withContent, withDeepDives, type LessonDefinition } from "@inside-tech/lesson-engine";
 import { netContent } from "./content";
 import { convergenceRounds } from "./core";
@@ -250,4 +250,5 @@ export const netLessons: L[] = [
   lessonTcpStates,
   lessonSwitch,
   lessonStreams,
+  lessonMtu,
 ].map((l) => withDeepDives(withContent(l, netContent[l.id] ?? netMiddleContent[l.id] ?? {}), netDeepDives[l.id] ?? {}));
