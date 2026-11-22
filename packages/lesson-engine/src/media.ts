@@ -8,7 +8,7 @@
  * None of them is graded; they prepare the experiment and the quiz.
  */
 
-export type Character = "nuray" | "sayat" | "ustaz" | "narrator";
+export type Character = "nuray" | "mustafa" | "ustaz" | "narrator";
 export type Mood = "think" | "wow" | "confused" | "smile" | "explain";
 
 export interface ComicPanel {
@@ -47,7 +47,7 @@ export interface ErrorHunt {
   fix: string;
 }
 
-export const CHARACTER_NAME: Record<Character, string> = { nuray: "Нұрай", sayat: "Саят", ustaz: "Ұстаз", narrator: "" };
+export const CHARACTER_NAME: Record<Character, string> = { nuray: "Нұрай", mustafa: "Мустафа", ustaz: "Ұстаз", narrator: "" };
 
 /**
  * A solution film: the solving of one problem played like a video. Each

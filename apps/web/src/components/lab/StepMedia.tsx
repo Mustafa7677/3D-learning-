@@ -6,7 +6,7 @@ import styles from "./media.module.css";
 
 // ---------------- characters ----------------
 
-const SKIN: Record<Character, string> = { nuray: "#f1c7a1", sayat: "#d9a77c", ustaz: "#eac09a", narrator: "#ccc" };
+const SKIN: Record<Character, string> = { nuray: "#f1c7a1", mustafa: "#d9a77c", ustaz: "#eac09a", narrator: "#ccc" };
 
 function Mouth({ mood }: { mood: Mood }) {
   if (mood === "wow") return <ellipse cx="30" cy="42" rx="3.4" ry="4.2" fill="#5a1f1a" />;
@@ -34,7 +34,7 @@ export function Face({ who, mood = "smile" }: { who: Character; mood?: Mood }) {
           <path d="M13 22 Q30 12 47 22" stroke="#c0392b" strokeWidth="2.6" fill="none" />
         </>
       )}
-      {who === "sayat" && (
+      {who === "mustafa" && (
         <>
           <path d="M14 27 Q16 12 30 12 Q44 12 46 27 Q40 19 30 19 Q20 19 14 27 Z" fill="#1d1b26" />
           <path d="M12 24 Q30 6 48 24 L52 26 L30 22 Z" fill="#2f5bea" />
@@ -73,7 +73,7 @@ export function ComicStrip({ comic }: { comic: Comic }) {
       </p>
       <ol className={styles.panels}>
         {comic.panels.map((p, i) => (
-          <li key={i} className={styles.panel} data-who={p.who} data-side={p.who === "sayat" ? "right" : "left"}>
+          <li key={i} className={styles.panel} data-who={p.who} data-side={p.who === "mustafa" ? "right" : "left"}>
             {p.who === "narrator" ? (
               <p className={styles.caption}>{p.say}</p>
             ) : (
@@ -169,7 +169,7 @@ export function ErrorHuntBoard({ h }: { h: ErrorHunt }) {
     <section className={styles.hunt} aria-label="Қатені тап">
       <p className={styles.workedKicker}>ҚАТЕНІ ТАП</p>
       <p className={styles.problem}>{h.problem}</p>
-      <p className={styles.huntHint}>Саят есепті шығарды, бірақ бір жолда қателесті. Сол жолды бас.</p>
+      <p className={styles.huntHint}>Мустафа есепті шығарды, бірақ бір жолда қателесті. Сол жолды бас.</p>
       <ol className={styles.huntLines}>
         {h.lines.map((l, i) => (
           <li key={i}>

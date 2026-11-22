@@ -252,7 +252,7 @@ export const algoMiddleContent: Record<string, Record<string, StepContent>> = {
             say: "Ай бойы күнделікті шығынды ойла. Күніне аз жұмсайсың, бірақ айына бір рет пәтерақы төлейсің.",
           },
           {
-            who: "sayat",
+            who: "mustafa",
             mood: "think",
             say: "Пәтерақы күні қалтам бос. Бірақ айдың орташасы қалыпты.",
           },

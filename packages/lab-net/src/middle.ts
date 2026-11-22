@@ -467,7 +467,7 @@ PMTUD бір шартқа сүйенеді: ICMP «Fragmentation needed» хаб
         title: "Кітапханашылар тізбегі",
         panels: [
           {
-            who: "sayat",
+            who: "mustafa",
             mood: "confused",
             say: "Мен браузерге api.inside.kz деп жаздым. Компьютер оның адресін қайдан біледі?",
           },
@@ -488,7 +488,7 @@ PMTUD бір шартқа сүйенеді: ICMP «Fragmentation needed» хаб
             board: "түбір → .kz → inside.kz → 93.184.10.2",
           },
           {
-            who: "sayat",
+            who: "mustafa",
             mood: "wow",
             say: "Ал келесі жолы біреу дәл осыны сұраса, ол бәрін қайта жүре ме?",
           },

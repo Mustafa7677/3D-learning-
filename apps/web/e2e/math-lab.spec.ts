@@ -148,10 +148,10 @@ test("a solution film plays the Gaussian solution frame by frame along Pólya's 
   await expect(page.getByRole("region", { name: /Шешім фильмі/ }).getByRole("button", { name: /Көру/ })).toBeVisible();
 });
 
-test("the comic characters are Нұрай and Саят", async ({ page }) => {
+test("the comic characters are Нұрай and Мустафа", async ({ page }) => {
   await page.goto("/labs/math/la-5-inverse");
   const comic = page.getByRole("region", { name: "Комикс: Шифр және кілт" });
-  await expect(comic).toContainText("Нұрай Саятқа құпия хат жібермек");
-  await expect(comic).toContainText("Саят");
+  await expect(comic).toContainText("Нұрай Мустафаға құпия хат жібермек");
+  await expect(comic).toContainText("Мустафа");
   await expect(comic).not.toContainText("Әлия");
 });
