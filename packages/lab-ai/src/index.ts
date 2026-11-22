@@ -14,3 +14,4 @@ export * from "./pset";
 export * from "./middle/core";
 export * from "./middle/plugin";
 export * from "./middle/lessons";
+export * from "./middle/drift";

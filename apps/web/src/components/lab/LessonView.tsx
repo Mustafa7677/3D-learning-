@@ -517,7 +517,7 @@ function DbLesson({ labId, lesson, nextLessonId, persist }: LessonProps<DbLabSta
   );
 }
 
-const OPTIM_FOCI: OptimFocus[] = ["optim", "metrics", "conv"];
+const OPTIM_FOCI: OptimFocus[] = ["optim", "metrics", "conv", "drift"];
 
 function OptimLesson({ labId, lesson, nextLessonId, persist }: LessonProps<OptimLabState, OptimLabAction>) {
   const session = useLabSession(lesson, "optim", { persist });

@@ -49,6 +49,17 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "metrics/evaluate" });
     },
   },
+  "ai-13-drift": {
+    decay: (d) => {
+      d({ type: "drift/evaluate" });
+      d({ type: "drift/week", week: 8 });
+      d({ type: "drift/evaluate" });
+    },
+    retrain: (d) => {
+      d({ type: "drift/retrain" });
+      d({ type: "drift/evaluate" });
+    },
+  },
   "ai-12-convolution": {
     kernels: (d) => {
       d({ type: "conv/preset", preset: "blur" });

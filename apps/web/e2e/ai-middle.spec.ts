@@ -42,3 +42,14 @@ test("Middle 12: a hand-built Prewitt kernel finds horizontal edges only", async
   await expect(test1).toContainText("Тік шекара4");
   await expect(objective(page, "тік шекаралар жанады")).toHaveAttribute("data-done", "true");
 });
+
+test("Middle 13: the week-0 model falls to 81% by week 8; retraining restores it", async ({ page }) => {
+  await page.goto("/labs/ai/ai-13-drift");
+  const r = page.getByRole("status", { name: "Апта нәтижесі" });
+  await page.getByRole("button", { name: "Осы аптада бағалау" }).click();
+  await expect(r).toContainText("99.5%");
+  await page.getByRole("button", { name: "8-апта" }).click();
+  await page.getByRole("button", { name: "Осы аптада бағалау" }).click();
+  await expect(r).toContainText("81.0%");
+  await expect(r).toContainText("37");
+});

@@ -4,7 +4,7 @@ import { LRS, OPT_STEPS, type KernelPreset, type Optimizer, type OptimLabAction,
 import styles from "./lab.module.css";
 
 type D = (a: OptimLabAction) => void;
-export type OptimFocus = "optim" | "metrics" | "conv";
+export type OptimFocus = "optim" | "metrics" | "conv" | "drift";
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 function OptimSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
@@ -151,12 +151,54 @@ function ConvSection({ state, dispatch }: { state: OptimLabState; dispatch: D })
   );
 }
 
+function DriftSection({ state, dispatch }: { state: OptimLabState; dispatch: D }) {
+  const d = state.drift ?? { week: 0, threshold: 93, trainedWeek: 0 };
+  const last = state.stats.driftRuns?.at(-1);
+  return (
+    <fieldset className={styles.group}>
+      <legend>Алаяқтық модельі · шек {d.threshold} мың ₸ ({d.trainedWeek}-аптада үйретілген)</legend>
+      <div className={styles.row} role="group" aria-label="Апта">
+        {[0, 4, 8, 12].map((w) => (
+          <button key={w} type="button" className="btn" aria-pressed={d.week === w} onClick={() => dispatch({ type: "drift/week", week: w })}>
+            {w}-апта
+          </button>
+        ))}
+      </div>
+      <div className={styles.row}>
+        <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "drift/evaluate" })}>
+          Осы аптада бағалау
+        </button>
+        <button type="button" className="btn" onClick={() => dispatch({ type: "drift/retrain" })}>
+          Осы аптаның деректерімен қайта үйрету
+        </button>
+      </div>
+      {last && (
+        <div className={styles.metrics} role="status" aria-label="Апта нәтижесі">
+          <div>
+            <span>Дәлдік</span>
+            <strong>{(last.accuracy * 100).toFixed(1)}%</strong>
+          </div>
+          <div>
+            <span>Жалған дабыл</span>
+            <strong>{last.falseAlarms}</strong>
+          </div>
+          <div>
+            <span>Ығысу</span>
+            <strong>{last.drift.toFixed(2)}</strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
 export function OptimControlPanel({ state, focus, dispatch, canUndo, onUndo }: { state: OptimLabState; focus: OptimFocus; dispatch: D; canUndo: boolean; onUndo(): void }) {
   return (
     <aside className={styles.controls} aria-label="Басқару панелі">
       {focus === "optim" && <OptimSection state={state} dispatch={dispatch} />}
       {focus === "metrics" && <MetricsSection state={state} dispatch={dispatch} />}
       {focus === "conv" && <ConvSection state={state} dispatch={dispatch} />}
+      {focus === "drift" && <DriftSection state={state} dispatch={dispatch} />}
       <div className={styles.row}>
         <button type="button" className="btn" disabled={!canUndo} onClick={onUndo}>
           Соңғы әрекетті болдырмау

@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 
 test("lab page lists eight AI lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/ai");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
   await expect(page.getByRole("heading", { name: "Transformers" })).toBeVisible();
 });
 

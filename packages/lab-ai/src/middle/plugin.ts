@@ -1,12 +1,14 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { accuracy, driftScore, falseAlarms, train, weekData } from "./drift";
 import { KERNELS, confusion, convolve, edgeResponse, optimize, patients, squareImage, type Confusion, type KernelPreset, type OptRun, type Optimizer } from "./core";
 
-export type OptimMode = "optim" | "metrics" | "conv";
+export type OptimMode = "optim" | "metrics" | "conv" | "drift";
 
 export interface OptimStats {
   optimRuns: { opt: Optimizer; lr: number; steps: number | null; diverged: boolean }[];
   metricRuns: { trivial: boolean; threshold: number; accuracy: number; precision: number; recall: number }[];
   convRuns: { preset: KernelPreset | null; vertical: number; horizontal: number; flat: number }[];
+  driftRuns?: { week: number; threshold: number; trainedWeek: number; accuracy: number; falseAlarms: number; drift: number }[];
 }
 
 export interface OptimLabState {
@@ -14,6 +16,7 @@ export interface OptimLabState {
   optim: { opt: Optimizer; lr: number; last: OptRun | null };
   metrics: { trivial: boolean; threshold: number; last: Confusion | null };
   conv: { kernel: number[]; preset: KernelPreset | null; output: number[] | null };
+  drift?: { week: number; threshold: number; trainedWeek: number };
   stats: OptimStats;
 }
 
@@ -25,7 +28,10 @@ export type OptimLabAction =
   | { type: "metrics/evaluate" }
   | { type: "conv/preset"; preset: KernelPreset }
   | { type: "conv/cell"; index: number; value: number }
-  | { type: "conv/apply" };
+  | { type: "conv/apply" }
+  | { type: "drift/week"; week: number }
+  | { type: "drift/evaluate" }
+  | { type: "drift/retrain" };
 
 export const LRS = [0.05, 0.1, 0.3, 0.45, 0.55];
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -37,7 +43,8 @@ export function initialOptimState(): OptimLabState {
     optim: { opt: "sgd", lr: 0.1, last: null },
     metrics: { trivial: true, threshold: 0.5, last: null },
     conv: { kernel: [...KERNELS.identity], preset: "identity", output: null },
-    stats: { optimRuns: [], metricRuns: [], convRuns: [] },
+    drift: { week: 0, threshold: train(weekData(0)), trainedWeek: 0 },
+    stats: { optimRuns: [], metricRuns: [], convRuns: [], driftRuns: [] },
   };
 }
 
@@ -67,6 +74,20 @@ function reduce(s: OptimLabState, a: OptimLabAction): OptimLabState {
       const kernel = [...s.conv.kernel];
       kernel[i] = Math.round(clamp(a.value, -4, 4));
       return { ...s, mode: "conv", conv: { kernel, preset: null, output: null } };
+    }
+    case "drift/week": {
+      const d = s.drift ?? { week: 0, threshold: train(weekData(0)), trainedWeek: 0 };
+      return [0, 4, 8, 12].includes(a.week) ? { ...s, mode: "drift", drift: { ...d, week: a.week } } : s;
+    }
+    case "drift/retrain": {
+      const d = s.drift ?? { week: 0, threshold: train(weekData(0)), trainedWeek: 0 };
+      return { ...s, mode: "drift", drift: { ...d, threshold: train(weekData(d.week)), trainedWeek: d.week } };
+    }
+    case "drift/evaluate": {
+      const d = s.drift ?? { week: 0, threshold: train(weekData(0)), trainedWeek: 0 };
+      const data = weekData(d.week);
+      const run = { week: d.week, threshold: d.threshold, trainedWeek: d.trainedWeek, accuracy: accuracy(data, d.threshold), falseAlarms: falseAlarms(data, d.threshold), drift: Math.round(driftScore(weekData(d.trainedWeek), data) * 100) / 100 };
+      return { ...s, mode: "drift", stats: { ...st, driftRuns: cap([...(st.driftRuns ?? []), run]) } };
     }
     case "conv/apply": {
       const out = convolve(squareImage(), s.conv.kernel);

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from "three";
-import { IMG_N, loss, patients, squareImage, type OptimLabState } from "@inside-tech/lab-ai";
+import { IMG_N, loss, patients, squareImage, weekData, type OptimLabState } from "@inside-tech/lab-ai";
 import type { OptimFocus } from "../lab/OptimControlPanel";
 import { FitCamera } from "./FitCamera";
 import { Label } from "./Label";
@@ -140,11 +140,50 @@ function ConvView({ state }: { state: OptimLabState }) {
   );
 }
 
+function DriftView({ state }: { state: OptimLabState }) {
+  const d = state.drift ?? { week: 0, threshold: 93, trainedWeek: 0 };
+  const data = useMemo(() => weekData(d.week), [d.week]);
+  const bin = 10;
+  const xOf = (amount: number) => -7 + (amount / 220) * 14;
+  const bins = new Map<string, number>();
+  for (const t of data) {
+    const b = Math.max(0, Math.floor(t.amount / bin));
+    const k = `${t.fraud ? "f" : "l"}${b}`;
+    bins.set(k, (bins.get(k) ?? 0) + 1);
+  }
+  return (
+    <group>
+      {[...bins.entries()].map(([k, n]) => {
+        const fraud = k.startsWith("f");
+        const b = Number(k.slice(1));
+        const h = n * 0.075;
+        const flagged = (b + 0.5) * bin >= d.threshold;
+        return (
+          <mesh key={k} position={[xOf((b + 0.5) * bin), h / 2, fraud ? 0.6 : -0.3]}>
+            <boxGeometry args={[(bin / 220) * 14 * 0.9, h, 0.7]} />
+            <meshStandardMaterial color={fraud ? BAD : flagged ? C1 : C0} />
+          </mesh>
+        );
+      })}
+      <mesh position={[xOf(d.threshold), 1.4, 0.15]}>
+        <boxGeometry args={[0.06, 2.8, 2.2]} />
+        <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.5} transparent opacity={0.7} />
+      </mesh>
+      <Label text={`шек ${d.threshold}: оң жағы «күдікті»`} position={[xOf(d.threshold) + 2.2, 3.4, 0]} size={0.45} />
+      <Label text={`${d.week}-апта · көк: қалыпты · қызыл: алаяқтық · алтын: жалған дабыл`} position={[0, 4.2, 0]} size={0.45} />
+      {[0, 50, 100, 150, 200].map((a) => (
+        <Label key={a} text={`${a}`} position={[xOf(a), -0.3, 1.4]} size={0.35} />
+      ))}
+    </group>
+  );
+}
+
 function Contents({ state, focus }: { state: OptimLabState; focus: OptimFocus }) {
   const frames: Record<OptimFocus, { w: number; h: number; t: [number, number, number]; d: [number, number, number] }> = {
     optim: { w: 14, h: 8, t: [0, 1.4, 0], d: [0.35, 0.9, 1] },
     metrics: { w: 15, h: 5, t: [0, 0.8, 0], d: [0, 0.9, 1] },
     conv: { w: 14, h: 6, t: [0, 0.6, 0], d: [0, 1.3, 1] },
+    drift: { w: 15, h: 5.5, t: [0, 1.8, 0], d: [0, 0.45, 1] },
   };
   const f = frames[focus];
   return (
@@ -156,6 +195,7 @@ function Contents({ state, focus }: { state: OptimLabState; focus: OptimFocus })
       {focus === "optim" && <OptimView state={state} />}
       {focus === "metrics" && <MetricsView state={state} />}
       {focus === "conv" && <ConvView state={state} />}
+      {focus === "drift" && <DriftView state={state} />}
       <FitCamera width={f.w} height={f.h} target={f.t} dir={f.d} />
       <OrbitControls makeDefault enableDamping minDistance={3} maxDistance={40} maxPolarAngle={Math.PI / 2.05} />
     </>
