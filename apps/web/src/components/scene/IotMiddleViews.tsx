@@ -134,3 +134,39 @@ export function RtosView({ state }: { state: IotLabState }) {
     </group>
   );
 }
+
+export function FusionView({ state }: { state: IotLabState }) {
+  const last = state.fusion?.last;
+  const step = 8;
+  const n = last ? Math.floor(last.truth.length / step) : 0;
+  const w = 15 / Math.max(1, n);
+  const k = 0.1;
+  return (
+    <group>
+      {Array.from({ length: n }, (_, j) => {
+        const i = j * step;
+        const t = last!.truth[i]!;
+        const e = last!.estimate[i]!;
+        return (
+          <group key={j} position={[-7.5 + j * w + w / 2, 0, 0]}>
+            <mesh position={[0, 1 + t * k, -0.2]}>
+              <boxGeometry args={[w * 0.95, 0.1, 0.2]} />
+              <meshStandardMaterial color={C1} emissive={C1} emissiveIntensity={0.4} />
+            </mesh>
+            <mesh position={[0, 1 + e * k, 0.2]}>
+              <boxGeometry args={[w * 0.95, 0.1, 0.2]} />
+              <meshStandardMaterial color={Math.abs(e - t) > 3 ? BAD : C0} />
+            </mesh>
+          </group>
+        );
+      })}
+      <mesh position={[0, 1, -0.5]}>
+        <boxGeometry args={[15.2, 0.02, 0.02]} />
+        <meshStandardMaterial color={OFF} />
+      </mesh>
+      <Label text="0°" position={[-8, 1, 0]} size={0.4} />
+      <Label text="30°" position={[-8, 1 + 30 * k, 0]} size={0.4} />
+      <Label text={last ? `алтын: шын бұрыш · көк: бағалау · қате ${last.rms}°` : "Роботты еңкейт"} position={[0, 4.2, 0]} size={0.55} />
+    </group>
+  );
+}

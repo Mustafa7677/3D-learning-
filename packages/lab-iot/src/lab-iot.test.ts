@@ -140,6 +140,18 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       d({ type: "bus/send", bus: "spi" });
     },
   },
+  "iot-13-fusion": {
+    sensors: (d) => {
+      d({ type: "fusion/run" });
+      d({ type: "fusion/set", mode: "accel" });
+      d({ type: "fusion/run" });
+    },
+    fuse: (d) => {
+      d({ type: "fusion/run" });
+      d({ type: "fusion/set", alpha: 0.98 });
+      d({ type: "fusion/run" });
+    },
+  },
   "iot-12-rtos": {
     superloop: (d) => d({ type: "rtos/run" }),
     priority: (d) => {

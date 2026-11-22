@@ -1,6 +1,6 @@
 "use client";
 
-import { PWM_FREQS, SUPPLY_V, type IotLabAction, type IotLabState } from "@inside-tech/lab-iot";
+import { PWM_FREQS, SUPPLY_V, type FusionMode, type IotLabAction, type IotLabState } from "@inside-tech/lab-iot";
 import styles from "./lab.module.css";
 
 type D = (a: IotLabAction) => void;
@@ -158,6 +158,52 @@ export function RtosSection({ state, dispatch }: { state: IotLabState; dispatch:
             <strong>
               {r.last.misses.sensor} / {r.last.misses.logger}
             </strong>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+const FUSION_MODES: [FusionMode, string][] = [
+  ["gyro", "Тек гироскоп"],
+  ["accel", "Тек акселерометр"],
+  ["complementary", "Комплементарлы сүзгі"],
+];
+
+export function FusionSection({ state, dispatch }: { state: IotLabState; dispatch: D }) {
+  const f = state.fusion ?? { mode: "gyro" as FusionMode, alpha: 0.98, last: null };
+  return (
+    <fieldset className={styles.group}>
+      <legend>Еңкею бұрышы · 20 с, 50 Гц</legend>
+      <div className={styles.row} role="group" aria-label="Бағалау тәсілі">
+        {FUSION_MODES.map(([m, label]) => (
+          <button key={m} type="button" className="btn" aria-pressed={f.mode === m} onClick={() => dispatch({ type: "fusion/set", mode: m })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {f.mode === "complementary" && (
+        <div className={styles.row} role="group" aria-label="α">
+          {[0.5, 0.9, 0.98, 0.999].map((a) => (
+            <button key={a} type="button" className="btn" aria-pressed={f.alpha === a} onClick={() => dispatch({ type: "fusion/set", alpha: a })}>
+              α = {a}
+            </button>
+          ))}
+        </div>
+      )}
+      <button type="button" className="btn btn-primary" onClick={() => dispatch({ type: "fusion/run" })}>
+        Роботты еңкейту
+      </button>
+      {f.last && (
+        <div className={styles.metrics} role="status" aria-label="Бұрыш қатесі">
+          <div>
+            <span>Орташа қате (RMS)</span>
+            <strong>{f.last.rms}°</strong>
+          </div>
+          <div>
+            <span>Соңындағы қате</span>
+            <strong>{f.last.finalError}°</strong>
           </div>
         </div>
       )}

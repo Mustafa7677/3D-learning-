@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
 test("robotics lab page lists eight lessons and the problem set", async ({ page }) => {
   await page.goto("/labs/iot");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Robotics & IoT");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
 });
 
 test("lesson 1: an 8-bit ADC reads 23.20 °C", async ({ page }) => {
@@ -76,4 +76,15 @@ test("Middle 12: the superloop misses 4 control deadlines; priorities miss none"
   await page.getByRole("button", { name: "RTOS басымдықтары" }).click();
   await page.getByRole("button", { name: "Жоспарлауды іске қосу" }).click();
   await expect(r).toContainText("Басқару өткізді0");
+});
+
+test("Middle 13: the gyro drifts 10°, the complementary filter keeps the error under half a degree", async ({ page }) => {
+  await page.goto("/labs/iot/iot-13-fusion");
+  const r = page.getByRole("status", { name: "Бұрыш қатесі" });
+  await page.getByRole("button", { name: "Роботты еңкейту" }).click();
+  await expect(r).toContainText("Соңындағы қате10°");
+  await page.getByRole("button", { name: "Комплементарлы сүзгі" }).click();
+  await page.getByRole("button", { name: "α = 0.98" }).click();
+  await page.getByRole("button", { name: "Роботты еңкейту" }).click();
+  await expect(r).toContainText("0.43°");
 });

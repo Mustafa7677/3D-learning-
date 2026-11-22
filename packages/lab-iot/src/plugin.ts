@@ -1,4 +1,5 @@
 import type { AssessmentResult, SimulationPlugin } from "@inside-tech/sim-core";
+import { runFusion, type FusionMode, type FusionRun } from "./fusion";
 import { TASKS, dec, enc, i2cRead, pwm, schedule, transferTime, uartReceive, type Bus, type PwmResult, type Schedule, type Scheduler } from "./middle-core";
 import {
   HEAVY,
@@ -21,7 +22,7 @@ import {
   type Radio,
 } from "./core";
 
-export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos";
+export type IotMode = "adc" | "sampling" | "filter" | "thermo" | "pid" | "arm" | "kalman" | "mqtt" | "power" | "pwm" | "serial" | "rtos" | "fusion";
 export type PlantId = "lift" | "heavy";
 
 /** Targets for the arm; the last one is out of reach. */
@@ -49,6 +50,7 @@ export interface IotStats {
   busRuns: { bus: Bus; ms: number }[];
   i2cRuns: { a: number; b: number; ok: boolean }[];
   rtosRuns: { kind: Scheduler; logger: number; controlMisses: number; loggerMisses: number; utilization: number }[];
+  fusionRuns?: { mode: FusionMode; alpha: number; rms: number; finalError: number }[];
 }
 
 export interface IotLabState {
@@ -65,6 +67,7 @@ export interface IotLabState {
   pwm: { duty: number; freq: number; last: PwmResult | null };
   serial: { tx: number; rx: number; received: string | null; addrB: number; i2c: { ok: boolean; answered: number } | null; bus: Bus; ms: number | null };
   rtos: { kind: Scheduler; logger: number; last: Schedule | null };
+  fusion?: { mode: FusionMode; alpha: number; last: FusionRun | null };
   stats: IotStats;
 }
 
@@ -94,7 +97,9 @@ export type IotLabAction =
   | { type: "i2c/read" }
   | { type: "bus/send"; bus: Bus }
   | { type: "rtos/set"; kind?: Scheduler; logger?: number }
-  | { type: "rtos/run" };
+  | { type: "rtos/run" }
+  | { type: "fusion/set"; mode?: FusionMode; alpha?: number }
+  | { type: "fusion/run" };
 
 const uniq = <T>(xs: T[], x: T) => (xs.includes(x) ? xs : [...xs, x]);
 const cap = <T>(xs: T[], n = 40) => xs.slice(-n);
@@ -133,7 +138,9 @@ export function initialIotState(): IotLabState {
       busRuns: [],
       i2cRuns: [],
       rtosRuns: [],
+      fusionRuns: [],
     },
+    fusion: { mode: "gyro", alpha: 0.98, last: null },
   };
 }
 
@@ -255,6 +262,17 @@ function reduce(s: IotLabState, a: IotLabAction): IotLabState {
     case "bus/send": {
       const ms = Math.round(transferTime(a.bus, 1024) * 100000) / 100;
       return { ...s, mode: "serial", serial: { ...s.serial, bus: a.bus, ms }, stats: { ...st, busRuns: cap([...st.busRuns, { bus: a.bus, ms }]) } };
+    }
+    case "fusion/set": {
+      const cur = s.fusion ?? { mode: "gyro" as FusionMode, alpha: 0.98, last: null };
+      const mode = a.mode && ["gyro", "accel", "complementary"].includes(a.mode) ? a.mode : cur.mode;
+      const alpha = a.alpha !== undefined && [0.5, 0.9, 0.98, 0.999].includes(a.alpha) ? a.alpha : cur.alpha;
+      return { ...s, mode: "fusion", fusion: { mode, alpha, last: null } };
+    }
+    case "fusion/run": {
+      const cur = s.fusion ?? { mode: "gyro" as FusionMode, alpha: 0.98, last: null };
+      const r = runFusion(cur.mode, cur.alpha);
+      return { ...s, mode: "fusion", fusion: { ...cur, last: r }, stats: { ...st, fusionRuns: cap([...(st.fusionRuns ?? []), { mode: cur.mode, alpha: cur.alpha, rms: r.rms, finalError: r.finalError }]) } };
     }
     case "rtos/set": {
       const logger = a.logger !== undefined && [30, 70].includes(a.logger) ? a.logger : s.rtos.logger;

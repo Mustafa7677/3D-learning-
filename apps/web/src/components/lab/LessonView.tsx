@@ -590,7 +590,7 @@ function CloudLesson({ labId, lesson, nextLessonId, persist }: LessonProps<Cloud
   );
 }
 
-const IOT_FOCI: IotFocus[] = ["adc", "sampling", "filter", "thermo", "pid", "arm", "kalman", "mqtt", "power", "pwm", "serial", "rtos"];
+const IOT_FOCI: IotFocus[] = ["adc", "sampling", "filter", "thermo", "pid", "arm", "kalman", "mqtt", "power", "pwm", "serial", "rtos", "fusion"];
 
 function IotLesson({ labId, lesson, nextLessonId, persist }: LessonProps<IotLabState, IotLabAction>) {
   const session = useLabSession(lesson, "iot", { persist });
