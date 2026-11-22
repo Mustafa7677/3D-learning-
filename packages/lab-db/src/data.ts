@@ -26,6 +26,12 @@ export function seedDb(): Db {
       // Most students take 2-3 courses; grades 60-100.
       if ((Number(s.id) + Number(c.id) * 3) % 5 < 3) enrollments.push({ student_id: s.id ?? null, course_id: c.id ?? null, grade: 60 + r(41) });
     }
+  // The same facts, denormalized: the student's name and city repeated on every enrollment.
+  const flat: Row[] = enrollments.map((e, i) => {
+    const st = students.find((x) => x.id === e.student_id)!;
+    const c = courses.find((x) => x.id === e.course_id)!;
+    return { id: i + 1, student_name: st.name ?? null, student_city: st.city ?? null, course_title: c.title ?? null, grade: e.grade ?? null };
+  });
   const events: Row[] = Array.from({ length: EVENT_ROWS }, (_, i) => ({ id: i + 1, user_id: 1 + r(EVENT_USERS), kind: ["view", "view", "view", "click", "buy"][r(5)]!, amount: r(50) * 100 }));
   return {
     students: {
@@ -49,6 +55,12 @@ export function seedDb(): Db {
         { id: 2, owner: "Нұрлан", balance: 500 },
         { id: 3, owner: "Дана", balance: 200 },
       ],
+      indexes: ["id"],
+    },
+    enrollments_flat: {
+      name: "enrollments_flat",
+      columns: [{ name: "id", primaryKey: true }, { name: "student_name" }, { name: "student_city" }, { name: "course_title" }, { name: "grade" }],
+      rows: flat,
       indexes: ["id"],
     },
     events: { name: "events", columns: [{ name: "id", primaryKey: true }, { name: "user_id" }, { name: "kind" }, { name: "amount" }], rows: events, indexes: ["id"] },

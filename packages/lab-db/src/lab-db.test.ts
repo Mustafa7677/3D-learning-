@@ -54,6 +54,17 @@ const scripts: Record<string, Record<string, (d: D) => void>> = {
       sql(d, "SELECT name FROM students WHERE id NOT IN (SELECT student_id FROM enrollments WHERE course_id = 1)");
     },
   },
+  "db-13-normalization": {
+    anomaly: (d) => {
+      sql(d, "UPDATE enrollments_flat SET student_city = 'Тараз' WHERE id = 1");
+      sql(d, "UPDATE enrollments_flat SET student_city = 'Тараз' WHERE student_name = 'Айгерім'");
+    },
+    normalize: (d) => {
+      sql(d, "SELECT s.name, s.city, c.title FROM enrollments e JOIN students s ON s.id = e.student_id JOIN courses c ON c.id = e.course_id");
+      sql(d, "UPDATE students SET city = 'Тараз' WHERE id = 1");
+      sql(d, "SELECT s.name, s.city, c.title FROM enrollments e JOIN students s ON s.id = e.student_id JOIN courses c ON c.id = e.course_id");
+    },
+  },
   "db-12-patterns": {
     distinct: (d) => sql(d, "SELECT DISTINCT city FROM students"),
     like: (d) => {

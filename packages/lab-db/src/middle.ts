@@ -146,6 +146,56 @@ export const lessonPatterns: L = {
   ],
 };
 
+const flatRows = (s: DbLabState) => s.sql.session.db.enrollments_flat?.rows ?? [];
+/** Some student appears with two different cities in the flat table. */
+export const hasAnomaly = (s: DbLabState) => {
+  const seen = new Map<string, string>();
+  for (const r of flatRows(s)) {
+    const name = String(r.student_name);
+    const city = String(r.student_city);
+    if (seen.has(name) && seen.get(name) !== city) return true;
+    seen.set(name, city);
+  }
+  return false;
+};
+const studentCity = (s: DbLabState, name: string) => String(s.sql.session.db.students?.rows.find((r) => r.name === name)?.city ?? "");
+/** Every row of some student in the flat table moved to a new city, consistently. */
+const movedConsistently = (s: DbLabState) => !hasAnomaly(s) && flatRows(s).some((r) => String(r.student_city) !== studentCity(s, String(r.student_name)));
+const studentsChanged = (s: DbLabState) => (s.sql.session.db.students?.rows ?? []).some((r, i) => String(r.city) !== ["Алматы", "Астана", "Шымкент", "Қарағанды"][i % 4]);
+
+export const lessonNormalization: L = {
+  id: "db-13-normalization",
+  labId: "db",
+  order: 13,
+  title: "Normalization: One Fact, One Place",
+  summary: "Бір дерек бірнеше жерде тұрса, ерте ме, кеш пе, екі түрлі болады. Жаңарту аномалиясы, нормализация және JOIN.",
+  estimatedMinutes: 25,
+  steps: [
+    {
+      id: "anomaly",
+      title: "Жаңарту аномалиясы",
+      body: "",
+      focus: "sql",
+      onEnter: [{ type: "mode/set", mode: "sql" }, { type: "sql/reset" }, text("SELECT * FROM enrollments_flat WHERE student_name = 'Айгерім'")],
+      objectives: [
+        { id: "break", text: "Бір ғана жолдағы қаланы өзгерт: бір студенттің екі қаласы пайда болсын", check: hasAnomaly },
+        { id: "fix", text: "Бір UPDATE-пен сол студенттің барлық жолдарын түзет", check: movedConsistently },
+      ],
+    },
+    {
+      id: "normalize",
+      title: "Бір дерек: бір орын",
+      body: "",
+      focus: "sql",
+      onEnter: [{ type: "sql/reset" }, text("SELECT s.name, s.city, c.title FROM enrollments e JOIN students s ON s.id = e.student_id JOIN courses c ON c.id = e.course_id")],
+      objectives: [
+        { id: "join", text: "Сол мәліметті үш кестеден JOIN-мен құрастыр", check: (s) => used(s, /join/i) && used(s, /students/i) && (s.sql.last?.ok ?? false) },
+        { id: "once", text: "students кестесінде бір қаланы бір рет өзгерт те, JOIN-мен қайта қара", check: (s) => studentsChanged(s) && used(s, /join/i) && (s.sql.last?.ok ?? false) },
+      ],
+    },
+  ],
+};
+
 export const middleContent: Record<string, Record<string, StepContent>> = {
   "db-10-left-join": {
     orphans: {
@@ -385,6 +435,115 @@ LIKE: телефон кітабынан «А-дан басталатын» те�
           options: ["Үлгінің басы белгісіз: сұрыпталған индекстен қай жерден бастап іздеу керегі белгісіз", "LIKE индексті мүлде қолданбайды", "% таңбасы рұқсат етілмеген"],
           answer: 0,
           explain: "Сұрыпталған индекс сөздіктегі әліпби сияқты: басын білсең, тез табасың. 'Ай%' индекспен жұмыс істейді, '%ай' жұмыс істемейді.",
+        },
+      ],
+    },
+  },
+  "db-13-normalization": {
+    anomaly: {
+      predict: {
+        question: "enrollments_flat кестесінде Айгерімнің қаласы оның әр курсының жолында қайталанады. Ол көшті, біз тек бір жолды (id = 1) жаңарттық. Енді «Айгерім қай қалада тұрады?» деген сұраққа дерекқор не айтады?",
+        options: ["Жаңа қаланы: соңғы өзгеріс жеңеді", "Екі түрлі жауап: қай жолды оқысаң, сол", "Қате береді"],
+        answer: 1,
+        explain: "Дерекқор қай жол дұрыс екенін білмейді: оның үшін бәрі бірдей шын. Бір дерек екі жерде тұрды да, екеуі екі түрлі болды.",
+      },
+      body: `## Идея
+**Нормализация**: әр деректі **бір рет**, бір жерде сақтау. Әйтпесе қайталанған көшірмелер ерте ме, кеш пе, бір-біріне қайшы келеді.
+
+## Денормалданған кесте
+\`enrollments_flat\`: әр жазылу жолында студенттің аты, **қаласы**, курстың аты. Оқуға ыңғайлы: JOIN керек емес. Бірақ Айгерімнің қаласы оның әр курсында қайталанады.
+
+## Үш аномалия
+1. **Жаңарту**: қаланы бір жолда өзгертсең, қалғандары ескі қалады. Енді дерекқорда «шындық» екеу.
+2. **Енгізу**: курсқа әлі жазылмаған студентті мүлде сақтай алмайсың, себебі кесте жазылулар туралы.
+3. **Жою**: студенттің соңғы курсын өшірсең, оның қаласы туралы білім де жоғалады.
+
+## Есептеп көрейік
+\`\`\`sql
+UPDATE enrollments_flat SET student_city = 'Тараз' WHERE id = 1;
+SELECT DISTINCT student_city FROM enrollments_flat WHERE student_name = 'Айгерім';
+\`\`\`
+Екі қала. Түзету үшін **барлық** көшірмені табу керек: \`WHERE student_name = 'Айгерім'\`. Бірақ аты бірдей екі студент болса ше? Онда бөтен адамның қаласын да өзгертесің.
+
+## Енді сен
+Бір жолды жаңартып, аномалияны жаса. Сосын бір UPDATE-пен Айгерімнің барлық жолдарын түзет.`,
+      quiz: [
+        {
+          id: "update",
+          question: "Жаңарту аномалиясы дегеніміз не?",
+          options: ["Бір деректің көшірмелерінің бірі өзгеріп, қалғандары ескі қалуы", "UPDATE-тің баяулығы", "Кестенің жойылуы"],
+          answer: 0,
+          explain: "Дерек бірнеше жерде тұрса, оларды бірге өзгертуді ұмытуға оңай.",
+        },
+        {
+          id: "delete",
+          question: "enrollments_flat-тан студенттің жалғыз курсын өшірсең не жоғалады?",
+          options: ["Оның қаласы туралы мәлімет те: ол басқа ешқайда сақталмаған", "Ештеңе", "Курстың өзі"],
+          answer: 0,
+          explain: "Жою аномалиясы: бір фактіні өшіріп, байқамай басқасын да өшіресің.",
+        },
+        {
+          id: "name",
+          question: "Неге \`WHERE student_name = 'Айгерім'\` деп түзету де қауіпті?",
+          options: ["Аты бірдей екі студент болуы мүмкін: бөтен адамның қаласы да өзгереді", "Ол баяу", "Кириллица жұмыс істемейді"],
+          answer: 0,
+          explain: "Атау: кілт емес. Сондықтан нормалданған кестелер бірегей id қолданады.",
+        },
+      ],
+    },
+    normalize: {
+      predict: {
+        question: "Нормалданған схемада қала тек students кестесінде, бір рет. Айгерімнің қаласын сол жерде бір рет өзгертсек, оның барлық курстарының JOIN нәтижесінде не көрінеді?",
+        options: ["Барлығында жаңа қала: дерек бір-ақ жерде", "Тек бір курста", "Ескі қала: JOIN кэштейді"],
+        answer: 0,
+        explain: "JOIN әр сұрауда қаланы students-тен оқиды. Көшірме жоқ, сондықтан қайшылық та жоқ.",
+      },
+      body: `## Нормалданған схема
+Бір фактіге бір кесте:
+- \`students(id, name, city)\`: студент туралы;
+- \`courses(id, title)\`: курс туралы;
+- \`enrollments(student_id, course_id, grade)\`: кім қай курста.
+
+Қала **бір рет** жазылған. Оны өзгерту: бір жолды жаңарту. Ал «әр жазылудың қасында қаласы» керек болса, JOIN құрастырады:
+\`\`\`sql
+SELECT s.name, s.city, c.title
+FROM enrollments e
+JOIN students s ON s.id = e.student_id
+JOIN courses c ON c.id = e.course_id;
+\`\`\`
+
+## Қалыпты формалар (қысқаша)
+- **1NF**: әр ұяшықта бір мән (тізім емес).
+- **2NF**: құрама кілттің бір бөлігіне ғана тәуелді баған жоқ (курс атауы course_id-ге, жазылуға емес).
+- **3NF**: кілт емес баған басқа кілт емес бағанға тәуелді емес (қала студентке тәуелді, жазылуға емес).
+Қысқа ереже: «әр баған кілтке, толық кілтке және тек кілтке тәуелді».
+
+## Денормализация қашан дұрыс?
+Оқу жазудан мыңдаған есе көп болса (есептер, аналитика, кэш), JOIN-сыз дайын көшірме жылдамырақ. Бірақ сонда көшірмені **жүйе өзі** жаңартуы керек (триггер, materialized view, оқиғалар), адамның есіне емес.
+
+## Енді сен
+JOIN-мен құрастыр, сосын students-те бір қаланы өзгертіп, JOIN-ды қайта іске қос.`,
+      quiz: [
+        {
+          id: "nf3",
+          question: "enrollments кестесінде student_city бағаны неге 3NF-ті бұзады?",
+          options: ["Қала жазылуға емес, студентке тәуелді", "Ол мәтін", "Ол бос болуы мүмкін"],
+          answer: 0,
+          explain: "Ол student_id арқылы ғана кілтке байланысты: транзитивті тәуелділік.",
+        },
+        {
+          id: "join",
+          question: "Нормалданған схемада «студент, қаласы, курсы» тізімін қалай аламыз?",
+          options: ["Кестелерді JOIN-мен байланыстырып", "Барлық кестені бір-бірден оқып, қолмен", "Мүмкін емес"],
+          answer: 0,
+          explain: "Нормализацияның бағасы: оқуда JOIN. Сыйлығы: жазуда қайшылық жоқ.",
+        },
+        {
+          id: "denorm",
+          question: "Денормализация қашан ақталады?",
+          options: ["Оқу өте көп, ал көшірмелерді жүйе өзі автоматты жаңартатын кезде", "Әрқашан", "Ешқашан"],
+          answer: 0,
+          explain: "Материалдандырылған көріністер, аналитикалық қоймалар: көшірмені адам емес, механизм ұстайды.",
         },
       ],
     },

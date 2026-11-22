@@ -15,8 +15,8 @@ test.beforeEach(async ({ page }) => {
 test("databases lab page lists the Junior lessons, the problem set and the Middle level", async ({ page }) => {
   await page.goto("/labs/db");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Databases");
-  await expect(page.locator("ol li")).toHaveCount(12);
-  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(3);
+  await expect(page.locator("ol li")).toHaveCount(13);
+  await expect(page.locator('ol li[data-level="Middle"]')).toHaveCount(4);
   await expect(page.getByRole("link", { name: /LEFT JOIN & NULL/ })).toContainText("Middle");
 });
 
@@ -75,4 +75,13 @@ test("lesson 7: interleaving two clients loses an update", async ({ page }) => {
   await page.goto("/labs/db/db-7-concurrency");
   for (const b of ["A оқиды", "B оқиды", "A жазады (+100)", "B жазады (+100)"]) await page.getByRole("button", { name: b }).click();
   await expect(objective(page, "жаңартуы жоғалатын")).toHaveAttribute("data-done", "true");
+});
+
+test("Middle 13: updating one copy of a repeated fact makes two truths", async ({ page }) => {
+  await page.goto("/labs/db/db-13-normalization");
+  await expect(page.getByLabel(/Сұраныс/)).toHaveValue(/enrollments_flat/);
+  await run(page, "UPDATE enrollments_flat SET student_city = 'Тараз' WHERE id = 1");
+  await expect(objective(page, "екі қаласы пайда болсын")).toHaveAttribute("data-done", "true");
+  await run(page, "UPDATE enrollments_flat SET student_city = 'Тараз' WHERE student_name = 'Айгерім'");
+  await expect(objective(page, "барлық жолдарын түзет")).toHaveAttribute("data-done", "true");
 });
