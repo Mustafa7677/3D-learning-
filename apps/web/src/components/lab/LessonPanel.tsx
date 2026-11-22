@@ -19,6 +19,8 @@ interface Props {
   onRestart(): void;
   onAnswer(questionId: string, option: number): AnswerResult;
   onPredict?(option: number): void;
+  /** Save the learner's own explanation; false if too short. */
+  onExplain?(text: string): boolean;
   nextLessonHref?: string;
   labHref?: string;
   /** Which lab this is, for the emblem behind the 3D lecture. */
@@ -60,6 +62,64 @@ function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] })
   );
 }
 
+/** Self-explanation: after the experiment, say why in your own words, then compare with an expert. */
+function SelfExplainBox({ se, onExplain }: { se: NonNullable<StepView["selfExplain"]>; onExplain?(t: string): boolean }) {
+  const [text, setText] = useState(se.written ?? "");
+  const [short, setShort] = useState(false);
+  if (!se.open) return null;
+  return (
+    <section className={styles.explainSelf} aria-labelledby="explain-title">
+      <p id="explain-title" className={styles.explainKicker}>
+        Өз сөзіңмен түсіндір
+      </p>
+      <p className={styles.predictQ}>{se.prompt}</p>
+      {se.written === undefined ? (
+        <>
+          <label className="visually-hidden" htmlFor="explain-text">
+            Түсіндірмең
+          </label>
+          <textarea
+            id="explain-text"
+            className={styles.explainText}
+            rows={3}
+            maxLength={2000}
+            value={text}
+            placeholder="Досыңа айтып тұрғандай жаз: не болды және неге?"
+            onChange={(e) => {
+              setText(e.target.value);
+              setShort(false);
+            }}
+          />
+          <button type="button" className="btn btn-primary" onClick={() => setShort(!(onExplain?.(text) ?? false))}>
+            Маманның түсіндірмесімен салыстыру
+          </button>
+          {short && <p className={styles.predictNote}>Кемінде бір толық сөйлем жаз: өз сөзіңмен айтудың өзі түсінуді бекітеді.</p>}
+        </>
+      ) : (
+        <div role="status" aria-label="Түсіндірме салыстыруы">
+          <blockquote className={styles.explainMine}>{se.written}</blockquote>
+          <ul className={styles.explainIdeas}>
+            {se.coverage!.found.map((c) => (
+              <li key={c} data-found="true">
+                ✓ {c}
+              </li>
+            ))}
+            {se.coverage!.missing.map((c) => (
+              <li key={c} data-found="false">
+                ○ {c}
+              </li>
+            ))}
+          </ul>
+          <p className={styles.explainModel}>
+            <strong>Маман былай түсіндірер еді.</strong> {se.model}
+          </p>
+          <p className={styles.predictNote}>{se.coverage!.missing.length === 0 ? "Негізгі ойлардың бәрі сенің сөзіңде бар." : "Бос дөңгелектер: сенің мәтініңде табылмаған ойлар. Оларды маманның мәтінінен тауып, өзіңе қайта айтып көр."}</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** Predict, observe, explain: commit to a guess, run the experiment, then see how the guess fared. */
 function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPredict?(o: number): void }) {
   const revealed = p.answer !== undefined;
@@ -97,7 +157,7 @@ function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPred
   );
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, onExplain, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
   const [cinema, setCinema] = useState(false);
   const [reward, setReward] = useState(false);
@@ -173,6 +233,8 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
           </li>
         ))}
       </ul>
+
+      {step.selfExplain && <SelfExplainBox key={`${step.id}-${step.selfExplain.written ?? ""}`} se={step.selfExplain} onExplain={onExplain} />}
 
       {step.hints.length > 0 && (
         <div className={styles.hint}>

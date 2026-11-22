@@ -1,3 +1,4 @@
+import type { SelfExplain } from "./explain";
 import type { AssessmentResult } from "@inside-tech/sim-core";
 
 export interface ObjectiveContext {
@@ -56,6 +57,8 @@ export interface LessonStep<S, A = unknown> {
   hints?: string[];
   /** Asked before the experiment, revealed after it (see Prediction). */
   predict?: Prediction;
+  /** After the experiment: explain it in your own words, then compare (see SelfExplain). */
+  selfExplain?: SelfExplain;
   /** Scene anchor id the camera should focus on for this step. */
   focus?: string;
   /** Actions dispatched when the step is entered (e.g. load a dataset). */
@@ -84,6 +87,8 @@ export interface LessonProgress {
   predictions?: Record<string, number>;
   /** Question ids answered wrongly at least once, per step id (the mistakes notebook). */
   misses?: Record<string, string[]>;
+  /** The learner's own explanation per step id. */
+  explanations?: Record<string, string>;
   completedAt?: number;
   startedAt: number;
   updatedAt: number;
@@ -95,6 +100,7 @@ export interface StepContent {
   quiz?: QuizQuestion[];
   hints?: string[];
   predict?: Prediction;
+  selfExplain?: SelfExplain;
 }
 
 /**
@@ -110,7 +116,7 @@ export function withContent<S, A>(lesson: LessonDefinition<S, A>, content: Recor
     steps: lesson.steps.map((s) => {
       const c = content[s.id];
       if (!c) return s;
-      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict };
+      return { ...s, body: c.body ?? s.body, quiz: c.quiz ?? s.quiz, hints: c.hints ?? s.hints, predict: c.predict ?? s.predict, selfExplain: c.selfExplain ?? s.selfExplain };
     }),
   };
 }

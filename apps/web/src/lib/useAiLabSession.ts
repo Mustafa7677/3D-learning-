@@ -23,6 +23,8 @@ export interface LabSession<S, A> {
   answer(questionId: string, option: number): AnswerResult;
   /** Commit to the step's prediction before the experiment. */
   predict(option: number): void;
+  /** Save the learner's own explanation of the step; false if too short or too early. */
+  explainSelf(text: string): boolean;
 }
 
 /**
@@ -156,9 +158,17 @@ export function useLabSession<S, A>(lesson: LessonDefinition<S, A>, kind: LabKin
     setStep(eng.view());
   }, []);
 
+  const explainSelf = useCallback((text: string) => {
+    const eng = engine.current;
+    if (!eng || !eng.explainSelf(text)) return false;
+    setStep(eng.view());
+    return true;
+  }, []);
+
   return {
     answer,
     predict,
+    explainSelf,
     ready: !!snap && !!step,
     state: snap?.state,
     assessment: snap?.assessment,

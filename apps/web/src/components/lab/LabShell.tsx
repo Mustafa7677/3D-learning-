@@ -57,6 +57,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
               onRestart={session.restartStep}
               onAnswer={session.answer}
               onPredict={session.predict}
+              onExplain={session.explainSelf}
               nextLessonHref={nextLessonId ? `/labs/${labId}/${nextLessonId}` : undefined}
               labHref={`/labs/${labId}`}
               labId={labId}

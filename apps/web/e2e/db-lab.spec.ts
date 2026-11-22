@@ -101,4 +101,19 @@ test("Middle 14: OFFSET reads 5000 rows for one page, keyset reads 20; an insert
   await expect(objective(page, "бір жазба қайталанды")).toHaveAttribute("data-done", "true");
   await run(page, "SELECT id, kind FROM events WHERE id < 4981 ORDER BY id DESC LIMIT 20");
   await expect(objective(page, "қайталану жоқ")).toHaveAttribute("data-done", "true");
+
+  // Self-explanation opens after the experiment; the ideas not yet said stay as open circles.
+  const box = page.getByRole("region", { name: "Өз сөзіңмен түсіндір" });
+  await box.getByLabel("Түсіндірмең").fill("Қысқа");
+  await box.getByRole("button", { name: "Маманның түсіндірмесімен салыстыру" }).click();
+  await expect(box).toContainText("Кемінде бір толық сөйлем жаз");
+  await box.getByLabel("Түсіндірмең").fill("Жаңа жол басына қосылды да, OFFSET орынмен санайтындықтан бәрі бір орынға жылжыды.");
+  await box.getByRole("button", { name: "Маманның түсіндірмесімен салыстыру" }).click();
+  const cmp = box.getByRole("status", { name: "Түсіндірме салыстыруы" });
+  await expect(cmp).toContainText("✓ OFFSET орынмен санайды, орындар жылжиды");
+  await expect(cmp).toContainText("○ keyset мәнмен санайды");
+  await expect(cmp).toContainText("Маман былай түсіндірер еді.");
+  // Saved with the lesson's progress.
+  await page.reload();
+  await expect(page.getByRole("status", { name: "Түсіндірме салыстыруы" })).toContainText("бәрі бір орынға жылжыды");
 });

@@ -1,3 +1,4 @@
+import { MIN_EXPLANATION, coverage, type Coverage, type SelfExplain } from "./explain";
 import { EventBus, type AssessmentResult } from "@inside-tech/sim-core";
 import type { LessonDefinition, LessonProgress, LessonStep } from "./lesson";
 
@@ -36,6 +37,8 @@ export interface StepView {
   quiz: QuizView[];
   /** The step's prediction: the answer and why only once the objectives are done. */
   predict?: PredictionView;
+  /** Open once the objectives are done; the expert's text only after the learner wrote theirs. */
+  selfExplain?: SelfExplainView;
   complete: boolean;
   isLast: boolean;
   lessonComplete: boolean;
@@ -48,6 +51,14 @@ export interface PredictionView {
   /** Present only after the experiment (all objectives done) and a choice was made. */
   answer?: number;
   explain?: string;
+}
+
+export interface SelfExplainView {
+  prompt: string;
+  open: boolean;
+  written?: string;
+  coverage?: Coverage;
+  model?: string;
 }
 
 export interface AnswerResult {
@@ -202,10 +213,29 @@ export class LessonEngine<S, A = unknown> {
       })),
       quiz: (step.quiz ?? []).map((q) => ({ id: q.id, question: q.question, options: q.options, answered: answered.has(q.id), explain: answered.has(q.id) ? q.explain : undefined })),
       predict: step.predict && this.predictionView(step.id, step.predict, step.objectives.every((o) => done.has(o.id))),
+      selfExplain: step.selfExplain && this.selfExplainView(step.id, step.selfExplain, step.objectives.every((o) => done.has(o.id))),
       complete: this.isStepComplete(),
       isLast: this.isLastStep(),
       lessonComplete: this.isLessonComplete(),
     };
+  }
+
+  private selfExplainView(stepId: string, se: SelfExplain, open: boolean): SelfExplainView {
+    const written = this.progress.explanations?.[stepId];
+    return written !== undefined ? { prompt: se.prompt, open, written, coverage: coverage(se, written), model: se.model } : { prompt: se.prompt, open };
+  }
+
+  /** Save the learner's own explanation of the current step (after the experiment). Returns false if too short or not yet open. */
+  explainSelf(text: string): boolean {
+    const step = this.step;
+    const se = step.selfExplain;
+    const t = text.trim().slice(0, 2000);
+    if (!se || t.length < MIN_EXPLANATION) return false;
+    const done = new Set(this.progress.completed[step.id] ?? []);
+    if (!step.objectives.every((o) => done.has(o.id))) return false;
+    this.progress.explanations = { ...(this.progress.explanations ?? {}), [step.id]: t };
+    this.afterChange();
+    return true;
   }
 
   private predictionView(stepId: string, p: NonNullable<LessonStep<S, A>["predict"]>, observed: boolean): PredictionView {
