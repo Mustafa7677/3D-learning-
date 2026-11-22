@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { findLab } from "@/lib/catalog";
 import { lessonEntries } from "@/lib/lessons";
 import { progressStore } from "@/lib/progress";
+import { optionOrder } from "@/lib/shuffle";
 import { CONFIDENCE_WORD, calibration, calibrationVerdict, drawTicket, questionPool, type Confidence, type TicketAnswer, type TicketQuestion } from "@/lib/ticket";
 import { OyuRule } from "../lab/Oyu";
 import { FilmHeader } from "../film/FilmHeader";
@@ -42,7 +43,7 @@ function Question({ q, n, onDone }: { q: TicketQuestion; n: number; onDone(a: Ti
         ))}
       </div>
       <div className={styles.options} role="group" aria-label="Жауаптар">
-        {q.options.map((o, i) => (
+        {optionOrder(q.question, q.options.length).map((i) => [q.options[i]!, i] as const).map(([o, i]) => (
           <button
             key={i}
             type="button"

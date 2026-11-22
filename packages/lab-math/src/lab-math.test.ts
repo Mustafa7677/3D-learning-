@@ -206,3 +206,19 @@ describe("math: the Gaussian film", () => {
     }
   });
 });
+
+describe("fair options", () => {
+  it("the right option never stands out: no lone proof after a colon, no option far longer than the rest", () => {
+    for (const l of mathLessons) {
+      for (const s of l.steps) {
+        const qs = [...(s.quiz ?? []), ...(s.predict ? [s.predict] : [])];
+        for (const q of qs) {
+          const right = q.options[q.answer]!;
+          const others = q.options.filter((_, i) => i !== q.answer);
+          if (right.includes(":")) expect(others.some((o) => o.includes(":")), `${l.id}: ${q.question}`).toBe(true);
+          expect(right.length, `${l.id}: ${q.question}`).toBeLessThanOrEqual(Math.max(...others.map((o) => o.length)) * 1.6 + 6);
+        }
+      }
+    }
+  });
+});

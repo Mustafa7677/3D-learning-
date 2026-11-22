@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { findLab } from "@/lib/catalog";
 import { lessonEntries } from "@/lib/lessons";
+import { optionOrder } from "@/lib/shuffle";
 import { MASTERED_BOX, collectMistakes, dueMistakes, gradeMistake, mastered, sanitizeReview, schedule, type Mistake, type Review } from "@/lib/notebook";
 import { progressStore } from "@/lib/progress";
 import { OyuRule } from "../lab/Oyu";
@@ -23,7 +24,7 @@ function Practice({ m, onDone }: { m: Mistake; onDone(right: boolean): void }) {
       </p>
       <h2 className={styles.q}>{m.question}</h2>
       <div className={styles.options} role="group" aria-label="Жауаптар">
-        {m.options.map((o, i) => (
+        {optionOrder(m.question, m.options.length).map((i) => [m.options[i]!, i] as const).map(([o, i]) => (
           <button
             key={i}
             type="button"

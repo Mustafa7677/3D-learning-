@@ -72,7 +72,7 @@ function VectorsSection({ s, d }: { s: MathLabState; d: D }) {
         <span>k = {fmt(s.k)}</span>
         <input type="range" min={-3} max={3} step={0.5} value={s.k} aria-label="k көбейткіші" onChange={(e) => d({ type: "vec/k", k: Number(e.target.value) })} />
       </label>
-      <div className={styles.metrics} role="status" aria-label="Векторлар нәтижесі">
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Векторлар нәтижесі">
         <div>
           <span>u + v</span>
           <strong>({s.u.map((x, i) => fmt(x + s.v[i]!)).join(", ")})</strong>
@@ -97,7 +97,7 @@ function DotSection({ s, d }: { s: MathLabState; d: D }) {
       <legend>Скаляр көбейтінді</legend>
       <VecInput name="u" v={s.u} onChange={(value) => d({ type: "vec/set", which: "u", value })} />
       <VecInput name="v" v={s.v} onChange={(value) => d({ type: "vec/set", which: "v", value })} />
-      <div className={styles.metrics} role="status" aria-label="Скаляр көбейтінді нәтижесі">
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Скаляр көбейтінді нәтижесі">
         <div>
           <span>u·v</span>
           <strong>{fmt(dot(s.u, s.v))}</strong>
@@ -258,7 +258,7 @@ function MatrixSection({ s, d, mode }: { s: MathLabState; d: D; mode: MathMode }
           </button>
         </div>
       )}
-      <div className={styles.metrics} role="status" aria-label="Матрица нәтижесі">
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Матрица нәтижесі">
         <div>
           <span>det A</span>
           <strong>{fmt(D)}</strong>
@@ -304,7 +304,7 @@ function BasisSection({ s, d }: { s: MathLabState; d: D }) {
         <span>b = {fmt(s.b)}</span>
         <input type="range" min={-4} max={4} step={0.5} value={s.b} aria-label="b координатасы" onChange={(e) => d({ type: "basis/set", b: Number(e.target.value) })} />
       </label>
-      <div className={styles.metrics} role="status" aria-label="Базис нәтижесі">
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Базис нәтижесі">
         <div>
           <span>a·b1 + b·b2</span>
           <strong>({p.map(fmt).join(", ")})</strong>
@@ -343,7 +343,7 @@ function EigenSection({ s, d }: { s: MathLabState; d: D }) {
         <span>v бағыты: {s.probe}°</span>
         <input type="range" min={0} max={165} step={15} value={s.probe} aria-label="v бағыты, градус" onChange={(e) => d({ type: "eigen/probe", deg: Number(e.target.value) })} />
       </label>
-      <div className={styles.metrics} role="status" aria-label="Меншікті нәтиже">
+      <div className={`${styles.metrics} ${styles.mathMetrics}`} role="status" aria-label="Меншікті нәтиже">
         <div>
           <span>v</span>
           <strong>({v.map(fmt).join(", ")})</strong>

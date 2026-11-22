@@ -1624,3 +1624,14 @@ div.walkSteps {
   border-bottom-color: #2c4f8f;
   color: #2c4f8f;
 }
+
+/* Math readouts hold vectors like (4, 3, 0): as many columns as fit, never a wrapped vector,
+   never an empty fourth cell. */
+.metrics.mathMetrics {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+.mathMetrics strong {
+  font-size: 16px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

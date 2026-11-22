@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { optionOrder } from "@/lib/shuffle";
 import type { AnswerResult, QuizView, StepView } from "@inside-tech/lesson-engine";
 import { Prose } from "./Prose";
 import { LectureCinema } from "../film/LectureCinema";
@@ -38,11 +39,13 @@ function Question({ q, onAnswer }: { q: QuizView; onAnswer: Props["onAnswer"] })
   const [picked, setPicked] = useState<number | null>(null);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const done = q.answered;
+  // Content lists the right option first; the screen must not.
+  const order = useMemo(() => optionOrder(q.question, q.options.length), [q.question, q.options.length]);
   return (
     <fieldset className={styles.quiz} data-done={done}>
       <legend>{q.question}</legend>
       <div className={styles.quizOptions}>
-        {q.options.map((o, i) => (
+        {order.map((i) => [q.options[i]!, i] as const).map(([o, i]) => (
           <button
             key={i}
             type="button"
@@ -128,6 +131,7 @@ function SelfExplainBox({ se, onExplain }: { se: NonNullable<StepView["selfExpla
 function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPredict?(o: number): void }) {
   const revealed = p.answer !== undefined;
   const right = revealed && p.chosen === p.answer;
+  const order = useMemo(() => optionOrder(p.question, p.options.length), [p.question, p.options.length]);
   return (
     <section className={styles.predict} aria-labelledby="predict-title" data-state={revealed ? (right ? "right" : "wrong") : p.chosen !== undefined ? "waiting" : "open"}>
       <p id="predict-title" className={styles.predictKicker}>
@@ -135,7 +139,7 @@ function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPred
       </p>
       <p className={styles.predictQ}>{p.question}</p>
       <div className={styles.predictOptions} role="group" aria-label="Болжам">
-        {p.options.map((o, i) => (
+        {order.map((i) => [p.options[i]!, i] as const).map(([o, i]) => (
           <button
             key={o}
             type="button"
