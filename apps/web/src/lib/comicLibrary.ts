@@ -4,8 +4,12 @@
  */
 import type { Comic } from "@inside-tech/lesson-engine";
 import { LAB_COMICS } from "./comics";
+import { FILM_COMICS } from "./films";
 import { EPISODES } from "./learnHow";
 import { lessonEntries } from "./lessons";
+
+/** Opening comics of the IT labs: everyday situations (lessons 1 and 2) and films (lesson 3). */
+const OPENERS = { ...LAB_COMICS, ...FILM_COMICS };
 
 export interface ShelfComic {
   id: string;
@@ -26,7 +30,7 @@ export function comicShelf(): ShelfComic[] {
     e.lesson.steps.forEach((s, i) => {
       if (s.comic) out.push({ id: `${e.lesson.id}:${s.id}`, comic: s.comic, shelf: e.labId, href: `/labs/${e.labId}/${e.lesson.id}`, where: `${e.lesson.order}-сабақ, ${i + 1}-кезең: ${e.lesson.title}` });
     });
-    const extra = LAB_COMICS[e.lesson.id];
+    const extra = OPENERS[e.lesson.id];
     if (extra && !e.lesson.steps.find((s) => s.id === extra.step)?.comic) out.push({ id: `${e.lesson.id}:${extra.step}`, comic: extra.comic, shelf: e.labId, href: `/labs/${e.labId}/${e.lesson.id}`, where: `${e.lesson.order}-сабақ: ${e.lesson.title}` });
   }
   for (const ep of EPISODES) out.push({ id: `learn:${ep.id}`, comic: ep.comic, shelf: "learn", href: `/learn?e=${ep.id}`, where: `Қалай оқу керек? · «${ep.claim}»` });
@@ -37,7 +41,7 @@ export function comicShelf(): ShelfComic[] {
 /** The opening comic of a lesson step, when the lesson has none of its own there. */
 export function extraComic(lessonId: string, stepId: string, own?: Comic): Comic | undefined {
   if (own) return undefined;
-  const c = LAB_COMICS[lessonId];
+  const c = OPENERS[lessonId];
   return c && c.step === stepId ? c.comic : undefined;
 }
 

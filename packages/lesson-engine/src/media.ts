@@ -17,11 +17,18 @@ export interface ComicPanel {
   say: string;
   /** A formula or a drawing caption written on the board behind them. */
   board?: string;
+  /** A film slate before this panel: a new scene, place and time ("ДАТА-ОРТАЛЫҚ · ТҮН"). */
+  scene?: string;
+  /** A sound effect drawn big over the panel ("ДЫҢ!"). */
+  sfx?: string;
 }
 
 export interface Comic {
   title: string;
   panels: ComicPanel[];
+  /** A film comic: its genre and a poster line. */
+  genre?: string;
+  tagline?: string;
 }
 
 export interface WorkedStep {

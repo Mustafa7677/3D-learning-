@@ -34,3 +34,19 @@ test("the comic library: shelves, a reader frame by frame with keys, read marks,
   await expect(page.getByLabel("Оқылған комикстер")).toHaveText(/^1\/\d+ оқылды$/);
   await expect(page.getByRole("button", { name: "Оқу: Сынып журналы" })).toContainText("✓ оқылды");
 });
+
+test("film comics: a lesson opens with a film, the library has a film shelf, the reader shows the scene slate", async ({ page }) => {
+  await page.goto("/labs/game/game-3-loop");
+  const film = page.getByRole("region", { name: "Комикс: Жылдам компьютердегі жын" });
+  await expect(film).toContainText("ҚОРҚЫНЫШТЫ КОМЕДИЯ");
+  await expect(film).toContainText("Ойын жаңа компьютерде өзінен-өзі жылдамдап кетті.");
+  await expect(film).toContainText("САХНА 2 · ЖАҢА ОЙЫН КОМПЬЮТЕРІ");
+
+  await page.goto("/comics");
+  await page.getByRole("navigation", { name: "Сөрелер" }).getByRole("button", { name: /Кино-комикстер/ }).click();
+  await expect(page.getByRole("button", { name: /^Оқу: / })).toHaveCount(10);
+  await page.getByRole("button", { name: "Оқу: Марсқа хат" }).click();
+  const reader = page.getByRole("dialog", { name: "Комикс: Марсқа хат" });
+  await expect(reader).toContainText("Ғылыми фантастика");
+  await expect(reader.getByRole("article", { name: "1-кадр" })).toContainText("САХНА 1 · 2087 ЖЫЛ · МАРС БАЗАСЫ");
+});

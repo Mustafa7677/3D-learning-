@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LAB_COMICS } from "./comics";
+import { FILM_COMICS } from "./films";
 import { comicShelf, extraComic } from "./comicLibrary";
 import { lessonEntries } from "./lessons";
 
@@ -39,5 +40,33 @@ describe("comics for the IT labs", () => {
     expect(shelf.filter((x) => x.shelf === "learn")).toHaveLength(7);
     expect(shelf.length).toBeGreaterThanOrEqual(40);
     expect(new Set(shelf.map((x) => x.shelf)).size).toBe(12);
+  });
+});
+
+describe("film comics", () => {
+  it("the third lesson of every IT lab opens with a film: a genre, a poster line, scenes, a sound", () => {
+    const labs = [...new Set(lessonEntries.map((e) => e.labId))].filter((l) => l !== "math");
+    for (const lab of labs) {
+      const third = lessonEntries.find((e) => e.labId === lab && e.lesson.order === 3)!;
+      expect(FILM_COMICS[third.lesson.id], third.lesson.id).toBeDefined();
+    }
+    const genres = new Set<string>();
+    for (const [id, { step, comic }] of Object.entries(FILM_COMICS)) {
+      const e = lessonEntries.find((x) => x.lesson.id === id);
+      expect(e?.lesson.steps.some((s) => s.id === step), `${id}:${step}`).toBe(true);
+      expect(comic.genre && comic.tagline, id).toBeTruthy();
+      expect(comic.panels.length, id).toBeGreaterThanOrEqual(7);
+      expect(comic.panels.filter((p) => p.scene).length, id).toBeGreaterThanOrEqual(2);
+      expect(comic.panels.some((p) => p.sfx), id).toBe(true);
+      expect(comic.panels.some((p) => p.board), id).toBe(true);
+      expect(/[–—]/.test(JSON.stringify(comic)), id).toBe(false);
+      genres.add(comic.genre!);
+    }
+    // Ten films, ten different genres.
+    expect(genres.size).toBe(Object.keys(FILM_COMICS).length);
+  });
+
+  it("films are on the shelf", () => {
+    expect(comicShelf().filter((c) => c.comic.genre)).toHaveLength(10);
   });
 });

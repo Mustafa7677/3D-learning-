@@ -70,11 +70,18 @@ export function ComicStrip({ comic }: { comic: Comic }) {
   return (
     <section className={styles.comic} aria-label={`Комикс: ${comic.title}`}>
       <p className={styles.comicTitle}>
-        <span>КОМИКС</span> {comic.title}
+        <span>{comic.genre ? comic.genre.toUpperCase() : "КОМИКС"}</span> {comic.title}
       </p>
+      {comic.tagline && <p className={styles.tagline}>{comic.tagline}</p>}
       <ol className={styles.panels}>
         {comic.panels.map((p, i) => (
-          <li key={i} className={styles.panel} data-who={p.who} data-side={p.who === "mustafa" ? "right" : "left"}>
+          <li key={i} className={styles.panel} data-who={p.who} data-side={p.who === "mustafa" ? "right" : "left"} data-scene={p.scene ? "" : undefined}>
+            {p.scene && <p className={styles.slate}>{p.scene}</p>}
+            {p.sfx && (
+              <span className={styles.sfx} aria-hidden>
+                {p.sfx}
+              </span>
+            )}
             {p.who === "narrator" ? (
               <p className={styles.caption}>{p.say}</p>
             ) : (

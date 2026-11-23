@@ -40,7 +40,7 @@ function Reader({ c, onClose, onDone }: { c: ShelfComic; onClose(): void; onDone
       <section className={styles.reader} role="dialog" aria-modal="true" aria-label={`Комикс: ${c.comic.title}`}>
         <header className={styles.readerHead}>
           <p>
-            <span className={styles.badge}>{SHELF_NAME(c.shelf)}</span> {c.comic.title}
+            <span className={styles.badge}>{c.comic.genre ?? SHELF_NAME(c.shelf)}</span> {c.comic.title}
           </p>
           <button type="button" className={styles.close} onClick={onClose} aria-label="Жабу">
             ×
@@ -49,6 +49,12 @@ function Reader({ c, onClose, onDone }: { c: ShelfComic; onClose(): void; onDone
         <div className={styles.stage}>
           <article key={i} className={styles.frame} data-who={p.who} aria-live="polite" aria-label={`${i + 1}-кадр`}>
             <span className={styles.frameNo}>{i + 1}</span>
+            {p.scene && <p className={styles.slate}>{p.scene}</p>}
+            {p.sfx && (
+              <span className={styles.sfx} aria-hidden>
+                {p.sfx}
+              </span>
+            )}
             {p.who === "narrator" ? (
               <p className={styles.caption}>{p.say}</p>
             ) : (
@@ -103,7 +109,7 @@ export function ComicLibrary() {
     if (c) setOpen(c);
   }, [all]);
   const shelves = useMemo(() => [...new Set(all.map((c) => c.shelf))], [all]);
-  const shown = shelf === "all" ? all : all.filter((c) => c.shelf === shelf);
+  const shown = shelf === "all" ? all : shelf === "films" ? all.filter((c) => c.comic.genre) : all.filter((c) => c.shelf === shelf);
 
   return (
     <div className={film.page}>
@@ -124,6 +130,9 @@ export function ComicLibrary() {
           <button type="button" aria-pressed={shelf === "all"} onClick={() => setShelf("all")}>
             Барлығы <small>{all.length}</small>
           </button>
+          <button type="button" aria-pressed={shelf === "films"} onClick={() => setShelf("films")}>
+            Кино-комикстер <small>{all.filter((c) => c.comic.genre).length}</small>
+          </button>
           {shelves.map((s) => (
             <button key={s} type="button" aria-pressed={shelf === s} onClick={() => setShelf(s)}>
               {SHELF_NAME(s)} <small>{all.filter((c) => c.shelf === s).length}</small>
@@ -136,9 +145,11 @@ export function ComicLibrary() {
             const first = c.comic.panels.find((p) => p.who !== "narrator") ?? c.comic.panels[0]!;
             return (
               <li key={c.id} style={{ ["--tilt" as string]: `${((k % 5) - 2) * 0.7}deg` }}>
-                <button type="button" className={styles.cover} data-read={read.includes(c.id) || undefined} onClick={() => setOpen(c)} aria-label={`Оқу: ${c.comic.title}`}>
+                <button type="button" className={styles.cover} data-read={read.includes(c.id) || undefined} data-film={c.comic.genre ? "" : undefined} onClick={() => setOpen(c)} aria-label={`Оқу: ${c.comic.title}`}>
                   <span className={styles.coverShelf}>{SHELF_NAME(c.shelf)}</span>
+                  {c.comic.genre && <span className={styles.genre}>{c.comic.genre}</span>}
                   <strong>{c.comic.title}</strong>
+                  {c.comic.tagline && <em className={styles.coverTagline}>{c.comic.tagline}</em>}
                   <span className={styles.coverQuote}>
                     <Face who={first.who === "narrator" ? "ustaz" : first.who} mood={first.mood} />
                     <q>{first.say}</q>
