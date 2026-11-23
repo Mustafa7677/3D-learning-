@@ -32,7 +32,7 @@ test("Қалай оқу керек?: guess first, then the comic opens; a fact i
 
 test("Оқу құралдары: every group, live badges, reached from the tools menu", async ({ page }) => {
   await page.goto("/");
-  await page.locator("summary", { hasText: "Құралдар" }).click();
+  await page.locator("summary", { hasText: "Тағы" }).click();
   await page.getByRole("link", { name: "Барлық оқу құралдары →" }).first().click();
   await expect(page).toHaveURL(/\/tools$/);
   for (const g of ["Жоспарла және назар сал", "Есте сақта", "Жаттық және сына", "Зертте және ойна", "Оқуды үйрен"]) await expect(page.getByRole("heading", { level: 2, name: g })).toBeVisible();

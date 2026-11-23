@@ -13,6 +13,7 @@ import { Atlas } from "./Atlas";
 import { FilmHeader } from "./FilmHeader";
 import { FormatShelf } from "./FormatShelf";
 import { DailyBanner } from "../problems/DailyBanner";
+import { ContinueCard } from "../nav/ContinueCard";
 import type { ChipBlock, HeroMode } from "./HeroChip";
 import film from "./film.module.css";
 import styles from "./landing.module.css";
@@ -190,6 +191,8 @@ export function HomeFilm() {
       <Atlas />
 
       <FormatShelf />
+
+      <ContinueCard />
 
       <footer className={styles.footer}>
         <span>INSIDE/TECH</span>

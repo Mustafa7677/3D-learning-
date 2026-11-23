@@ -64,7 +64,7 @@ test("function marksman: the wrong order misses, the right order hits", async ({
 
 test("the tactics page is in the tools menu", async ({ page }) => {
   await page.goto("/parsons");
-  await page.locator("summary", { hasText: "Құралдар" }).click();
+  await page.locator("summary", { hasText: "Тағы" }).click();
   await page.getByRole("link", { name: "Тактика алаңы" }).click();
   await expect(page).toHaveURL(/\/tactics/);
 });

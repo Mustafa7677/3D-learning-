@@ -80,7 +80,7 @@ for (const width of [320, 360]) {
     );
     for (const right of rights) expect(right).toBeLessThanOrEqual(width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
-    await page.locator("summary", { hasText: "Құралдар" }).click();
+    await page.locator("summary", { hasText: "Тағы" }).click();
     const create = page.getByRole("link", { name: "Сабақ жасау" });
     await expect(create).toBeVisible();
     const box = (await create.boundingBox())!;

@@ -8,6 +8,7 @@ import { findLab } from "@/lib/catalog";
 import { LessonPanel } from "./LessonPanel";
 import { PlayerBadge } from "../film/PlayerBadge";
 import { FocusChip } from "../focus/FocusChip";
+import { SearchButton } from "../nav/SearchButton";
 import { StageFrame } from "./StageFrame";
 import styles from "./lab.module.css";
 
@@ -41,6 +42,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
           </span>
         </nav>
         <span className={styles.hud}>
+          <SearchButton />
           <FocusChip />
           <PlayerBadge />
         </span>

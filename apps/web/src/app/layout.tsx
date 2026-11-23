@@ -18,6 +18,7 @@ import "@fontsource/ibm-plex-mono/cyrillic-400.css";
 import "@fontsource/ibm-plex-mono/cyrillic-500.css";
 import "./serif.css";
 import "./globals.css";
+import { SearchPalette } from "@/components/nav/SearchPalette";
 
 export const metadata: Metadata = {
   title: "INSIDE TECH: технологияның ішіне кір",
@@ -32,7 +33,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="kk">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SearchPalette />
+      </body>
     </html>
   );
 }

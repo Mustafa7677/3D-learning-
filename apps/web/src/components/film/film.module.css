@@ -1046,3 +1046,13 @@
   color: #f0b54a !important;
   border-bottom: 1px solid rgb(240 181 74 / 0.3);
 }
+
+.menuGroup {
+  margin: 8px 12px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: currentColor;
+  opacity: 0.5;
+}

@@ -15,8 +15,9 @@ const clue = (page: Page, word: string) => {
 
 test("gazette: from the menu, a word typed in, a wrong letter checked, a reload, the whole puzzle solved", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("navigation", { name: "Негізгі мәзір" }).getByRole("link", { name: "Газет" }).click();
-  await expect(page).toHaveURL(/\/gazette$/);
+  await page.locator("summary", { hasText: "Тағы" }).click();
+  await page.getByRole("link", { name: "Газет", exact: true }).click();
+  await expect(page).toHaveURL(/\/gazette$/, { timeout: 20000 });
   await expect(page.getByRole("heading", { name: "INSIDE TECH газеті", level: 1 })).toBeVisible();
   // The lead story quotes the mission model.
   await expect(page.getByText(/Таңертең бір телефоннан мектептің басты беті \d+ мс ішінде ашылады/)).toBeVisible();

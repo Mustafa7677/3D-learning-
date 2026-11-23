@@ -14,7 +14,13 @@ export function LearnHow() {
   const [i, setI] = useState(0);
   /** Episode id → whether the learner's guess was right. */
   const [seen, setSeen] = useState<Record<string, boolean>>({});
-  useEffect(() => setSeen(loadSeen()), []);
+  useEffect(() => {
+    setSeen(loadSeen());
+    // A search result can open one episode: /learn?e=reread
+    const asked = new URLSearchParams(window.location.search).get("e");
+    const k = EPISODES.findIndex((x) => x.id === asked);
+    if (k >= 0) setI(k);
+  }, []);
   const e = EPISODES[i]!;
   const guessed = e.id in seen;
   const done = Object.keys(seen).length;

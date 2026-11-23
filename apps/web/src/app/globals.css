@@ -178,3 +178,10 @@ select {
     animation: none !important;
   }
 }
+
+/* Room for the phone tab bar under the page's last line. */
+@media (max-width: 720px) {
+  body:has(nav[aria-label="Төменгі мәзір"]) {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+}
