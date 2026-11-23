@@ -25,25 +25,29 @@ test("lesson 5: overfitting setup trains a large net on a small dataset", async 
 });
 
 test("lesson 6: tokenizer and attention respond to the learner", async ({ page }) => {
+  // Tokenizing with 120 merges and recomputing attention is real work in a worker: on a busy
+  // machine it takes seconds, so this lesson gets realistic waits.
+  test.setTimeout(120_000);
+  const slow = { timeout: 20_000 };
   await page.goto("/labs/ai/ai-6-transformers");
   const tokens = page.locator('[role="status"] div', { hasText: "Токендер" }).locator("strong");
   await expect(page.getByLabel("Сөйлем")).toHaveValue("мысық сүт ішеді");
   const before = Number(await tokens.textContent());
   await page.getByLabel("Merge саны").fill("0");
   // Without merges every letter plus the end-of-word mark is its own token: 5+3+5 + 3.
-  await expect(tokens).toHaveText("16");
+  await expect(tokens).toHaveText("16", slow);
   expect(before).toBeLessThan(16);
   await page.getByLabel("Сөйлем").fill("бағдарламашы код жазады");
-  await expect(objective(page, "Өз сөйлеміңді жаз")).toHaveAttribute("data-done", "true");
+  await expect(objective(page, "Өз сөйлеміңді жаз")).toHaveAttribute("data-done", "true", slow);
   await page.getByLabel("Merge саны").fill("120");
-  await expect(objective(page, "3 түрлі мәнін")).toHaveAttribute("data-done", "true");
+  await expect(objective(page, "3 түрлі мәнін")).toHaveAttribute("data-done", "true", slow);
   await nextStep(page);
   for (const w of ["мысық", "компьютер", "аспан"]) await page.getByRole("button", { name: w, exact: true }).click();
   await expect(page.getByText("сөзінің ең жақын көршілері")).toBeVisible();
-  await expect(objective(page, "3 сөзді таңдап")).toHaveAttribute("data-done", "true");
+  await expect(objective(page, "3 сөзді таңдап")).toHaveAttribute("data-done", "true", slow);
   await nextStep(page);
-  await page.locator("table").getByRole("button", { name: "сүт" }).click();
-  await expect(page.getByText("назарының энтропиясы")).toBeVisible();
+  await page.locator("table").getByRole("button", { name: "сүт" }).click(slow);
+  await expect(page.getByText("назарының энтропиясы")).toBeVisible(slow);
 });
 
 test("lesson 7: the language model generates tokens", async ({ page }) => {

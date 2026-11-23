@@ -210,7 +210,7 @@ export function Today() {
           <p className={styles.note}>
             {week >= goal ? `Мақсат орындалды: осы аптада ${week} күн оқыдың.` : `Осы аптада ${week} күн оқыдың. Мақсатқа ${goal - week} күн қалды.`} Тұрақтылық ұзақтықтан маңызды: күніне 15 минут аптасына бір рет 2 сағаттан жақсы есте қалады.
           </p>
-          <div className={styles.heat} role="img" aria-label={`Соңғы 16 аптадағы белсенділік: ${activeDays} белсенді күн`}>
+          <div className={styles.heat} tabIndex={0} role="img" aria-label={`Соңғы 16 аптадағы белсенділік: ${activeDays} белсенді күн`}>
             <div className={styles.heatRows} aria-hidden>
               {ROWS.map((r, i) => (
                 <span key={i}>{r}</span>

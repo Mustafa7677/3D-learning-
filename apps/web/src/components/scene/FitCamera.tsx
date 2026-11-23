@@ -23,6 +23,8 @@ export function FitCamera({ width, height, target, dir, margin = 1.1 }: Props) {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const size = useThree((s) => s.size);
   const controls = useThree((s) => s.controls) as unknown as { target: Vector3; update(): void } | null;
+  // Scenes that draw on demand need to be told the camera moved.
+  const invalidate = useThree((s) => s.invalidate);
 
   useEffect(() => {
     const aspect = size.width / Math.max(1, size.height);
@@ -36,6 +38,7 @@ export function FitCamera({ width, height, target, dir, margin = 1.1 }: Props) {
       controls.target.copy(t);
       controls.update();
     }
+    invalidate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camera, controls, size.width, size.height, width, height, target[0], target[1], target[2], dir[0], dir[1], dir[2], margin]);
   return null;

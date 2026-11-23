@@ -46,7 +46,14 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
           <FocusChip />
           <PlayerBadge />
         </span>
-        <span className={styles.progress} aria-label="Сабақ прогресі">
+        <span
+          className={styles.progress}
+          role="progressbar"
+          aria-label="Сабақ прогресі"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(session.completion * 100)}
+        >
           <span style={{ width: `${Math.round(session.completion * 100)}%` }} />
         </span>
       </header>

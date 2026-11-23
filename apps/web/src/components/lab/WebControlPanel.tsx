@@ -43,22 +43,36 @@ function Debounced({ id, value, onCommit, label, multiline, rows, mono }: { id: 
   const [draft, setDraft] = useState(value);
   const commit = useRef(onCommit);
   commit.current = onCommit;
-  useEffect(() => setDraft(value), [value]);
+  // Commit only what the learner typed: a value set by the lesson must never be overwritten by
+  // a stale draft (a slow re-render could let the timer, or a blur, write the old text back).
+  const typed = useRef(false);
   useEffect(() => {
-    if (draft === value) return;
-    const t = setTimeout(() => commit.current(draft), 400);
+    typed.current = false;
+    setDraft(value);
+  }, [value]);
+  const send = (v: string) => {
+    typed.current = false;
+    commit.current(v);
+  };
+  useEffect(() => {
+    if (!typed.current || draft === value) return;
+    const t = setTimeout(() => send(draft), 400);
     return () => clearTimeout(t);
   }, [draft, value]);
-  const flush = () => draft !== value && commit.current(draft);
+  const flush = () => typed.current && draft !== value && send(draft);
+  const edit = (v: string) => {
+    typed.current = true;
+    setDraft(v);
+  };
   return (
     <>
       <label htmlFor={id} className={styles.small}>
         {label}
       </label>
       {multiline ? (
-        <textarea id={id} className={mono ? lang.code : lang.textInput} rows={rows ?? 6} value={draft} spellCheck={false} onChange={(e) => setDraft(e.target.value)} onBlur={flush} />
+        <textarea id={id} className={mono ? lang.code : lang.textInput} rows={rows ?? 6} value={draft} spellCheck={false} onChange={(e) => edit(e.target.value)} onBlur={flush} />
       ) : (
-        <input id={id} className={lang.textInput} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={flush} onKeyDown={(e) => e.key === "Enter" && flush()} />
+        <input id={id} className={lang.textInput} value={draft} onChange={(e) => edit(e.target.value)} onBlur={flush} onKeyDown={(e) => e.key === "Enter" && flush()} />
       )}
     </>
   );

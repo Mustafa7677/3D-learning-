@@ -34,10 +34,20 @@ function DebouncedInput({ id, value, onCommit, label }: { id: string; value: str
   const [draft, setDraft] = useState(value);
   const commit = useRef(onCommit);
   commit.current = onCommit;
-  useEffect(() => setDraft(value), [value]);
+  // Only the learner's typing is committed. When the lesson itself sets a new value (a step
+  // starting), the old draft must never be written back: on a slow device the debounce timer
+  // could fire before the re-render that resets the draft, and undo the step's sentence.
+  const typed = useRef(false);
   useEffect(() => {
-    if (draft === value) return;
-    const t = setTimeout(() => commit.current(draft), 350);
+    typed.current = false;
+    setDraft(value);
+  }, [value]);
+  useEffect(() => {
+    if (!typed.current || draft === value) return;
+    const t = setTimeout(() => {
+      typed.current = false;
+      commit.current(draft);
+    }, 350);
     return () => clearTimeout(t);
   }, [draft, value]);
   return (
@@ -45,7 +55,11 @@ function DebouncedInput({ id, value, onCommit, label }: { id: string; value: str
       <label htmlFor={id} className={styles.small}>
         {label}
       </label>
-      <input id={id} className={lang.textInput} value={draft} maxLength={200} onChange={(e) => setDraft(e.target.value)} />
+      <input id={id} className={lang.textInput} value={draft} maxLength={200} onChange={(e) => {
+          typed.current = true;
+          setDraft(e.target.value);
+        }}
+      />
     </>
   );
 }

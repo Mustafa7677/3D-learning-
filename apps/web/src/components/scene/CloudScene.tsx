@@ -304,7 +304,7 @@ function Contents({ state, focus }: { state: CloudLabState; focus: CloudFocus })
 
 export default function CloudScene({ state, focus }: { state: CloudLabState; focus: CloudFocus }) {
   return (
-    <Canvas camera={{ position: [0, 8, 14], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: бұлт және DevOps">
+    <Canvas frameloop="demand" camera={{ position: [0, 8, 14], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: бұлт және DevOps">
       <Contents state={state} focus={focus} />
     </Canvas>
   );

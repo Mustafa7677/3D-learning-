@@ -492,7 +492,7 @@ function Contents({ state: learner, focus }: { state: MathLabState; focus: MathF
 
 export default function MathScene({ state, focus }: { state: MathLabState; focus: MathFocus }) {
   return (
-    <Canvas camera={{ position: [6, 7, 10], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: математика">
+    <Canvas frameloop="demand" camera={{ position: [6, 7, 10], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: математика">
       <Contents state={state} focus={focus} />
     </Canvas>
   );

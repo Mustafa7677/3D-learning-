@@ -1056,3 +1056,10 @@
   color: currentColor;
   opacity: 0.5;
 }
+
+/* On a phone these live in the tab bar at the bottom: not twice on screen. */
+@media (max-width: 720px) {
+  .inTabs {
+    display: none;
+  }
+}

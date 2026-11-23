@@ -170,7 +170,7 @@ function Contents({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
 
 export default function AlgoScene({ state, focus }: { state: AlgoLabState; focus: AlgoFocus }) {
   return (
-    <Canvas camera={{ position: [0, 6, 14], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: алгоритм қадамдары">
+    <Canvas frameloop="demand" camera={{ position: [0, 6, 14], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: алгоритм қадамдары">
       <Contents state={state} focus={focus} />
     </Canvas>
   );

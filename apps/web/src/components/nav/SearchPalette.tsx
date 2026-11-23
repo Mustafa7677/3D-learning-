@@ -51,6 +51,17 @@ export function SearchPalette() {
     if (open) setTimeout(() => input.current?.focus(), 0);
     else back.current?.focus?.();
   }, [open]);
+  // Esc closes from anywhere, even before the input has taken focus.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      setQ("");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
   useEffect(() => setI(0), [q]);
 
   if (!open) return null;
@@ -81,8 +92,7 @@ export function SearchPalette() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Escape") close();
-              else if (e.key === "ArrowDown") (e.preventDefault(), setI((x) => Math.min(hits.length - 1, x + 1)));
+              if (e.key === "ArrowDown") (e.preventDefault(), setI((x) => Math.min(hits.length - 1, x + 1)));
               else if (e.key === "ArrowUp") (e.preventDefault(), setI((x) => Math.max(0, x - 1)));
               else if (e.key === "Enter" && hits[i]) go(hits[i]!);
             }}

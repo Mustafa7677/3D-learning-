@@ -133,7 +133,7 @@ function Contents({ state, focus }: { state: DbLabState; focus: DbFocus }) {
 
 export default function DbScene({ state, focus }: { state: DbLabState; focus: DbFocus }) {
   return (
-    <Canvas camera={{ position: [0, 8, 14], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: дерекқор">
+    <Canvas frameloop="demand" camera={{ position: [0, 8, 14], fov: 45, near: 0.1, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} role="img" aria-label="3D көрініс: дерекқор">
       <Contents state={state} focus={focus} />
     </Canvas>
   );

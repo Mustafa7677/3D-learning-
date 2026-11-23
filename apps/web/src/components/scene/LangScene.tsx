@@ -137,7 +137,7 @@ function ProbabilityBars({ state }: { state: LangLabState }) {
 export default function LangScene(props: Props) {
   const llm = props.focus === "llm";
   return (
-    <Canvas
+    <Canvas frameloop="demand"
       key={llm ? "llm" : "space"}
       camera={{ position: [0, 4, 9], fov: 45, near: 0.1, far: 100 }}
       dpr={[1, 2]}

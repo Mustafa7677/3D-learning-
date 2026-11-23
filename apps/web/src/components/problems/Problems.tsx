@@ -232,7 +232,7 @@ export function Problems() {
                 return (
                   <li key={d.key} data-solved={d.solved} data-today={d.today || undefined} title={d.key}>
                     <span>{WEEKDAY[new Date(y!, m! - 1, dd!).getDay()]}</span>
-                    <i aria-label={d.solved ? "шешілді" : "бос"} />
+                    <i role="img" aria-label={d.solved ? "шешілді" : "бос"} />
                   </li>
                 );
               })}

@@ -30,7 +30,7 @@ export function DailyBanner() {
           <span className={styles.streak}>
             <b>{streak}</b> күн қатарынан
           </span>
-          <span className={styles.dots} aria-label="Соңғы жеті күн">
+          <span className={styles.dots} role="img" aria-label={`Соңғы жеті күн: ${days.filter(Boolean).length} күн шешілді`}>
             {days.map((d, i) => (
               <i key={i} data-on={d} />
             ))}

@@ -99,7 +99,7 @@ function renderBlock(b: Block, k: string): ReactNode {
       );
     case "code":
       return (
-        <pre key={k}>
+        <pre key={k} tabIndex={0}>
           <code>{b.text}</code>
         </pre>
       );
