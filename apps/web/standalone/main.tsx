@@ -27,6 +27,7 @@ import { Problems } from "../src/components/problems/Problems";
 import { Tactics } from "../src/components/tactics/Tactics";
 import { Teach } from "../src/components/teach/Teach";
 import { ComicLibrary } from "../src/components/comics/ComicLibrary";
+import { World } from "../src/components/world/World";
 import { SearchPalette } from "../src/components/nav/SearchPalette";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
@@ -48,6 +49,7 @@ const TITLES: Record<string, string> = {
   comic: "Комикс: Үш қол алысу",
   cards: "Есте сақтау карточкалары",
   sky: "Білім аспаны",
+  world: "IT архипелагы",
   notebook: "Қателер дәптері",
   ticket: "Емтихан билеті",
   parsons: "Ретке келтір",
@@ -102,6 +104,7 @@ function Page({ route, name }: { route: string; name: string }) {
   if (name === "comic") return <Comic />;
   if (name === "cards") return <Cards />;
   if (name === "sky") return <Sky />;
+  if (name === "world") return <World key={route} />;
   if (name === "notebook") return <Notebook />;
   if (name === "ticket") return <Ticket />;
   if (name === "parsons") return <Parsons />;

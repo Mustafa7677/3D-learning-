@@ -1,0 +1,647 @@
+/* IT архипелагы: an old sea chart at night, islands you can sail to, bosses to beat. */
+.page {
+  --paper: #f3e7c8;
+  --ink: #1d1712;
+  --gold: #f2c14e;
+  --red: #d8342a;
+  --sea: #0b2538;
+  --dim: #b9c3d6;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 104px var(--gutter, 24px) 96px;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.head {
+  margin-bottom: 18px;
+}
+.issue {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+}
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 7vw, 88px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 4px 4px 0 var(--red);
+}
+.title span {
+  color: var(--gold);
+}
+.lede {
+  max-width: 70ch;
+  margin: 14px 0 0;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--dim);
+}
+
+/* ---------- treasures ---------- */
+.treasures {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+}
+.treasures li {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: #6c7690;
+  background: #121b2c;
+  border: 2px dashed #3a4562;
+  border-radius: 10px;
+}
+.treasures li[data-got] {
+  color: var(--ink);
+  background: var(--gold);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--red);
+}
+
+/* ---------- the map ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 20px;
+  align-items: start;
+}
+.map {
+  position: relative;
+  aspect-ratio: 1200 / 760;
+  border: 3px solid var(--paper);
+  border-radius: 6px;
+  box-shadow: 0 0 0 6px var(--sea), 8px 10px 0 6px var(--red);
+  overflow: hidden;
+}
+.sea {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.route path {
+  fill: none;
+  stroke: var(--paper);
+  stroke-opacity: 0.45;
+  stroke-width: 2.5;
+  stroke-dasharray: 2 10;
+  stroke-linecap: round;
+}
+.route text {
+  font: 600 15px var(--font-body);
+  fill: var(--paper);
+  fill-opacity: 0.75;
+  text-anchor: middle;
+}
+.island[data-state="fog"] > path {
+  filter: saturate(0.6) brightness(0.9);
+}
+.fog ellipse {
+  fill: #dfe7f1;
+  opacity: 0.3;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fog {
+    animation: drift 9s ease-in-out infinite alternate;
+  }
+  .ship {
+    animation: bob 3s ease-in-out infinite;
+  }
+}
+@keyframes drift {
+  to {
+    transform: translateX(14px);
+  }
+}
+@keyframes bob {
+  50% {
+    translate: 0 -5px;
+  }
+}
+.compass circle {
+  fill: none;
+  stroke: var(--paper);
+  stroke-opacity: 0.5;
+  stroke-width: 2;
+}
+.compass path {
+  fill: var(--paper);
+  opacity: 0.8;
+}
+.compass text {
+  font: 700 16px var(--font-display);
+  fill: var(--paper);
+  text-anchor: middle;
+}
+
+.pin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 48px;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transform: translate(-50%, -58%);
+}
+.pin svg {
+  width: clamp(40px, 6.4vw, 78px);
+  height: clamp(40px, 6.4vw, 78px);
+  filter: drop-shadow(3px 4px 0 rgb(0 0 0 / 0.35));
+  transition: transform 0.15s;
+}
+.pin span {
+  padding: 2px 8px;
+  font: 700 clamp(10px, 1.1vw, 13px) var(--font-body);
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+}
+.pin[data-state="fog"] svg {
+  opacity: 0.7;
+}
+.pin[data-state="conquered"] span {
+  background: var(--gold);
+}
+.pin:hover svg,
+.pin:focus-visible svg {
+  transform: translateY(-4px) scale(1.06);
+}
+.pin[aria-pressed="true"] span {
+  color: #fff;
+  background: var(--red);
+}
+.pin:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+}
+
+/* ---------- island card ---------- */
+.card {
+  padding: 18px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--gold);
+}
+.cardLab {
+  margin: 0;
+  font: 700 12px var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5a4a35;
+}
+.cardLab span[data-state="conquered"] {
+  color: #8a1f17;
+}
+.cardTitle {
+  margin: 4px 0 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.1;
+}
+.guardian {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.guardianFace {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+.bubble {
+  position: relative;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 15px;
+  line-height: 1.45;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+}
+.pathHead {
+  margin: 16px 0 6px;
+  font: 700 13px var(--font-body);
+}
+.path {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.path li {
+  width: 16px;
+  height: 16px;
+  background: #d9cba6;
+  border: 2px solid #8b7a5a;
+  border-radius: 50%;
+}
+.path li[data-done] {
+  background: var(--gold);
+  border-color: var(--ink);
+}
+.next {
+  display: inline-block;
+  margin: 2px 0 0;
+  font-weight: 700;
+  color: #8a1f17;
+  text-underline-offset: 3px;
+}
+.bossCard {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px;
+  color: #fff;
+  background: #1a1420;
+  border: 3px solid var(--ink);
+}
+.bossCard[data-beaten] {
+  background: #2c3a24;
+}
+.bossFace {
+  flex: none;
+  width: 80px;
+  height: 80px;
+}
+.bossLabel {
+  margin: 0;
+  font: 700 11px var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.bossCard h3 {
+  margin: 2px 0 6px;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+.treasureLine {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #e8e0cc;
+}
+.fight {
+  min-height: 44px;
+  padding: 8px 16px;
+  font: 700 15px var(--font-body);
+  color: var(--ink);
+  background: var(--gold);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--red);
+  cursor: pointer;
+}
+.fight:hover,
+.fight:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--red);
+}
+
+/* ---------- how to play ---------- */
+.how {
+  margin-top: 36px;
+  max-width: 880px;
+}
+.how h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.how ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: how;
+}
+.how li {
+  counter-increment: how;
+  padding: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dim);
+  background: #121b2c;
+  border-left: 4px solid var(--gold);
+}
+.how li::before {
+  content: counter(how);
+  display: block;
+  font: 700 22px var(--font-display);
+  color: var(--gold);
+}
+.how b {
+  color: #fff;
+}
+
+/* ---------- battle ---------- */
+.scrim {
+  --paper: #f3e7c8;
+  --ink: #1d1712;
+  --gold: #f2c14e;
+  --red: #d8342a;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(5 8 14 / 0.82);
+}
+.battle {
+  position: relative;
+  width: min(820px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  color: var(--ink);
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--red);
+}
+.arena {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  min-height: 230px;
+  padding: 18px 28px 12px;
+  overflow: hidden;
+  border-bottom: 4px solid var(--ink);
+}
+.arenaBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.fighter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.bossBig {
+  width: 150px;
+  height: 150px;
+  filter: drop-shadow(4px 5px 0 rgb(0 0 0 / 0.4));
+}
+.allyBig {
+  width: 104px;
+  height: 104px;
+  filter: drop-shadow(3px 4px 0 rgb(0 0 0 / 0.35));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arena[data-hit="boss"] .bossBig {
+    animation: shake 0.4s;
+  }
+  .arena[data-hit="you"] .allyBig {
+    animation: shake 0.4s;
+  }
+}
+@keyframes shake {
+  25% {
+    translate: -8px 0;
+  }
+  75% {
+    translate: 8px 0;
+  }
+}
+.bossName {
+  margin: 4px 0 2px;
+  padding: 1px 8px;
+  font: 700 13px var(--font-body);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+}
+.hp,
+.hearts {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 20px;
+  background: var(--ink);
+}
+.hp span {
+  color: #4a3a3a;
+}
+.hp span[data-on] {
+  color: #ff5a4a;
+}
+.hearts span {
+  color: #4a3a3a;
+}
+.hearts span[data-on] {
+  color: #ff7aa8;
+}
+.boom {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  translate: -50% 0;
+  rotate: -6deg;
+  font: 900 34px var(--font-display);
+  color: var(--gold);
+  -webkit-text-stroke: 2px var(--ink);
+  text-shadow: 3px 3px 0 var(--red);
+}
+.console {
+  padding: 18px 24px 22px;
+}
+.battleTitle {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.battleTitle:focus {
+  outline: none;
+}
+.taunt {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: #5a1a14;
+}
+.question {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+.options button {
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.options button:hover:not(:disabled),
+.options button:focus-visible {
+  background: #fff3c4;
+}
+.options button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.options button[data-verdict="right"] {
+  opacity: 1;
+  background: #c8ecc0;
+  border-color: #1f6b2a;
+}
+.options button[data-verdict="wrong"] {
+  opacity: 1;
+  background: #ffd2cc;
+  border-color: #8a1f17;
+}
+.feedback {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  margin-top: 12px;
+  padding: 12px;
+  line-height: 1.5;
+  background: #ffe8e4;
+  border-left: 5px solid #8a1f17;
+}
+.feedback[data-right] {
+  background: #e3f5de;
+  border-color: #1f6b2a;
+}
+.win {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.win p {
+  margin: 0;
+}
+.treasureBig {
+  font: 700 24px var(--font-display);
+}
+.treasureBig span {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-right: 8px;
+  background: var(--gold);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--red);
+}
+.lostActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .pin span {
+    display: none;
+  }
+  .arena {
+    min-height: 170px;
+    padding: 12px;
+  }
+  .bossBig {
+    width: 96px;
+    height: 96px;
+  }
+  .allyBig {
+    width: 70px;
+    height: 70px;
+  }
+  .boom {
+    font-size: 24px;
+  }
+  .console {
+    padding: 14px;
+  }
+}
+
+/* A boss is a guardian gone wrong: the same body, burning red. */
+.bossFace,
+.bossBig {
+  filter: hue-rotate(320deg) saturate(1.8) drop-shadow(0 0 6px rgb(255 60 40 / 0.8)) drop-shadow(4px 5px 0 rgb(0 0 0 / 0.4));
+}
+.bossCard[data-beaten] .bossFace {
+  filter: grayscale(0.7);
+}
+.routes ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+.routes button {
+  min-height: 36px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  cursor: pointer;
+}
+.routes button:hover,
+.routes button:focus-visible {
+  background: #fff3c4;
+}

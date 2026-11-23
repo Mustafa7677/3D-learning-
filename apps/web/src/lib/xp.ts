@@ -7,8 +7,9 @@ import { progressStore } from "./progress";
 import { XP_JOURNEY_ANSWER, loadJourney } from "./journey";
 import { XP_CHALLENGE, loadChallenges } from "./challenges";
 import { loadProblems, problemsXp } from "./problems";
+import { XP_BOSS, loadBeaten } from "./world";
 
-const bonus = () => loadJourney().length * XP_JOURNEY_ANSWER + loadChallenges().length * XP_CHALLENGE + problemsXp(loadProblems());
+const bonus = () => loadJourney().length * XP_JOURNEY_ANSWER + loadChallenges().length * XP_CHALLENGE + problemsXp(loadProblems()) + loadBeaten().length * XP_BOSS;
 
 /** XP for a finished lesson and for each finished task inside one. */
 export const XP_LESSON = 100;
