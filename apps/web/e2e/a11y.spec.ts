@@ -80,5 +80,11 @@ test("interactive states are clean too: search open, a focus session, an episode
   await page.goto("/arcade?g=gates");
   await expect(page.getByRole("group", { name: "Сұлба" })).toBeVisible();
   await check("gate game");
+  await page.goto("/arcade?g=defense");
+  await expect(page.getByRole("group", { name: "Қорғаныс құралдары" })).toBeVisible();
+  await check("tower defence");
+  await page.goto("/arcade?g=bughunt");
+  await expect(page.getByRole("list", { name: "Бағтар" })).toBeVisible();
+  await check("bug hunt");
   expect(faults).toEqual([]);
 });

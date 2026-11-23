@@ -7,13 +7,17 @@
  * The rules live here as plain functions, so they are tested without a screen.
  */
 
-export type GameId = "bits" | "gates" | "phish" | "cache";
+export type GameId = "surf" | "bughunt" | "defense" | "bits" | "gates" | "phish" | "cache";
 
 export interface GameInfo {
   id: GameId;
   title: string;
   topic: string;
   lab: string;
+  /** The lesson behind the game, offered when it ends. */
+  lesson: string;
+  /** Action games are played for fun first; drills are quick practice. */
+  kind: "action" | "drill";
   pitch: string;
   how: string;
   /** Scores for bronze, silver, gold. */
@@ -23,7 +27,45 @@ export interface GameInfo {
 
 export const GAMES: GameInfo[] = [
   {
+    id: "surf",
+    title: "Пакет-серфер",
+    topic: "Желі",
+    lab: "net",
+    lesson: "net-1-packets",
+    kind: "action",
+    pitch: "Сен оптикалық кабельмен жарық жылдамдығымен ұшып бара жатқан пакетсің. Брандмауэрлердің саңылауынан өт, вирустардан қаш, биттерді жина!",
+    how: "↑ ↓ (немесе W, S) пернелерімен, не саусақпен немесе тінтуірмен сүйреп жүргіз. TLS қалқаны бір соққыдан сақтайды. Жылдамдық үнемі өседі.",
+    medals: [300, 800, 1600],
+    glyph: "✈",
+  },
+  {
+    id: "bughunt",
+    title: "Баг аулау",
+    topic: "Жөндеу (debug)",
+    lab: "web",
+    lesson: "web-7-debug",
+    kind: "action",
+    pitch: "Кодтың жолдарымен бағтар жорғалап, продакшенге қарай келе жатыр! Басып өлтір, бірақ жасыл фичаларға тиме. 35 секунд сайын үлкен Prod бағы келеді.",
+    how: "Бағты басып жой немесе жол нөмірін (1-8) бас. Жад ағуы үш соққы, жарыс күйі ирелеңдейді. Тез қатарынан жойсаң, комбо ×5-ке дейін өседі. Бес баг продакшенге жетсе, ойын бітеді.",
+    medals: [300, 900, 2000],
+    glyph: "🐞",
+  },
+  {
+    id: "defense",
+    title: "Брандмауэр қорғанысы",
+    topic: "Киберқауіпсіздік",
+    lab: "sec",
+    lesson: "sec-9-pset",
+    kind: "action",
+    pitch: "Интернеттен серверге спам, құрттар, DDoS, жасырын трояндар және ransomware боссы келеді. Жол бойына қорғаныс құр, 10 толқынға шыда!",
+    how: "Құралды таңда (1, 2, 3), жолдың жанындағы ұяшықты бас (немесе бағыттау пернелері мен Enter). Брандмауэр жылдам атады, антивирус топқа соғады, сканер трояндарды көрсетіп баяулатады. Құралды басып, сатуға болады.",
+    medals: [800, 2000, 3500],
+    glyph: "🛡",
+  },
+  {
     id: "bits",
+    lesson: "arch-1-binary",
+    kind: "drill",
     title: "Бит-метеор",
     topic: "Екілік сандар",
     lab: "arch",
@@ -34,6 +76,8 @@ export const GAMES: GameInfo[] = [
   },
   {
     id: "gates",
+    lesson: "arch-3-gates",
+    kind: "drill",
     title: "Қақпа жарысы",
     topic: "Логикалық қақпалар",
     lab: "arch",
@@ -44,6 +88,8 @@ export const GAMES: GameInfo[] = [
   },
   {
     id: "phish",
+    lesson: "sec-13-certs",
+    kind: "drill",
     title: "Фишинг сүзгісі",
     topic: "Киберқауіпсіздік",
     lab: "sec",
@@ -54,6 +100,8 @@ export const GAMES: GameInfo[] = [
   },
   {
     id: "cache",
+    lesson: "arch-8-cache",
+    kind: "drill",
     title: "Кэш сақшысы",
     topic: "Жад иерархиясы",
     lab: "arch",

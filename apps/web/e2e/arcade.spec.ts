@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 test("the arcade hall shows four cabinets and opens a game", async ({ page }) => {
   await page.goto("/arcade");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Ойна да");
-  await expect(page.getByRole("button", { name: /^Ойнау: / })).toHaveCount(4);
+  await expect(page.getByRole("button", { name: /^Ойнау: / })).toHaveCount(7);
   await page.getByRole("button", { name: "Ойнау: Бит-метеор" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Бит-метеор");
 });
@@ -68,4 +68,36 @@ test("cache keeper: a full cache waits for the player to evict, the end races LR
   await page.getByRole("button", { name: /Ұпайды алу/ }).click();
   await expect(page.getByText("ОЙЫН БІТТІ")).toBeVisible();
   await expect(page.getByRole("button", { name: "↻ Тағы ойнау" })).toBeVisible();
+});
+
+test("packet surfer: the run starts after the countdown and the score climbs", async ({ page }) => {
+  await page.goto("/arcade?g=surf");
+  await expect(page.getByRole("img", { name: /^Пакет-серфер/ })).toBeVisible();
+  await expect(page.getByTestId("score")).toHaveText("0");
+  await expect(page.getByTestId("score")).not.toHaveText("0", { timeout: 6000 });
+});
+
+test("bug hunt: a line number squashes the bug on that line", async ({ page }) => {
+  await page.goto("/arcade?g=bughunt");
+  const game = page.locator("[data-lines]");
+  await expect(game).not.toHaveAttribute("data-lines", "", { timeout: 8000 });
+  const line = (await game.getAttribute("data-lines"))!.split(",")[0]!;
+  await page.keyboard.press(line);
+  await expect(page.getByTestId("score")).not.toHaveText("0");
+});
+
+test("firewall defence: build a firewall beside the road, start a wave, earn from kills", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/arcade?g=defense");
+  const canvas = page.getByRole("img", { name: /^Брандмауэр қорғанысы/ });
+  await expect(page.getByTestId("money")).toHaveText("160");
+  const box = (await canvas.boundingBox())!;
+  const cell = (c: number, r: number) => ({ x: ((c + 0.5) / 14) * box.width, y: ((r + 0.5) / 8) * box.height });
+  // Two firewalls on the first bend of the road.
+  await canvas.click({ position: cell(3, 2) });
+  await canvas.click({ position: cell(5, 2) });
+  await expect(page.getByTestId("money")).toHaveText("60");
+  await page.getByRole("button", { name: "▶ 1-толқынды бастау" }).click();
+  await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "wave");
+  await expect.poll(async () => Number(await page.getByTestId("money").textContent()), { timeout: 30_000 }).toBeGreaterThan(60);
 });

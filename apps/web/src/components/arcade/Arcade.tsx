@@ -5,13 +5,17 @@ import { useEffect, useState } from "react";
 import { GAMES, MEDAL_WORD, loadBest, medalOf, saveScore, type GameId, type GameInfo } from "@/lib/arcade";
 import { recordActivity } from "@/lib/activity";
 import { queryParam } from "@/lib/nav";
-import { lessonsForLab } from "@/lib/lessons";
+import { lessonEntries } from "@/lib/lessons";
 import { FilmHeader } from "../film/FilmHeader";
 import film from "../film/film.module.css";
 import { BitMeteor } from "./BitMeteor";
 import { GateRush } from "./GateRush";
 import { PhishFilter } from "./PhishFilter";
 import { CacheKeeper } from "./CacheKeeper";
+import { PacketSurfer } from "./PacketSurfer";
+import { BugHunt } from "./BugHunt";
+import { FirewallDefense } from "./FirewallDefense";
+import { setSound, soundOn } from "@/lib/sfx";
 import styles from "./arcade.module.css";
 
 const MEDAL_GLYPH = ["", "🥉", "🥈", "🥇"] as const;
@@ -22,9 +26,11 @@ export function Arcade() {
   const [playing, setPlaying] = useState<GameId>();
   const [round, setRound] = useState(0);
   const [result, setResult] = useState<{ score: number; record: boolean }>();
+  const [sound, setSoundState] = useState(false);
 
   useEffect(() => {
     setBest(loadBest());
+    setSoundState(soundOn());
     const g = queryParam("g");
     if (GAMES.some((x) => x.id === g)) setPlaying(g as GameId);
   }, []);
@@ -54,14 +60,21 @@ export function Arcade() {
         {!game ? (
           <>
             <header className={styles.head}>
-              <p className={styles.issue}>ОЙЫН ЗАЛЫ · {GAMES.length} АВТОМАТ</p>
+              <p className={styles.issue}>ОЙЫН ЗАЛЫ · {GAMES.length} ОЙЫН</p>
               <h1 className={styles.title}>
                 Ойна да <span>үйрен</span>
               </h1>
-              <p className={styles.lede}>Әр автомат бір идеяны жылдамдықпен жаттықтырады: екілік сандар, логикалық қақпалар, фишинг, кэш. Бір ойын екі-үш минут. Медаль жина, өз рекордыңды жаң.</p>
+              <p className={styles.lede}>Экшн ойындарда сен пакет, баг аулаушы және сервердің қорғаушысысың. Жылдам жаттығуларда екілік сандар, қақпалар, фишинг пен кэшті қолың өзі білетіндей етесің. Медаль жина, өз рекордыңды жаң.</p>
             </header>
+            <h2 className={styles.shelf}>Экшн ойындар</h2>
             <ul className={styles.cabinets}>
-              {GAMES.map((g) => (
+              {GAMES.filter((g) => g.kind === "action").map((g) => (
+                <Cabinet key={g.id} game={g} best={best[g.id]} onPlay={() => setPlaying(g.id)} />
+              ))}
+            </ul>
+            <h2 className={styles.shelf}>Жылдам жаттығулар</h2>
+            <ul className={styles.cabinets}>
+              {GAMES.filter((g) => g.kind === "drill").map((g) => (
                 <Cabinet key={g.id} game={g} best={best[g.id]} onPlay={() => setPlaying(g.id)} />
               ))}
             </ul>
@@ -69,9 +82,22 @@ export function Arcade() {
         ) : (
           <section className={styles.stage} aria-labelledby="game-title">
             <div className={styles.stageHead}>
-              <button type="button" className={styles.back} onClick={leave}>
-                ← Залға қайту
-              </button>
+              <div className={styles.stageBar}>
+                <button type="button" className={styles.back} onClick={leave}>
+                  ← Залға қайту
+                </button>
+                <button
+                  type="button"
+                  className={styles.back}
+                  aria-pressed={sound}
+                  onClick={() => {
+                    setSound(!sound);
+                    setSoundState(!sound);
+                  }}
+                >
+                  {sound ? "🔊 Дыбыс қосулы" : "🔇 Дыбыс өшірулі"}
+                </button>
+              </div>
               <h1 id="game-title" className={styles.gameTitle}>
                 <span aria-hidden>{game.glyph}</span> {game.title}
               </h1>
@@ -80,6 +106,9 @@ export function Arcade() {
             <div className={styles.screen} data-game={game.id}>
               {!result && (
                 <>
+                  {game.id === "surf" && <PacketSurfer key={round} onEnd={finish} />}
+                  {game.id === "bughunt" && <BugHunt key={round} onEnd={finish} />}
+                  {game.id === "defense" && <FirewallDefense key={round} onEnd={finish} />}
                   {game.id === "bits" && <BitMeteor key={round} onEnd={finish} />}
                   {game.id === "gates" && <GateRush key={round} onEnd={finish} />}
                   {game.id === "phish" && <PhishFilter key={round} onEnd={finish} />}
@@ -126,7 +155,7 @@ function GameOver({ game, score, record, best, onAgain, onLeave }: { game: GameI
   const medal = medalOf(game, score);
   const next = game.medals.find((m) => m > score);
   const unit = game.id === "cache" ? "%" : "";
-  const lesson = lessonsForLab(game.lab).find((e) => (game.id === "phish" ? e.lesson.order === 1 : game.id === "gates" ? e.lesson.order === 3 : game.id === "cache" ? e.lesson.id === "arch-8-cache" : e.lesson.order === 1));
+  const lesson = lessonEntries.find((e) => e.lesson.id === game.lesson);
   return (
     <div className={styles.over} role="status">
       <p className={styles.overLabel}>ОЙЫН БІТТІ</p>
