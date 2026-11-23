@@ -8,7 +8,7 @@ describe("site search", () => {
     const kinds = searchIndex().reduce<Record<string, number>>((m, x) => ((m[x.kind] = (m[x.kind] ?? 0) + 1), m), {});
     expect(kinds.lesson).toBe(160);
     expect(kinds.lab).toBe(11);
-    expect(kinds.tool).toBe(19);
+    expect(kinds.tool).toBe(20);
     expect(kinds.problem).toBe(7);
     expect(kinds.episode).toBe(7);
   });

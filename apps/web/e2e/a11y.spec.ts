@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /** Every page, on a desktop and a phone: no script errors, no sideways scroll, no serious accessibility faults. */
-const ROUTES = ["/", "/today", "/tools", "/focus", "/recall", "/teach", "/comics", "/learn", "/problems", "/tactics", "/parsons", "/ticket", "/cards", "/notebook", "/comic", "/mission", "/journey", "/gazette", "/blackbox", "/sky", "/world", "/passport", "/create", "/teacher", "/account", "/labs/math", "/labs/ai", "/labs/math/la-1-vectors", "/labs/web/web-10-cache", "/labs/math/ag-4-conics"];
+const ROUTES = ["/", "/today", "/tools", "/focus", "/recall", "/teach", "/comics", "/learn", "/problems", "/tactics", "/parsons", "/ticket", "/cards", "/notebook", "/comic", "/mission", "/journey", "/gazette", "/blackbox", "/sky", "/world", "/arcade", "/passport", "/create", "/teacher", "/account", "/labs/math", "/labs/ai", "/labs/math/la-1-vectors", "/labs/web/web-10-cache", "/labs/math/ag-4-conics"];
 
 async function serious(page: Page) {
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -72,5 +72,13 @@ test("interactive states are clean too: search open, a focus session, an episode
   await page.getByRole("button", { name: "Боссқа шабуыл ⚔" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await check("boss battle");
+  await page.keyboard.press("Escape");
+
+  await page.goto("/arcade?g=phish");
+  await expect(page.getByRole("article", { name: "Хат" })).toBeVisible();
+  await check("phishing game");
+  await page.goto("/arcade?g=gates");
+  await expect(page.getByRole("group", { name: "Сұлба" })).toBeVisible();
+  await check("gate game");
   expect(faults).toEqual([]);
 });
