@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { optionOrder } from "@/lib/shuffle";
-import type { AnswerResult, QuizView, StepView } from "@inside-tech/lesson-engine";
+import type { AnswerResult, Comic, QuizView, StepView } from "@inside-tech/lesson-engine";
 import { Prose } from "./Prose";
 import { LectureCinema } from "../film/LectureCinema";
 import { Reward } from "../film/Game";
@@ -24,6 +24,8 @@ interface Props {
   onPredict?(option: number): void;
   /** Save the learner's own explanation; false if too short. */
   onExplain?(text: string): boolean;
+  /** A comic that opens this step when the lesson has none of its own (the IT labs). */
+  extraComic?: Comic;
   /** Lets a solution film move the 3D scene (display only). */
   onFilmScene?(patch: Record<string, unknown> | null): void;
   nextLessonHref?: string;
@@ -165,7 +167,7 @@ function Predict({ p, onPredict }: { p: NonNullable<StepView["predict"]>; onPred
   );
 }
 
-export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, onExplain, onFilmScene, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
+export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onRestart, onAnswer, onPredict, onExplain, onFilmScene, extraComic, nextLessonHref, labHref = "/", labId = "ai", celebrate = true }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
   const [cinema, setCinema] = useState(false);
   const [reward, setReward] = useState(false);
@@ -212,7 +214,7 @@ export function LessonPanel({ lessonTitle, step, stepTitles, onNext, onGoTo, onR
         Түсіндірмені 3D-де оқу
       </button>
       {step.predict && <Predict key={step.id} p={step.predict} onPredict={onPredict} />}
-      {step.comic && <ComicStrip comic={step.comic} />}
+      {(step.comic ?? extraComic) && <ComicStrip comic={(step.comic ?? extraComic)!} />}
       <Prose text={step.body} />
       {step.worked && <WorkedBoard key={`${step.id}-worked`} w={step.worked} />}
       {step.contrast && <ContrastBoard key={`${step.id}-contrast`} c={step.contrast} />}

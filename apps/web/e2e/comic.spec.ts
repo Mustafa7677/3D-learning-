@@ -11,7 +11,7 @@ const choose = (page: import("@playwright/test").Page, name: RegExp) => page.get
 test("comic: a wrong turn plays out and comes back, the right path reaches the end, a reload keeps the place", async ({ page }) => {
   await page.goto("/");
   await page.locator("summary", { hasText: "Тағы" }).click();
-  await page.getByRole("link", { name: "Комикс", exact: true }).click();
+  await page.getByRole("link", { name: "Комикс: үш қол алысу", exact: true }).click();
   await expect(page).toHaveURL(/\/comic$/);
   await expect(page.getByRole("heading", { name: "Үш қол алысу", level: 1 })).toBeVisible();
 

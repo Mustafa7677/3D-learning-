@@ -9,6 +9,7 @@ import { LessonPanel } from "./LessonPanel";
 import { PlayerBadge } from "../film/PlayerBadge";
 import { FocusChip } from "../focus/FocusChip";
 import { SearchButton } from "../nav/SearchButton";
+import { extraComic } from "@/lib/comicLibrary";
 import { StageFrame } from "./StageFrame";
 import styles from "./lab.module.css";
 
@@ -65,6 +66,7 @@ export function LabShell({ labId, lesson, nextLessonId, session, stage, controls
               lessonTitle={`${lesson.order}-сабақ · ${lesson.title}`}
               step={step}
               stepTitles={lesson.steps.map((s) => s.title)}
+              extraComic={extraComic(lesson.id, step.id, step.comic)}
               onNext={session.next}
               onGoTo={session.goTo}
               onRestart={session.restartStep}
