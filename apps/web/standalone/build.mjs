@@ -14,6 +14,7 @@ const shims = {
   setup(b) {
     b.onResolve({ filter: /^next\/link$/ }, () => ({ path: resolve(here, "shims/link.tsx") }));
     b.onResolve({ filter: /^next\/dynamic$/ }, () => ({ path: resolve(here, "shims/dynamic.tsx") }));
+    b.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: resolve(here, "shims/navigation.ts") }));
     b.onResolve({ filter: /\/spawnWorker$/ }, () => ({ path: resolve(here, "shims/spawnWorker.ts") }));
     b.onResolve({ filter: /^@\// }, (a) => b.resolve("./" + a.path.slice(2), { resolveDir: resolve(root, "src"), kind: a.kind }));
     // Fonts come from Google Fonts in the standalone page.

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { findLab } from "@/lib/catalog";
+import { queryParam } from "@/lib/nav";
 import { optionOrder } from "@/lib/shuffle";
 import { announceXp } from "@/lib/xp";
 import { recordActivity } from "@/lib/activity";
@@ -184,7 +185,7 @@ export function Problems() {
     const now = new Date();
     setToday(now);
     setSave(loadProblems());
-    const asked = new URLSearchParams(window.location.search).get("p");
+    const asked = queryParam("p");
     setCurrent(PROBLEMS.some((p) => p.id === asked) ? asked! : dailyProblem(now).id);
   }, []);
   const daily = today ? dailyProblem(today) : null;

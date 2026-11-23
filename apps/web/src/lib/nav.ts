@@ -8,6 +8,15 @@ export function go(href: string) {
   window.location.assign(href);
 }
 
+/** A query parameter from the URL, or from the hash in the standalone build ("#problems?p=bdp"). */
+export function queryParam(name: string): string | null {
+  if (typeof window === "undefined") return null;
+  const direct = new URLSearchParams(window.location.search).get(name);
+  if (direct !== null) return direct;
+  const q = window.location.hash.split("?")[1];
+  return q ? new URLSearchParams(q).get(name) : null;
+}
+
 /** True when the visitor asked the system for less motion. */
 export function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { solveChallenge } from "@/lib/challenges";
+import { queryParam } from "@/lib/nav";
 import { EPISODES, loadSeen, saveSeen } from "@/lib/learnHow";
 import { ComicStrip } from "../lab/StepMedia";
 import { FilmHeader } from "../film/FilmHeader";
@@ -17,7 +18,7 @@ export function LearnHow() {
   useEffect(() => {
     setSeen(loadSeen());
     // A search result can open one episode: /learn?e=reread
-    const asked = new URLSearchParams(window.location.search).get("e");
+    const asked = queryParam("e");
     const k = EPISODES.findIndex((x) => x.id === asked);
     if (k >= 0) setI(k);
   }, []);
