@@ -166,6 +166,7 @@
   border-color: #f0b54a;
 }
 .searchBtn kbd {
+  white-space: nowrap;
   padding: 1px 5px;
   font: inherit;
   font-size: 11px;

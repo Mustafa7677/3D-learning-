@@ -25,6 +25,7 @@ import { LearnHow } from "../src/components/learn/LearnHow";
 import { ToolsHub } from "../src/components/tools/ToolsHub";
 import { Problems } from "../src/components/problems/Problems";
 import { Tactics } from "../src/components/tactics/Tactics";
+import { Teach } from "../src/components/teach/Teach";
 import { SearchPalette } from "../src/components/nav/SearchPalette";
 import { openLabs } from "../src/lib/catalog";
 import { LessonView } from "../src/components/lab/LessonView";
@@ -56,6 +57,7 @@ const TITLES: Record<string, string> = {
   tools: "Оқу құралдары",
   problems: "Есептер залы",
   tactics: "Тактика алаңы",
+  teach: "Мустафаға түсіндір",
 };
 
 function App() {
@@ -109,6 +111,7 @@ function Page({ route, name }: { route: string; name: string }) {
   if (name === "tools") return <ToolsHub />;
   if (name === "problems") return <Problems key={route} />;
   if (name === "tactics") return <Tactics />;
+  if (name === "teach") return <Teach />;
   if (name === "account") return <AccountPage />;
   if (name === "teacher") return <TeacherPage />;
   if (name === "create" || route.startsWith("import=")) return <CreatorPage />;
