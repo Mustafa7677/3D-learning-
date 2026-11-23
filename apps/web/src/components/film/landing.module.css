@@ -1221,3 +1221,305 @@
 .shelfAll:hover {
   text-decoration: underline;
 }
+
+/* ---------- Act IV: four portals and a quiet index ---------- */
+.shelfLede {
+  max-width: 56ch;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--dim);
+}
+.portals {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  grid-template-areas:
+    "arcade sea"
+    "arcade career"
+    "comic comic";
+  gap: 18px;
+  margin: 32px 0 0;
+  padding: 0;
+}
+.portalArcade {
+  grid-area: arcade;
+}
+.portalSea {
+  grid-area: sea;
+}
+.portalCareer {
+  grid-area: career;
+}
+.portalComic {
+  grid-area: comic;
+}
+.portal {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+  overflow: hidden;
+  color: var(--ice);
+  text-decoration: none;
+  border-radius: 6px;
+  outline-offset: 4px;
+}
+.portal:focus-visible {
+  outline: 3px solid var(--copper);
+}
+.portal > :first-child {
+  transition: transform 0.35s ease;
+}
+.portal:hover > :first-child,
+.portal:focus-visible > :first-child {
+  transform: scale(1.035);
+}
+.portalText {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px 20px;
+}
+.portalText strong {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 700;
+  line-height: 1.1;
+}
+.portalText span {
+  max-width: 52ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+
+/* the arcade: a dark hall with four glowing cabinets */
+.portalArcade .portal {
+  background: radial-gradient(ellipse at 50% 30%, #241a52, #0c0a14 70%);
+  border: 2px solid #3b2d74;
+}
+.portalArcade .portalText strong {
+  color: #fff;
+  text-shadow: 0 0 18px rgb(255 61 127 / 0.6);
+}
+.arcadeArt {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(10px, 2vw, 22px);
+  min-height: 260px;
+  padding: 40px 20px 0;
+  background: linear-gradient(transparent 70%, rgb(255 61 127 / 0.12)), repeating-linear-gradient(90deg, transparent 0 46px, rgb(255 255 255 / 0.03) 46px 48px);
+}
+.arcadeArt span {
+  display: grid;
+  place-items: start center;
+  width: clamp(58px, 7vw, 86px);
+  height: clamp(120px, 15vw, 170px);
+  padding-top: 14px;
+  background: linear-gradient(#1d1838, #120f22);
+  border: 3px solid var(--c);
+  border-bottom-width: 10px;
+  border-radius: 14px 14px 4px 4px;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent);
+}
+.arcadeArt span:nth-child(2),
+.arcadeArt span:nth-child(3) {
+  height: clamp(140px, 18vw, 200px);
+}
+.arcadeArt i {
+  display: grid;
+  place-items: center;
+  width: 78%;
+  aspect-ratio: 1;
+  font-size: clamp(22px, 2.8vw, 34px);
+  font-style: normal;
+  color: #0c0a14;
+  background: var(--c);
+  border-radius: 8px;
+  box-shadow: 0 0 16px var(--c);
+}
+
+/* the archipelago: a sea chart */
+.portalSea .portal {
+  background: #0b2538;
+  border: 2px solid #f3e7c8;
+}
+.seaArt {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* the careers: a crowd of eight faces */
+.portalCareer .portal {
+  background: #121a30;
+  border: 2px solid #2a3458;
+}
+.crowdArt {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 22px 16px 0;
+}
+.crowdArt li {
+  display: grid;
+  justify-items: center;
+  padding-bottom: 8px;
+  background: radial-gradient(ellipse 50% 12% at 50% 96%, var(--c), transparent);
+}
+.crowdArt svg {
+  width: 100%;
+  max-width: 58px;
+  height: auto;
+}
+
+/* the comics: a printed panel */
+.portalComic .portal {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-rows: auto;
+  align-items: center;
+  color: #1d1712;
+  background: #fbf3dc;
+  border: 4px solid #1d1712;
+  box-shadow: 8px 8px 0 #ffd23d;
+}
+.portalComic .portalText span {
+  color: #4b4032;
+}
+.comicArt {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  min-height: 190px;
+  padding: 22px;
+  overflow: hidden;
+  border-right: 4px solid #1d1712;
+}
+.comicBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.comicActor {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(4px 5px 0 rgb(29 23 18 / 0.35));
+}
+.comicBubble {
+  position: relative;
+  align-self: flex-start;
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1712;
+  background: #fff;
+  border: 3px solid #1d1712;
+  border-radius: 16px;
+}
+
+/* the index */
+.indexHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 56px 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(232 237 246 / 0.12);
+}
+.indexHead h3 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 24px;
+}
+.index {
+  columns: 4 240px;
+  column-gap: 32px;
+}
+.indexGroup {
+  break-inside: avoid;
+  margin-bottom: 28px;
+}
+.indexGroup h4 {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--copper);
+}
+.indexGroup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.indexGroup a {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 2px 10px;
+  padding: 9px 0;
+  color: var(--ice);
+  text-decoration: none;
+  border-top: 1px solid rgb(232 237 246 / 0.07);
+}
+.indexGroup a:hover b,
+.indexGroup a:focus-visible b {
+  color: var(--copper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.indexGlyph {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  color: var(--copper);
+  border: 1px solid rgb(221 163 110 / 0.4);
+  border-radius: 50%;
+}
+.indexGroup b {
+  font-size: 15px;
+  font-weight: 600;
+}
+.indexText {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dim);
+}
+
+@media (max-width: 860px) {
+  .portals {
+    grid-template-columns: 1fr;
+    grid-template-areas: "arcade" "sea" "career" "comic";
+  }
+  .arcadeArt {
+    min-height: 200px;
+  }
+  .portalComic .portal {
+    grid-template-columns: 1fr;
+  }
+  .comicArt {
+    border-right: 0;
+    border-bottom: 4px solid #1d1712;
+  }
+}
+@media (max-width: 480px) {
+  .crowdArt {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal > :first-child {
+    transition: none;
+  }
+}

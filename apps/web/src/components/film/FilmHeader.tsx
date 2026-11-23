@@ -18,7 +18,7 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
         <Link href="/" className={styles.brand} aria-label="INSIDE TECH, басты бет">
           INSIDE<span aria-hidden>/</span>TECH
         </Link>
-        <nav aria-label="Негізгі мәзір" className={styles.menu}>
+        <nav aria-label="Негізгі мәзір" className={`${styles.menu} ${lead ? "" : styles.menuPlain}`}>
           {lead ?? (
             <Link href="/" className={styles.menuLink}>
               Зертханалар

@@ -1063,3 +1063,75 @@
     display: none;
   }
 }
+
+/* Phones: the header is one solid row. The default labs link is the tab bar's «Басты»;
+   a page with its own lead (the home film) keeps it as a second row. */
+@media (max-width: 720px) {
+  .header {
+    background: #07080f;
+  }
+  .menuPlain {
+    display: none;
+  }
+}
+
+/* ---- the site map at the end of the home film ---- */
+.siteFooter {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 3fr;
+  gap: 40px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 56px var(--gutter) 120px;
+  border-top: 1px solid rgb(201 162 74 / 0.35);
+}
+.footBrand {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 14px;
+}
+.footBrand p {
+  max-width: 30ch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: #b9ad90;
+}
+.footMap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 28px 24px;
+}
+.footMap h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #f0c86a;
+}
+.footMap ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.footMap a {
+  font-size: 14px;
+  color: #c9cfdf;
+  text-decoration: none;
+}
+.footMap a:hover,
+.footMap a:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 720px) {
+  .siteFooter {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}

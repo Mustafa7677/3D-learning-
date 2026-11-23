@@ -10,7 +10,7 @@ const box = (page: import("@playwright/test").Page, n: number) => page.getByRole
 
 test("cards: flip, knew moves a card up, not knowing brings it back today, the boxes survive a reload", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /Есте сақтау/ }).click();
+  await page.getByRole("region", { name: "Оқу тек сабақ емес." }).getByRole("link", { name: /^Карточкалар/ }).click();
   await expect(page).toHaveURL(/\/cards$/);
   await expect(box(page, 1)).toHaveText("22");
   await expect(page.getByText("Бүгін қалды: 22")).toBeVisible();
@@ -57,7 +57,10 @@ test("cards on a 320px phone, and the shelf on the home page", async ({ browser 
   await expect(page.getByRole("button", { name: /^Білдім/ })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Сабақтан басқа да жол бар." })).toBeAttached();
-  await expect(page.getByRole("region", { name: "Сабақтан басқа да жол бар." }).getByRole("link")).toHaveCount(11);
+  const shelf = page.getByRole("region", { name: "Оқу тек сабақ емес." });
+  await expect(shelf).toBeAttached();
+  // Four portals, the link to the tools page, and the index of the other seventeen tools.
+  for (const name of ["Ойын залы", "IT архипелагы", "Комикс кітапханасы", "Кім боламын?"]) await expect(shelf.getByRole("link", { name: new RegExp(`^${name.replace("?", "\\?")}`) })).toHaveCount(1);
+  await expect(shelf.getByRole("link")).toHaveCount(22);
   await ctx.close();
 });

@@ -12,6 +12,7 @@ import { AiDemo } from "./AiDemo";
 import { Atlas } from "./Atlas";
 import { FilmHeader } from "./FilmHeader";
 import { FormatShelf } from "./FormatShelf";
+import { SiteFooter } from "./SiteFooter";
 import { DailyBanner } from "../problems/DailyBanner";
 import { ContinueCard } from "../nav/ContinueCard";
 import type { ChipBlock, HeroMode } from "./HeroChip";
@@ -194,10 +195,7 @@ export function HomeFilm() {
 
       <ContinueCard />
 
-      <footer className={styles.footer}>
-        <span>INSIDE/TECH</span>
-        <span>Басқалар технологияны түсіндіреді. Біз сені оның ішіне кіргіземіз.</span>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
