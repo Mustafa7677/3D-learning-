@@ -50,3 +50,19 @@ test("film comics: a lesson opens with a film, the library has a film shelf, the
   await expect(reader).toContainText("Ғылыми фантастика");
   await expect(reader.getByRole("article", { name: "1-кадр" })).toContainText("САХНА 1 · 2087 ЖЫЛ · МАРС БАЗАСЫ");
 });
+
+test("living things: illustrated stories where a laptop, a server, a virus talk", async ({ page }) => {
+  await page.goto("/comics?s=stories");
+  await expect(page.getByRole("button", { name: /^Оқу: / })).toHaveCount(6);
+  await page.getByRole("button", { name: "Оқу: Ноуттың бір күні" }).click();
+  const reader = page.getByRole("dialog", { name: "Комикс: Ноуттың бір күні" });
+  const first = reader.getByRole("article", { name: "1-кадр" });
+  await expect(first).toHaveAttribute("data-bg", "room");
+  await expect(first).toHaveAttribute("data-who", "laptop");
+  await expect(first).toContainText("Ноутбук");
+  await expect(first).toContainText("07:30 · МУСТАФАНЫҢ БӨЛМЕСІ");
+  await page.keyboard.press("ArrowRight");
+  await expect(reader.getByRole("article", { name: "2-кадр" }).getByLabel("Сахнада: Ноутбук")).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(reader.getByRole("article", { name: "3-кадр" })).toContainText("Процессор");
+});
