@@ -27,6 +27,7 @@ import { Problems } from "../src/components/problems/Problems";
 import { Tactics } from "../src/components/tactics/Tactics";
 import { Teach } from "../src/components/teach/Teach";
 import { ComicLibrary } from "../src/components/comics/ComicLibrary";
+import { Career } from "../src/components/career/Career";
 import { Arcade } from "../src/components/arcade/Arcade";
 import { World } from "../src/components/world/World";
 import { SearchPalette } from "../src/components/nav/SearchPalette";
@@ -52,6 +53,7 @@ const TITLES: Record<string, string> = {
   sky: "Білім аспаны",
   world: "IT архипелагы",
   arcade: "Ойын залы",
+  career: "Кім боламын?",
   notebook: "Қателер дәптері",
   ticket: "Емтихан билеті",
   parsons: "Ретке келтір",
@@ -106,6 +108,7 @@ function Page({ route, name }: { route: string; name: string }) {
   if (name === "comic") return <Comic />;
   if (name === "cards") return <Cards />;
   if (name === "sky") return <Sky />;
+  if (name === "career") return <Career key={route} />;
   if (name === "arcade") return <Arcade key={route} />;
   if (name === "world") return <World key={route} />;
   if (name === "notebook") return <Notebook />;

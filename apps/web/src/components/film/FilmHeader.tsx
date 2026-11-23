@@ -70,6 +70,7 @@ export function FilmHeader({ lead, badge = true }: { lead?: ReactNode; badge?: b
               <Link href="/parsons">Ретке келтір</Link>
               <Link href="/ticket">Емтихан билеті</Link>
               <p className={styles.menuGroup}>Зерттеу</p>
+              <Link href="/career">Кім боламын?</Link>
               <Link href="/arcade">Ойын залы</Link>
               <Link href="/world">Аралдар әлемі</Link>
               <Link href="/mission">Миссия</Link>

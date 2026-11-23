@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /** Every page, on a desktop and a phone: no script errors, no sideways scroll, no serious accessibility faults. */
-const ROUTES = ["/", "/today", "/tools", "/focus", "/recall", "/teach", "/comics", "/learn", "/problems", "/tactics", "/parsons", "/ticket", "/cards", "/notebook", "/comic", "/mission", "/journey", "/gazette", "/blackbox", "/sky", "/world", "/arcade", "/passport", "/create", "/teacher", "/account", "/labs/math", "/labs/ai", "/labs/math/la-1-vectors", "/labs/web/web-10-cache", "/labs/math/ag-4-conics"];
+const ROUTES = ["/", "/today", "/tools", "/focus", "/recall", "/teach", "/comics", "/learn", "/problems", "/tactics", "/parsons", "/ticket", "/cards", "/notebook", "/comic", "/mission", "/journey", "/gazette", "/blackbox", "/sky", "/world", "/arcade", "/career", "/passport", "/create", "/teacher", "/account", "/labs/math", "/labs/ai", "/labs/math/la-1-vectors", "/labs/web/web-10-cache", "/labs/math/ag-4-conics"];
 
 async function serious(page: Page) {
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
