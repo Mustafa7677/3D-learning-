@@ -8,7 +8,12 @@
  * None of them is graded; they prepare the experiment and the quiz.
  */
 
-export type Character = "nuray" | "mustafa" | "ustaz" | "narrator";
+export type Character = "nuray" | "mustafa" | "ustaz" | "narrator" | Gadget;
+/** Things that come alive in the stories: they talk, worry and explain. */
+export type Gadget = "laptop" | "computer" | "server" | "cpu" | "packet" | "robot" | "phone" | "virus";
+export const GADGETS: Gadget[] = ["laptop", "computer", "server", "cpu", "packet", "robot", "phone", "virus"];
+/** An illustrated place behind a panel. */
+export type Backdrop = "room" | "server-room" | "circuit" | "city" | "space" | "classroom" | "night";
 export type Mood = "think" | "wow" | "confused" | "smile" | "explain";
 
 export interface ComicPanel {
@@ -21,6 +26,10 @@ export interface ComicPanel {
   scene?: string;
   /** A sound effect drawn big over the panel ("ДЫҢ!"). */
   sfx?: string;
+  /** The place drawn behind the panel. */
+  bg?: Backdrop;
+  /** Other characters standing in the scene, silent. */
+  with?: Character[];
 }
 
 export interface Comic {
@@ -54,7 +63,20 @@ export interface ErrorHunt {
   fix: string;
 }
 
-export const CHARACTER_NAME: Record<Character, string> = { nuray: "Нұрай", mustafa: "Мустафа", ustaz: "Ұстаз", narrator: "" };
+export const CHARACTER_NAME: Record<Character, string> = {
+  nuray: "Нұрай",
+  mustafa: "Мустафа",
+  ustaz: "Ұстаз",
+  narrator: "",
+  laptop: "Ноутбук",
+  computer: "Компьютер",
+  server: "Сервер",
+  cpu: "Процессор",
+  packet: "Пакет",
+  robot: "Робот",
+  phone: "Телефон",
+  virus: "Вирус",
+};
 
 /**
  * A solution film: the solving of one problem played like a video. Each

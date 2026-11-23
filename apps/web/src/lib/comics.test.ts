@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { LAB_COMICS } from "./comics";
 import { FILM_COMICS } from "./films";
+import { STORIES } from "./stories";
+import { GADGETS } from "@inside-tech/lesson-engine";
 import { comicShelf, extraComic } from "./comicLibrary";
 import { lessonEntries } from "./lessons";
 
@@ -39,7 +41,7 @@ describe("comics for the IT labs", () => {
     expect(new Set(shelf.map((x) => x.id)).size).toBe(shelf.length);
     expect(shelf.filter((x) => x.shelf === "learn")).toHaveLength(7);
     expect(shelf.length).toBeGreaterThanOrEqual(40);
-    expect(new Set(shelf.map((x) => x.shelf)).size).toBe(12);
+    expect(new Set(shelf.map((x) => x.shelf)).size).toBe(13);
   });
 });
 
@@ -67,6 +69,28 @@ describe("film comics", () => {
   });
 
   it("films are on the shelf", () => {
-    expect(comicShelf().filter((c) => c.comic.genre)).toHaveLength(10);
+    expect(comicShelf().filter((c) => c.comic.genre && c.shelf !== "stories")).toHaveLength(10);
+  });
+});
+
+describe("living things", () => {
+  it("every story is drawn: a place on every panel, a gadget that speaks, a real lesson", () => {
+    expect(STORIES.length).toBeGreaterThanOrEqual(6);
+    for (const st of STORIES) {
+      const e = lessonEntries.find((x) => x.lesson.id === st.lessonId && x.labId === st.labId);
+      expect(e, st.id).toBeDefined();
+      expect(st.comic.panels.length, st.id).toBeGreaterThanOrEqual(7);
+      expect(st.comic.panels.every((p) => p.bg), st.id).toBe(true);
+      expect(st.comic.panels.some((p) => (GADGETS as string[]).includes(p.who)), st.id).toBe(true);
+      expect(st.comic.panels.some((p) => p.board), st.id).toBe(true);
+      expect(/[–—]/.test(JSON.stringify(st.comic)), st.id).toBe(false);
+    }
+  });
+
+  it("the whole cast and every place appear", () => {
+    const who = new Set(STORIES.flatMap((s) => s.comic.panels.flatMap((p) => [p.who, ...(p.with ?? [])])));
+    for (const g of GADGETS) expect(who.has(g), g).toBe(true);
+    const places = new Set(STORIES.flatMap((s) => s.comic.panels.map((p) => p.bg)));
+    expect(places.size).toBe(7);
   });
 });

@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CHARACTER_NAME, type Character, type Comic, type Contrast, type ErrorHunt, type Mood, type WorkedExample } from "@inside-tech/lesson-engine";
+import { CHARACTER_NAME, GADGETS, type Character, type Comic, type Contrast, type ErrorHunt, type Gadget, type Mood, type WorkedExample } from "@inside-tech/lesson-engine";
+import { BackdropArt, GadgetFace } from "./Cast";
 import { optionOrder } from "@/lib/shuffle";
 import styles from "./media.module.css";
 
 // ---------------- characters ----------------
 
-const SKIN: Record<Character, string> = { nuray: "#f1c7a1", mustafa: "#d9a77c", ustaz: "#eac09a", narrator: "#ccc" };
+const SKIN: Partial<Record<Character, string>> = { nuray: "#f1c7a1", mustafa: "#d9a77c", ustaz: "#eac09a", narrator: "#ccc" };
 
 function Mouth({ mood }: { mood: Mood }) {
   if (mood === "wow") return <ellipse cx="30" cy="42" rx="3.4" ry="4.2" fill="#5a1f1a" />;
@@ -25,6 +26,7 @@ function Brows({ mood }: { mood: Mood }) {
 }
 
 export function Face({ who, mood = "smile" }: { who: Character; mood?: Mood }) {
+  if ((GADGETS as Character[]).includes(who)) return <GadgetFace who={who as Gadget} mood={mood} className={styles.face} />;
   return (
     <svg viewBox="0 0 60 60" className={styles.face} aria-hidden>
       {who === "nuray" && <path d="M10 34 Q8 6 30 6 Q52 6 50 34 L52 56 L44 50 L44 30 L16 30 L16 50 L8 56 Z" fill="#2b1d17" />}
@@ -76,6 +78,7 @@ export function ComicStrip({ comic }: { comic: Comic }) {
       <ol className={styles.panels}>
         {comic.panels.map((p, i) => (
           <li key={i} className={styles.panel} data-who={p.who} data-side={p.who === "mustafa" ? "right" : "left"} data-scene={p.scene ? "" : undefined}>
+            {p.bg && <BackdropArt kind={p.bg} className={styles.backdrop} />}
             {p.scene && <p className={styles.slate}>{p.scene}</p>}
             {p.sfx && (
               <span className={styles.sfx} aria-hidden>

@@ -7,6 +7,7 @@ import { LAB_COMICS } from "./comics";
 import { FILM_COMICS } from "./films";
 import { EPISODES } from "./learnHow";
 import { lessonEntries } from "./lessons";
+import { STORIES } from "./stories";
 
 /** Opening comics of the IT labs: everyday situations (lessons 1 and 2) and films (lesson 3). */
 const OPENERS = { ...LAB_COMICS, ...FILM_COMICS };
@@ -32,6 +33,10 @@ export function comicShelf(): ShelfComic[] {
     });
     const extra = OPENERS[e.lesson.id];
     if (extra && !e.lesson.steps.find((s) => s.id === extra.step)?.comic) out.push({ id: `${e.lesson.id}:${extra.step}`, comic: extra.comic, shelf: e.labId, href: `/labs/${e.labId}/${e.lesson.id}`, where: `${e.lesson.order}-сабақ: ${e.lesson.title}` });
+  }
+  for (const st of STORIES) {
+    const e = lessonEntries.find((x) => x.lesson.id === st.lessonId);
+    out.push({ id: `story:${st.id}`, comic: st.comic, shelf: "stories", href: `/labs/${st.labId}/${st.lessonId}`, where: `Тірі заттар · ${e ? `${e.lesson.order}-сабақ: ${e.lesson.title}` : st.lessonId}` });
   }
   for (const ep of EPISODES) out.push({ id: `learn:${ep.id}`, comic: ep.comic, shelf: "learn", href: `/learn?e=${ep.id}`, where: `Қалай оқу керек? · «${ep.claim}»` });
   cache = out;
